@@ -2795,58 +2795,69 @@
         // FONCTIONS SUPABASE
         // ============================================================
         async function loadAllData() {
-            try {
-                showLoading(true);
+    try {
+        showLoading(true);
 
-                const { data: settingsData, error: settingsError } = await supabaseClient
-                    .from('settings')
-                    .select('phone_number')
-                    .limit(1);
+        // ... chargement des paramètres ...
 
-                if (!settingsError && settingsData && settingsData.length > 0) {
-                    DATA.phoneNumber = settingsData[0].phone_number || DATA.phoneNumber;
-                }
+        const tables = [
+            { key: 'ticker', table: 'ticker' },
+            { key: 'texts', table: 'texts' },
+            { key: 'offres', table: 'offres' },
+            { key: 'produits', table: 'produits' },
+            { key: 'arbres', table: 'arbres' },
+            { key: 'betail', table: 'betail' },
+            { key: 'eau', table: 'eau' },
+            { key: 'sagia', table: 'sagia' },
+            { key: 'gallery', table: 'gallery' },
+            { key: 'videos', table: 'videos' },
+            { key: 'documentsAdmin', table: 'documents_admin' }
+        ];
 
-                const tables = [
-                    { key: 'ticker', table: 'ticker' },
-                    { key: 'texts', table: 'texts' },
-                    { key: 'offres', table: 'offres' },
-                    { key: 'produits', table: 'produits' },
-                    { key: 'arbres', table: 'arbres' },
-                    { key: 'betail', table: 'betail' },
-                    { key: 'eau', table: 'eau' },
-                    { key: 'sagia', table: 'sagia' },
-                    { key: 'gallery', table: 'gallery' },
-                    { key: 'videos', table: 'videos' },
-                    { key: 'documentsAdmin', table: 'documents_admin' }
-                ];
+        for (const { key, table } of tables) {
+            const { data, error } = await supabaseClient
+                .from(table)
+                .select('*')
+                .order('id', { ascending: true });
 
-                for (const { key, table } of tables) {
-                    const { data, error } = await supabaseClient
-                        .from(table)
-                        .select('*')
-                        .order('id', { ascending: true });
+            if (error) {
+                console.warn(`⚠️ Erreur chargement ${table}:`, error);
+                continue;
+            }
 
-                    if (error) {
-                        console.warn('⚠️ Erreur chargement ${table}:', error);
-                        continue;
-                    }
+            DATA[key] = data && data.length > 0 ? data : [];
+            console.log(`✅ ${table}: ${DATA[key].length} éléments`);
+        }
 
-                    DATA[key] = data && data.length > 0 ? data : [];
-                }
+        // Vérification et rechargement forcé de la galerie
+        if (DATA.gallery.length === 0) {
+            console.log('⚠️ Gallery vide, rechargement forcé...');
+            const { data, error } = await supabaseClient
+                .from('gallery')
+                .select('*')
+                .order('id', { ascending: false });
 
-                await loadMeteo();
-
-                console.log('✅ Données chargées depuis Supabase');
-                renderAll();
-                showLoading(false);
-
-            } catch (error) {
-                console.error('❌ Erreur chargement des données:', error);
-                showAlert('Erreur de chargement des données', 'error');
-                showLoading(false);
+            if (!error && data) {
+                DATA.gallery = data;
+                console.log('✅ Gallery rechargée avec succès:', DATA.gallery.length, 'éléments');
+            } else if (error) {
+                console.error('❌ Erreur rechargement gallery:', error);
             }
         }
+        // ⬆️⬆️⬆️ FIN DE L'AJOUT ⬆️⬆️⬆️
+
+        await loadMeteo();
+
+        console.log('✅ Données chargées depuis Supabase');
+        renderAll();
+        showLoading(false);
+
+    } catch (error) {
+        console.error('❌ Erreur chargement des données:', error);
+        showAlert('Erreur de chargement des données', 'error');
+        showLoading(false);
+    }
+}
 
         async function saveToSupabase(table, data, id = null) {
             try {
@@ -3237,73 +3248,122 @@
         }
 
         function renderGallery() {
-            var container = document.getElementById('galleryList');
-            if (!container) return;
-            var items = DATA.gallery || [];
-            if (items.length === 0) {
-                container.innerHTML = '<div class="no-content">Aucune image</div>';
-                return;
-            }
-            container.innerHTML = items.map(function(item) {
+    console.log('🖼️ renderGallery appelée');
+    
+    // Dashboard (galleryList)
+    var dashboardContainer = document.getElementById('galleryList');
+    if (dashboardContainer) {
+        var items = DATA.gallery || [];
+        if (items.length === 0) {
+            dashboardContainer.innerHTML = '<div class="no-content">Aucune image</div>';
+        } else {
+            dashboardContainer.innerHTML = items.map(function(item) {
+                var imageUrl = item.url || '';
+                var title = item.title || 'Image';
+                var date = item.date ? new Date(item.date).toLocaleDateString('fr-FR') : '';
+                var isVideo = imageUrl && (imageUrl.endsWith('.mp4') || imageUrl.endsWith('.webm') || imageUrl.endsWith('.ogg'));
+                var isPdf = imageUrl && imageUrl.endsWith('.pdf');
+                var type = isVideo ? 'video' : isPdf ? 'pdf' : 'image';
+                var icon = isVideo ? 'fa-video' : isPdf ? 'fa-file-pdf' : 'fa-image';
+                var color = isVideo ? 'var(--primary)' : isPdf ? '#e74c3c' : 'var(--primary)';
+                
                 return '<div class="dashboard-item">' +
-                    '<div class="item-icon"><i class="fas fa-image"></i></div>' +
-                    '<div class="item-info"><h4>' + (item.title || 'Image') + '</h4><small>' + new Date(item.date).toLocaleDateString() + '</small></div>' +
-                    '<button class="btn-action view" onclick="viewMedia(\'' + item.url + '\', \'image\')"><i class="fas fa-eye"></i></button>' +
-                    '<button class="btn-action delete" onclick="deleteGallery(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
+                    '<div class="item-icon" style="color:' + color + ';"><i class="fas ' + icon + '"></i></div>' +
+                    '<div class="item-info"><h4>' + title + '</h4><small>' + date + '</small></div>' +
+                    '<button class="btn-action view" onclick="viewMedia(\'' + imageUrl + '\', \'' + type + '\')"><i class="fas fa-eye"></i></button>' +
+                    '<button class="btn-action delete" onclick="deleteGalleryItem(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
                     '</div>';
             }).join('');
         }
+    }
 
-        function renderVideos() {
-            var container = document.getElementById('videosList');
-            if (!container) return;
-            var items = DATA.videos || [];
-            if (items.length === 0) {
-                container.innerHTML = '<div class="no-content">Aucune vidéo</div>';
-                return;
+async function deleteGalleryItem(id) {
+    if (!confirm('Supprimer ce fichier ?')) return;
+
+    var item = DATA.gallery.find(i => i.id === id);
+    if (!item) {
+        showAlert('Fichier non trouvé', 'error');
+        return;
+    }
+
+    try {
+        showLoading(true);
+
+        // Supprimer du storage
+        var fileName = item.file_name || item.url.split('/').pop();
+        if (fileName) {
+            const { error: storageError } = await supabaseClient.storage
+                .from('medias')
+                .remove([fileName]);
+
+            if (storageError) {
+                console.warn('Erreur suppression storage:', storageError);
             }
-            container.innerHTML = items.map(function(item) {
-                return '<div class="dashboard-item">' +
-                    '<div class="item-icon"><i class="fas fa-video"></i></div>' +
-                    '<div class="item-info"><h4>' + (item.title || 'Vidéo') + '</h4><small>' + new Date(item.date).toLocaleDateString() + '</small></div>' +
-                    '<button class="btn-action view" onclick="viewMedia(\'' + item.url + '\', \'video\')"><i class="fas fa-eye"></i></button>' +
-                    '<button class="btn-action delete" onclick="deleteVideo(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
-                    '</div>';
-            }).join('');
         }
 
-        function renderDashboardLists() {
-            renderGallery();
-            renderVideos();
-            renderTexts();
-            renderTickerList();
-            renderOffres();
-            renderProduits();
-            renderArbres();
-            renderBetail();
-            renderEau();
-            renderSagia();
-        }
+        // Supprimer de la base
+        const { error } = await supabaseClient
+            .from('gallery')
+            .delete()
+            .eq('id', id);
 
-        function renderTickerList() {
-            var container = document.getElementById('tickerList');
-            if (!container) return;
-            var items = DATA.ticker || [];
-            if (items.length === 0) {
-                container.innerHTML = '<div class="no-content">Aucune annonce</div>';
-                return;
+        if (error) throw error;
+
+        showAlert('✅ Fichier supprimé avec succès', 'success');
+        await loadAllData();
+        showLoading(false);
+    } catch (error) {
+        console.error('Erreur suppression:', error);
+        showAlert('❌ Erreur: ' + error.message, 'error');
+        showLoading(false);
+    }
+}
+    
+    // Galerie publique (galleryContainer)
+    var publicContainer = document.getElementById('galleryContainer');
+    if (publicContainer) {
+        var items = DATA.gallery || [];
+        
+        if (items.length === 0) {
+            publicContainer.innerHTML = '<div style="padding:40px;text-align:center;color:#888;">Aucune image dans la galerie</div>';
+            return;
+        }
+        
+        var html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px;padding:10px;">';
+        
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var imageUrl = item.url || '';
+            var title = item.title || 'Image ' + (i + 1);
+            var date = item.date ? new Date(item.date).toLocaleDateString('fr-FR') : '';
+            var isVideo = imageUrl && (imageUrl.endsWith('.mp4') || imageUrl.endsWith('.webm') || imageUrl.endsWith('.ogg'));
+            var isPdf = imageUrl && imageUrl.endsWith('.pdf');
+            var type = isVideo ? 'video' : isPdf ? 'pdf' : 'image';
+            
+            if (isVideo) {
+                html += '<div style="border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.15);background:#000;cursor:pointer;position:relative;height:220px;display:flex;align-items:center;justify-content:center;" onclick="viewMedia(\'' + imageUrl + '\', \'video\')">';
+                html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:4rem;color:white;opacity:0.9;">▶️</div>';
+                html += '<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.7);color:white;padding:10px;text-align:center;font-size:0.85rem;">🎬 ' + title + '</div>';
+                html += '</div>';
+            } else if (isPdf) {
+                html += '<div style="border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.15);background:#f8f9fa;cursor:pointer;height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;" onclick="viewMedia(\'' + imageUrl + '\', \'pdf\')">';
+                html += '<i class="fas fa-file-pdf" style="font-size:4rem;color:#e74c3c;"></i>';
+                html += '<div style="margin-top:10px;font-weight:500;text-align:center;font-size:0.85rem;">📄 ' + title + '</div>';
+                html += '</div>';
+            } else {
+                html += '<div style="border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.15);background:white;cursor:pointer;transition:transform 0.2s;" onclick="viewMedia(\'' + imageUrl + '\', \'image\')" onmouseover="this.style.transform=\'scale(1.02)\';" onmouseout="this.style.transform=\'scale(1)\';">';
+                html += '<img src="' + imageUrl + '" alt="' + title + '" style="width:100%;height:200px;object-fit:cover;display:block;" onerror="this.style.display=\'none\';this.parentElement.style.background=\'#f5f5f5\';this.parentElement.innerHTML=\'<div style=\\\'height:200px;display:flex;align-items:center;justify-content:center;color:#ccc;\\\'><i class=\\\'fas fa-image\\\' style=\\\'font-size:3rem;\\\'></i></div>\';">';
+                html += '<div style="padding:10px;text-align:center;font-size:0.85rem;font-weight:500;">' + title + '</div>';
+                html += '<div style="padding:0 10px 10px;text-align:center;font-size:0.7rem;color:#888;">' + date + '</div>';
+                html += '</div>';
             }
-            container.innerHTML = items.map(function(item) {
-                var text = getLocalized(item.text) || item.text || '';
-                return '<div class="dashboard-item">' +
-                    '<div class="item-icon"><i class="fas ' + (item.icon || 'fa-scroll') + '"></i></div>' +
-                    '<div class="item-info"><h4>' + text.substring(0, 50) + (text.length > 50 ? '...' : '') + '</h4></div>' +
-                    '<button class="btn-action edit" onclick="editTicker(' + item.id + ')"><i class="fas fa-edit"></i></button>' +
-                    '<button class="btn-action delete" onclick="deleteTicker(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
-                    '</div>';
-            }).join('');
         }
-
+        
+        html += '</div>';
+        publicContainer.innerHTML = html;
+        console.log('✅ Galerie publique rendue avec', items.length, 'fichiers');
+    }
+}
         function renderDocumentsAdmin() {
             var grid = document.getElementById('documentsAdminGrid');
             if (grid) {
