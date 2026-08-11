@@ -1887,6 +1887,7 @@
                     <li><a href="#" data-section="betail" onclick="showDashboardSection('betail')"><i class="fas fa-horse"></i> <span id="sidebarBetailText">Bétails</span></a></li>
                     <li><a href="#" data-section="eau" onclick="showDashboardSection('eau')"><i class="fas fa-tint"></i> <span id="sidebarEauText">Eau</span></a></li>
                     <li><a href="#" data-section="sagia" onclick="showDashboardSection('sagia')"><i class="fas fa-list"></i> <span id="sidebarSagiaText">SAGIA</span></a></li>
+					<li><a href="#" data-section="conseil" onclick="showDashboardSection('conseil')"><i class="fas fa-users-cog"></i> <span id="sidebarConseilText">Conseil</span></a></li>
                     <li><a href="#" data-section="documents-admin" onclick="showDashboardSection('documents-admin')"><i class="fas fa-file-pdf"></i> <span id="sidebarDocumentsAdminText">📄 Docs Admin</span></a></li>
 <li><a href="#" data-section="admins" onclick="showDashboardSection('admins')"><i class="fas fa-user-shield"></i> <span id="sidebarAdminsText">👥 Gestion des Admins</span></a></li>
                 </ul>
@@ -2040,9 +2041,22 @@
                     </div>
                 </div>
 
+                <!-- ⬇️⬇️⬇️ AJOUTEZ ICI ⬇️⬇️⬇️ -->
+                <!-- Gestion Conseil -->
+                <div id="conseilDashboard" class="dashboard-section-content">
+                    <h2><i class="fas fa-users-cog"></i> <span id="conseilDashboardTitle">Gestion du conseil d'administration</span></h2>
+                    <p style="color:#666;margin-bottom:15px;">Composition du bureau et des membres du conseil d'administration</p>
+                    <div class="section-actions">
+                        <button class="btn-import" onclick="showConseilModal()"><i class="fas fa-plus"></i> <span id="conseilAddBtn">Ajouter un membre</span></button>
+                    </div>
+                    <div class="items-grid" id="conseilList">
+                        <div class="loading"><i class="fas fa-spinner"></i> Chargement...</div>
+                    </div>
+                </div>
+                <!-- ⬆️⬆️⬆️ FIN AJOUT ⬆️⬆️⬆️ -->
+
                 <!-- Gestion Documents Admin -->
-                <!-- Gestion Documents Admin -->
-<div id="documents-adminDashboard" class="dashboard-section-content">
+                <div id="documents-adminDashboard" class="dashboard-section-content">
     <h2><i class="fas fa-file-pdf"></i> Gestion des documents admin</h2>
     <div class="section-actions">
         <button class="btn-import" onclick="showDocumentAdminModal()"><i class="fas fa-plus"></i> Ajouter un document</button>
@@ -2536,6 +2550,66 @@
             </div>
         </div>
     </div>
+	
+	
+    <!-- MODALE CONSEIL -->
+    <div class="modal-overlay" id="conseilModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-user-tie"></i> <span id="conseilModalTitle">Ajouter un membre</span></h3>
+                <button class="close-modal" onclick="closeConseilModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label id="conseilNomLabel">Nom *</label>
+                        <input type="text" id="conseilNomInput" placeholder="Nom" />
+                    </div>
+                    <div class="form-group">
+                        <label id="conseilPrenomLabel">Prénom</label>
+                        <input type="text" id="conseilPrenomInput" placeholder="Prénom" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label id="conseilFonctionLabel">Fonction *</label>
+                    <input type="text" id="conseilFonctionInput" placeholder="Ex: Président, Vice-Président..." />
+                </div>
+                <div class="form-group">
+                    <label id="conseilDescriptionLabel">Description</label>
+                    <textarea id="conseilDescriptionInput" placeholder="Description du rôle..." rows="2"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label id="conseilEmailLabel">Email</label>
+                        <input type="email" id="conseilEmailInput" placeholder="email@exemple.com" />
+                    </div>
+                    <div class="form-group">
+                        <label id="conseilTelephoneLabel">Téléphone</label>
+                        <input type="text" id="conseilTelephoneInput" placeholder="06 12 34 56 78" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label id="conseilPhotoLabel">URL de la photo</label>
+                    <input type="text" id="conseilPhotoInput" placeholder="https://exemple.com/photo.jpg" />
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label id="conseilOrdreLabel">Ordre d'affichage</label>
+                        <input type="number" id="conseilOrdreInput" value="0" min="0" />
+                    </div>
+                    <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:20px;">
+                        <label id="conseilActifLabel">Actif</label>
+                        <input type="checkbox" id="conseilActifInput" checked style="width:auto;" />
+                    </div>
+                </div>
+                <div class="upload-actions">
+                    <button class="btn-browse danger" onclick="closeConseilModal()"><i class="fas fa-times"></i> Annuler</button>
+                    <button class="btn-browse success" onclick="saveConseil()"><i class="fas fa-save"></i> Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ⬆️⬆️⬆️ FIN MODALE CONSEIL ⬆️⬆️⬆️ -->
 <!-- MODALE ADMIN -->
 <div class="modal-overlay" id="adminModal">
     <div class="modal">
@@ -2848,6 +2922,251 @@
             updatePhoneDisplay();
             renderTicker();
             renderAll();
+// ============================================================
+// CRUD - CONSEIL DE L'ASSOCIATION
+// ============================================================
+
+var conseilData = [];
+var currentConseilEditId = null;
+
+async function loadConseil() {
+    try {
+        console.log('📥 Chargement du conseil...');
+        const { data, error } = await supabaseClient
+            .from('conseil')
+            .select('*')
+            .order('ordre_affichage', { ascending: true });
+
+        if (error) {
+            console.warn('⚠️ Erreur chargement conseil:', error);
+            return;
+        }
+
+        conseilData = data || [];
+        console.log('✅ Conseil chargé:', conseilData.length, 'membres');
+        renderConseil(conseilData);
+        renderConseilDashboard(conseilData);
+        return conseilData;
+    } catch (error) {
+        console.error('❌ Erreur chargement conseil:', error);
+    }
+}
+
+function renderConseil(membres) {
+    var grid = document.getElementById('conseilGrid');
+    if (!grid) {
+        console.warn('⚠️ Element #conseilGrid non trouvé');
+        return;
+    }
+
+    if (!membres || membres.length === 0) {
+        grid.innerHTML = '<div class="no-content">Aucun membre du conseil</div>';
+        return;
+    }
+
+    var actifs = membres.filter(m => m.actif !== false);
+
+    var html = actifs.map(function(membre) {
+        var photo = membre.photo_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent((membre.prenom || '') + '+' + membre.nom) + '&background=1a6d2c&color=fff&size=100';
+        
+        var fonctionClass = 'badge-purple';
+        if (membre.fonction) {
+            var f = membre.fonction.toLowerCase();
+            if (f.includes('président') || f.includes('president')) fonctionClass = 'badge-gold';
+            else if (f.includes('vice')) fonctionClass = 'badge-teal';
+            else if (f.includes('secrétaire') || f.includes('secretaire')) fonctionClass = 'badge-green';
+            else if (f.includes('trésorier') || f.includes('tresorier')) fonctionClass = 'badge-orange';
+        }
+        
+        var emailHtml = membre.email ? '<p style="font-size:0.8rem;color:#666;margin:5px 0;"><i class="fas fa-envelope"></i> ' + membre.email + '</p>' : '';
+        var phoneHtml = membre.telephone ? '<p style="font-size:0.8rem;color:#666;margin:5px 0;"><i class="fas fa-phone"></i> ' + membre.telephone + '</p>' : '';
+        var descriptionHtml = membre.description ? '<p style="color:#666;font-size:0.85rem;margin-top:8px;">' + membre.description + '</p>' : '';
+        
+        return '<div class="conseil-card" style="background:white;border-radius:15px;padding:20px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.1);transition:transform 0.3s;border-top:5px solid var(--primary);" onmouseover="this.style.transform=\'translateY(-5px)\';" onmouseout="this.style.transform=\'translateY(0)\';">' +
+            '<div style="width:100px;height:100px;border-radius:50%;margin:0 auto 15px;overflow:hidden;border:4px solid var(--primary);">' +
+                '<img src="' + photo + '" alt="' + (membre.prenom || '') + ' ' + membre.nom + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.src=\'https://ui-avatars.com/api/?name=' + encodeURIComponent((membre.prenom || '') + '+' + membre.nom) + '&background=1a6d2c&color=fff&size=100\';">' +
+            '</div>' +
+            '<h3 style="color:var(--dark);margin-bottom:5px;font-size:1.1rem;">' + (membre.prenom || '') + ' ' + membre.nom + '</h3>' +
+            '<p style="color:var(--primary);font-weight:600;font-size:0.9rem;">' + (membre.fonction || 'Membre') + '</p>' +
+            descriptionHtml +
+            emailHtml +
+            phoneHtml +
+            '<span class="badge ' + fonctionClass + '" style="margin-top:10px;display:inline-block;">' + (membre.fonction || 'Membre') + '</span>' +
+            (DATA.isAdmin ? '<div style="margin-top:10px;"><button class="btn-action edit" onclick="editConseil(' + membre.id + ')"><i class="fas fa-edit"></i></button> <button class="btn-action delete" onclick="deleteConseil(' + membre.id + ')"><i class="fas fa-trash"></i></button></div>' : '') +
+            '</div>';
+    }).join('');
+
+    grid.innerHTML = html;
+}
+
+function renderConseilDashboard(membres) {
+    var list = document.getElementById('conseilList');
+    if (!list) {
+        console.warn('⚠️ Element #conseilList non trouvé');
+        return;
+    }
+
+    if (!membres || membres.length === 0) {
+        list.innerHTML = '<div class="no-content">Aucun membre du conseil</div>';
+        return;
+    }
+
+    list.innerHTML = membres.map(function(item) {
+        var nomComplet = (item.prenom || '') + ' ' + item.nom;
+        var statusIcon = item.actif !== false ? ' ✅' : ' ❌';
+        return '<div class="dashboard-item">' +
+            '<div class="item-icon"><i class="fas fa-user-tie"></i></div>' +
+            '<div class="item-info"><h4>' + nomComplet + '</h4><small>' + (item.fonction || 'Membre') + statusIcon + '</small></div>' +
+            '<button class="btn-action edit" onclick="editConseil(' + item.id + ')"><i class="fas fa-edit"></i></button>' +
+            '<button class="btn-action delete" onclick="deleteConseil(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
+            '</div>';
+    }).join('');
+}
+
+function showConseilModal(data) {
+    console.log('📝 Ouverture modale conseil', data);
+    currentConseilEditId = data ? data.id : null;
+
+    var titleEl = document.getElementById('conseilModalTitle');
+    if (titleEl) {
+        titleEl.textContent = data ? 'Modifier un membre' : 'Ajouter un membre';
+    }
+
+    document.getElementById('conseilNomInput').value = data ? (data.nom || '') : '';
+    document.getElementById('conseilPrenomInput').value = data ? (data.prenom || '') : '';
+    document.getElementById('conseilFonctionInput').value = data ? (data.fonction || '') : '';
+    document.getElementById('conseilDescriptionInput').value = data ? (data.description || '') : '';
+    document.getElementById('conseilPhotoInput').value = data ? (data.photo_url || '') : '';
+    document.getElementById('conseilEmailInput').value = data ? (data.email || '') : '';
+    document.getElementById('conseilTelephoneInput').value = data ? (data.telephone || '') : '';
+    document.getElementById('conseilOrdreInput').value = data ? (data.ordre_affichage || 0) : 0;
+    document.getElementById('conseilActifInput').checked = data ? (data.actif !== false) : true;
+
+    var modal = document.getElementById('conseilModal');
+    if (modal) {
+        modal.classList.add('active');
+    } else {
+        console.error('❌ Modale #conseilModal non trouvée');
+        showAlert('Erreur: Modale du conseil non trouvée', 'error');
+    }
+}
+
+function closeConseilModal() {
+    var modal = document.getElementById('conseilModal');
+    if (modal) modal.classList.remove('active');
+    currentConseilEditId = null;
+}
+
+async function saveConseil() {
+    console.log('💾 Sauvegarde du membre du conseil');
+    
+    var nom = document.getElementById('conseilNomInput').value.trim();
+    var prenom = document.getElementById('conseilPrenomInput').value.trim();
+    var fonction = document.getElementById('conseilFonctionInput').value.trim();
+    var description = document.getElementById('conseilDescriptionInput').value.trim();
+    var photo_url = document.getElementById('conseilPhotoInput').value.trim();
+    var email = document.getElementById('conseilEmailInput').value.trim();
+    var telephone = document.getElementById('conseilTelephoneInput').value.trim();
+    var ordre_affichage = parseInt(document.getElementById('conseilOrdreInput').value) || 0;
+    var actif = document.getElementById('conseilActifInput').checked;
+
+    if (!nom || !fonction) {
+        showAlert('Veuillez remplir les champs obligatoires (Nom, Fonction)', 'error');
+        return;
+    }
+
+    try {
+        showLoading(true);
+
+        var data = {
+            nom: nom,
+            prenom: prenom || null,
+            fonction: fonction,
+            description: description || null,
+            photo_url: photo_url || null,
+            email: email || null,
+            telephone: telephone || null,
+            ordre_affichage: ordre_affichage,
+            actif: actif,
+            updated_at: new Date().toISOString()
+        };
+
+        console.log('📤 Données à sauvegarder:', data);
+
+        if (currentConseilEditId) {
+            const { error } = await supabaseClient
+                .from('conseil')
+                .update(data)
+                .eq('id', currentConseilEditId);
+
+            if (error) throw error;
+            showAlert('✅ Membre mis à jour avec succès', 'success');
+        } else {
+            data.created_at = new Date().toISOString();
+            const { error } = await supabaseClient
+                .from('conseil')
+                .insert([data]);
+
+            if (error) throw error;
+            showAlert('✅ Membre ajouté avec succès', 'success');
+        }
+
+        closeConseilModal();
+        await loadConseil();
+        showLoading(false);
+    } catch (error) {
+        console.error('❌ Erreur sauvegarde conseil:', error);
+        showAlert('❌ Erreur: ' + error.message, 'error');
+        showLoading(false);
+    }
+}
+
+function editConseil(id) {
+    var item = conseilData.find(m => m.id === id);
+    if (item) {
+        showConseilModal(item);
+    } else {
+        showAlert('❌ Membre non trouvé', 'error');
+    }
+}
+
+async function deleteConseil(id) {
+    if (!confirm('Supprimer ce membre du conseil ?')) return;
+
+    try {
+        showLoading(true);
+
+        const { error } = await supabaseClient
+            .from('conseil')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+
+        showAlert('🗑️ Membre supprimé avec succès', 'success');
+        await loadConseil();
+        showLoading(false);
+    } catch (error) {
+        console.error('❌ Erreur suppression:', error);
+        showAlert('❌ Erreur: ' + error.message, 'error');
+        showLoading(false);
+    }
+}
+
+// Exposer les fonctions globalement
+window.loadConseil = loadConseil;
+window.renderConseil = renderConseil;
+window.renderConseilDashboard = renderConseilDashboard;
+window.showConseilModal = showConseilModal;
+window.closeConseilModal = closeConseilModal;
+window.saveConseil = saveConseil;
+window.editConseil = editConseil;
+window.deleteConseil = deleteConseil;
+
+console.log('✅ Fonctions du conseil chargées');
+
+
+
             try { localStorage.setItem('ansfal_lang', lang); } catch (e) {}
         }
         window.switchLanguage = switchLanguage;
@@ -3983,25 +4302,26 @@
         // ============================================================
         // RENDER ALL
         // ============================================================
-        function renderAll() {
-            renderTicker();
-            renderTexts();
-            renderOffres();
-            renderProduits();
-            renderArbres();
-            renderBetail();
-            renderEau();
-            renderSagia();
-            renderGallery();
-            renderVideos();
-            renderDocumentsAdmin();
-            renderPublicDocuments();
-            renderAdherents();
-            renderAdmins();
-            updateStats();
-            updatePhoneDisplay();
-            updateAdminVisibility();
-        }
+       function renderAll() {
+    renderTicker();
+    renderTexts();
+    renderOffres();
+    renderProduits();
+    renderArbres();
+    renderBetail();
+    renderEau();
+    renderSagia();
+    renderGallery();
+    renderVideos();
+    renderDocumentsAdmin();
+    renderPublicDocuments();
+    renderAdherents();
+    renderAdmins();
+    loadConseil(); 
+    updateStats();
+    updatePhoneDisplay();
+    updateAdminVisibility();
+}
         window.renderAll = renderAll;
 
         // ============================================================
