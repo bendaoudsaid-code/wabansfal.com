@@ -1937,7 +1937,7 @@
                 <div id="videosDashboard" class="dashboard-section-content">
                     <h2><i class="fas fa-video"></i> Gestion des vidéos</h2>
                     <div class="section-actions">
-                        <button class="btn-import" onclick="showUploadModal('video')"><i class="fas fa-plus"></i> Ajouter</button>
+                        <button class="btn-import" onclick="showUploadModal('video')"><i class="fas fa-video"></i> Ajouter une vidéo</button>
                     </div>
                     <div class="items-grid" id="videosList"><div class="loading"><i class="fas fa-spinner"></i> Chargement...</div></div>
                 </div>
@@ -2469,32 +2469,6 @@
         </div>
     </div>
 
-    <!-- MODALE TEXTE -->
-    <div class="modal-overlay" id="textModal">
-    <!-- MODALE TEXTE -->
-    <div class="modal-overlay" id="textModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title"><i class="fas fa-file-alt"></i> <span id="textModalTitle">Ajouter un texte</span></h3>
-                <button class="close-modal" onclick="closeTextModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label id="textTitleLabel">Titre</label>
-                    <input type="text" id="textTitleInput" placeholder="Titre du texte" />
-                </div>
-                <div class="form-group">
-                    <label id="textContentLabel">Contenu</label>
-                    <textarea id="textContentInput" placeholder="Écrivez votre contenu ici..."></textarea>
-                </div>
-                <div class="upload-actions">
-                    <button class="btn-browse danger" onclick="closeTextModal()"><i class="fas fa-times"></i> Annuler</button>
-                    <button class="btn-browse success" onclick="saveText()"><i class="fas fa-save"></i> Enregistrer</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- MODALE MOT DE PASSE -->
     <div class="modal-overlay" id="passwordModal">
         <div class="modal">
@@ -2903,63 +2877,99 @@
         // UPLOAD FILES
         // ============================================================
         async function uploadFiles() {
-            if (selectedFiles.length === 0) {
-                showAlert('Veuillez sélectionner des fichiers', 'error');
-                return;
+    if (selectedFiles.length === 0) {
+        showAlert('Veuillez sélectionner des fichiers', 'error');
+        return;
+    }
+
+    try {
+        showLoading(true);
+        let uploadedCount = 0;
+
+        for (const file of selectedFiles) {
+            // Déterminer le type de fichier
+            const isVideo = file.type.startsWith('video/');
+            const isImage = file.type.startsWith('image/');
+            const isPdf = file.type === 'application/pdf';
+            
+            // Vérifier le type
+            if (!isVideo && !isImage && !isPdf) {
+                showAlert(`❌ ${file.name} n'est pas supporté (image, vidéo ou PDF uniquement)`, 'error');
+                continue;
             }
 
-            try {
-                showLoading(true);
+            // Générer un nom de fichier unique
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
+            
+            console.log(`📤 Upload de ${fileName} (${file.type}) - ${(file.size / 1024 / 1024).toFixed(2)} Mo`);
 
-                for (const file of selectedFiles) {
-                    const fileExt = file.name.split('.').pop();
-                    const fileName = `${Date.now()}_${file.name}`;
-                    const isVideo = file.type.startsWith('video/');
-                    const isPdf = file.type === 'application/pdf';
+            // Upload vers Supabase Storage
+            const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                .from('medias')
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
 
-                    const { data: uploadData, error: uploadError } = await supabaseClient.storage
-                        .from('medias')
-                        .upload(fileName, file);
-
-                    if (uploadError) throw uploadError;
-
-                    const { data: urlData } = supabaseClient.storage
-                        .from('medias')
-                        .getPublicUrl(fileName);
-
-                    const publicUrl = urlData.publicUrl;
-
-                    const table = isVideo ? 'videos' : 'gallery';
-                    const itemData = {
-                        url: publicUrl,
-                        file_name: fileName,
-                        title: file.name.split('.')[0],
-                        date: new Date().toISOString().split('T')[0],
-                        type: isVideo ? 'video' : isPdf ? 'pdf' : 'image'
-                    };
-
-                    const { error: dbError } = await supabaseClient
-                        .from(table)
-                        .insert([itemData]);
-
-                    if (dbError) throw dbError;
-                }
-
-                showAlert(`✅ ${selectedFiles.length} fichier(s) uploadé(s) avec succès`, 'success');
-                closeUploadModal();
-                await loadAllData();
-
-            } catch (error) {
-                console.error('Erreur upload:', error);
-                showAlert('❌ Erreur lors de l\'upload: ' + error.message, 'error');
-            } finally {
-                showLoading(false);
-                selectedFiles = [];
-                document.getElementById('filePreview').innerHTML = '';
+            if (uploadError) {
+                console.error('❌ Erreur upload storage:', uploadError);
+                showAlert(`❌ Erreur upload de ${file.name}: ${uploadError.message}`, 'error');
+                continue;
             }
+
+            // Récupérer l'URL publique
+            const { data: urlData } = supabaseClient.storage
+                .from('medias')
+                .getPublicUrl(fileName);
+
+            const publicUrl = urlData.publicUrl;
+            console.log(`✅ URL publique: ${publicUrl}`);
+
+            // Sauvegarder dans la base selon le type
+            const table = isVideo ? 'videos' : 'gallery';
+            const itemData = {
+                url: publicUrl,
+                file_name: fileName,
+                title: file.name.split('.')[0].replace(/[_-]/g, ' '),
+                date: new Date().toISOString().split('T')[0],
+                type: isVideo ? 'video' : isPdf ? 'pdf' : 'image'
+            };
+
+            const { error: dbError } = await supabaseClient
+                .from(table)
+                .insert([itemData]);
+
+            if (dbError) {
+                console.error('❌ Erreur insertion base:', dbError);
+                // Tenter de supprimer le fichier storage si erreur base
+                await supabaseClient.storage.from('medias').remove([fileName]);
+                showAlert(`❌ Erreur sauvegarde de ${file.name}: ${dbError.message}`, 'error');
+                continue;
+            }
+
+            uploadedCount++;
+            console.log(`✅ ${file.name} uploadé avec succès dans ${table}`);
         }
-        window.uploadFiles = uploadFiles;
 
+        if (uploadedCount > 0) {
+            showAlert(`✅ ${uploadedCount} fichier(s) uploadé(s) avec succès`, 'success');
+            closeUploadModal();
+            await loadAllData();
+        } else {
+            showAlert('❌ Aucun fichier n\'a été uploadé', 'error');
+        }
+
+    } catch (error) {
+        console.error('❌ Erreur générale upload:', error);
+        showAlert('❌ Erreur lors de l\'upload: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
+        selectedFiles = [];
+        document.getElementById('filePreview').innerHTML = '';
+    }
+}
+window.uploadFiles = uploadFiles;
         // ============================================================
         // MÉTÉO
         // ============================================================
@@ -4547,22 +4557,50 @@
         // CRUD - TEXTES
         // ============================================================
         function showTextModal(data) {
-            currentEditType = 'text';
-            currentEditId = data ? data.id : null;
-            document.getElementById('textModalTitle').textContent = data ? 'Modifier le texte' : 'Ajouter un texte';
-            document.getElementById('textTitleInput').value = data ? getLocalized(data.title) : '';
-            document.getElementById('textContentInput').value = data ? getLocalized(data.content) : '';
-            document.getElementById('textModal').classList.add('active');
-        }
-        window.showTextModal = showTextModal;
+    currentEditType = 'text';
+    currentEditId = data ? data.id : null;
+    
+    document.getElementById('genericModalTitle').textContent = data ? 'Modifier le texte' : 'Ajouter un texte';
+    
+    var body = document.getElementById('genericModalBody');
+    body.innerHTML = `
+        <div class="form-group">
+            <label>Titre</label>
+            <input type="text" id="textTitleInput" class="form-control" value="${data ? getLocalized(data.title) || '' : ''}" placeholder="Titre du texte" />
+        </div>
+        <div class="form-group">
+            <label>Contenu</label>
+            <textarea id="textContentInput" class="form-control" rows="5" placeholder="Écrivez votre contenu ici...">${data ? getLocalized(data.content) || '' : ''}</textarea>
+        </div>
+        <div class="upload-actions">
+            <button class="btn-browse danger" onclick="closeGenericModal()"><i class="fas fa-times"></i> Annuler</button>
+            <button class="btn-browse success" onclick="saveTextFromGeneric()"><i class="fas fa-save"></i> Enregistrer</button>
+        </div>
+    `;
+    
+    document.getElementById('genericModal').classList.add('active');
+}
+window.showTextModal = showTextModal;
 
-        function closeTextModal() {
-            document.getElementById('textModal').classList.remove('active');
-            currentEditId = null;
-            currentEditType = null;
-        }
-        window.closeTextModal = closeTextModal;
-
+async function saveTextFromGeneric() {
+    var title = document.getElementById('textTitleInput').value.trim();
+    var content = document.getElementById('textContentInput').value.trim();
+    
+    if (!title || !content) {
+        showAlert('Veuillez remplir tous les champs', 'error');
+        return;
+    }
+    
+    const data = {
+        title: { fr: title, ar: title },
+        content: { fr: content, ar: content }
+    };
+    
+    await saveToSupabase('texts', data, currentEditId);
+    closeGenericModal();
+    currentEditId = null;
+}
+window.saveTextFromGeneric = saveTextFromGeneric;
         async function saveText() {
             var title = document.getElementById('textTitleInput').value.trim();
             var content = document.getElementById('textContentInput').value.trim();
@@ -4918,13 +4956,17 @@
         // UPLOAD MODAL
         // ============================================================
         function showUploadModal(type) {
-            uploadType = type || 'image';
-            document.getElementById('uploadModalTitle').textContent = type === 'video' ? 'Uploader une vidéo' : 'Uploader une image';
-            document.getElementById('uploadModal').classList.add('active');
-            selectedFiles = [];
-            document.getElementById('filePreview').innerHTML = '';
-        }
-        window.showUploadModal = showUploadModal;
+    uploadType = type || 'image';
+    if (type === 'video') {
+        document.getElementById('uploadModalTitle').textContent = '📹 Uploader une vidéo';
+    } else {
+        document.getElementById('uploadModalTitle').textContent = '🖼️ Uploader une image';
+    }
+    document.getElementById('uploadModal').classList.add('active');
+    selectedFiles = [];
+    document.getElementById('filePreview').innerHTML = '';
+}
+window.showUploadModal = showUploadModal;
 
         function closeUploadModal() {
             document.getElementById('uploadModal').classList.remove('active');
