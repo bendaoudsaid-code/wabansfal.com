@@ -5725,22 +5725,85 @@ console.log('✅ Fonctions du conseil chargées');
         }
         window.closePasswordModal = closePasswordModal;
 
-        function changePassword() {
-            var current = document.getElementById('currentPasswordInput').value;
-            var newPwd = document.getElementById('newPasswordInput').value;
-            var confirm = document.getElementById('confirmPasswordInput').value;
-            if (!current || !newPwd || !confirm) {
-                showAlert('Tous les champs sont requis', 'error');
-                return;
-            }
-            if (newPwd !== confirm) {
-                showAlert('Les mots de passe ne correspondent pas', 'error');
-                return;
-            }
-            closePasswordModal();
-            showAlert('Mot de passe changé', 'success');
+        // ============================================================
+// CHANGER LE MOT DE PASSE - VERSION SUPABASE
+// ============================================================
+async function changePassword() {
+    var current = document.getElementById('currentPasswordInput').value;
+    var newPwd = document.getElementById('newPasswordInput').value;
+    var confirm = document.getElementById('confirmPasswordInput').value;
+    
+    if (!current || !newPwd || !confirm) {
+        showAlert('Tous les champs sont requis', 'error');
+        return;
+    }
+    
+    if (newPwd !== confirm) {
+        showAlert('Les mots de passe ne correspondent pas', 'error');
+        return;
+    }
+    
+    if (newPwd.length < 4) {
+        showAlert('Le mot de passe doit contenir au moins 4 caractères', 'error');
+        return;
+    }
+
+    try {
+        showLoading(true);
+
+        // Récupérer l'admin actuel
+        const { data: admins, error: findError } = await supabaseClient
+            .from('admins')
+            .select('*')
+            .eq('username', 'admin');
+
+        if (findError) throw findError;
+
+        if (!admins || admins.length === 0) {
+            showAlert('❌ Administrateur non trouvé', 'error');
+            showLoading(false);
+            return;
         }
-        window.changePassword = changePassword;
+
+        var admin = admins[0];
+        var hashedCurrent = btoa(current);
+
+        // Vérifier le mot de passe actuel
+        if (admin.password_hash !== hashedCurrent) {
+            showAlert('❌ Mot de passe actuel incorrect', 'error');
+            showLoading(false);
+            return;
+        }
+
+        // Mettre à jour le mot de passe
+        const { error: updateError } = await supabaseClient
+            .from('admins')
+            .update({
+                password_hash: btoa(newPwd),
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', admin.id);
+
+        if (updateError) throw updateError;
+
+        closePasswordModal();
+        showAlert('✅ Mot de passe changé avec succès !', 'success');
+
+        // Déconnecter l'utilisateur pour qu'il se reconnecte avec le nouveau mot de passe
+        setTimeout(function() {
+            if (confirm('Voulez-vous vous déconnecter pour utiliser le nouveau mot de passe ?')) {
+                logout();
+            }
+        }, 1000);
+
+    } catch (error) {
+        console.error('Erreur changement mot de passe:', error);
+        showAlert('❌ Erreur: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+window.changePassword = changePassword;dow.changePassword = changePassword;
 
         // ============================================================
         // EXPORT / RESET
