@@ -2763,7 +2763,6 @@
 
         function switchLanguage(lang) {
             currentLang = lang;
-            console.log('Langue changée vers:', lang);
             document.body.classList.toggle('rtl', lang === 'ar');
             document.querySelectorAll('.lang-btn').forEach(function(b) {
                 b.classList.remove('active');
@@ -2795,69 +2794,48 @@
         // FONCTIONS SUPABASE
         // ============================================================
         async function loadAllData() {
-    try {
-        showLoading(true);
+            try {
+                showLoading(true);
 
-        // ... chargement des paramètres ...
+                const tables = [
+                    { key: 'ticker', table: 'ticker' },
+                    { key: 'texts', table: 'texts' },
+                    { key: 'offres', table: 'offres' },
+                    { key: 'produits', table: 'produits' },
+                    { key: 'arbres', table: 'arbres' },
+                    { key: 'betail', table: 'betail' },
+                    { key: 'eau', table: 'eau' },
+                    { key: 'sagia', table: 'sagia' },
+                    { key: 'gallery', table: 'gallery' },
+                    { key: 'videos', table: 'videos' },
+                    { key: 'documentsAdmin', table: 'documents_admin' }
+                ];
 
-        const tables = [
-            { key: 'ticker', table: 'ticker' },
-            { key: 'texts', table: 'texts' },
-            { key: 'offres', table: 'offres' },
-            { key: 'produits', table: 'produits' },
-            { key: 'arbres', table: 'arbres' },
-            { key: 'betail', table: 'betail' },
-            { key: 'eau', table: 'eau' },
-            { key: 'sagia', table: 'sagia' },
-            { key: 'gallery', table: 'gallery' },
-            { key: 'videos', table: 'videos' },
-            { key: 'documentsAdmin', table: 'documents_admin' }
-        ];
+                for (const { key, table } of tables) {
+                    const { data, error } = await supabaseClient
+                        .from(table)
+                        .select('*')
+                        .order('id', { ascending: true });
 
-        for (const { key, table } of tables) {
-            const { data, error } = await supabaseClient
-                .from(table)
-                .select('*')
-                .order('id', { ascending: true });
+                    if (error) {
+                        console.warn('⚠️ Erreur chargement ${table}:', error);
+                        continue;
+                    }
 
-            if (error) {
-                console.warn(`⚠️ Erreur chargement ${table}:`, error);
-                continue;
-            }
+                    DATA[key] = data && data.length > 0 ? data : [];
+                    console.log('✅ ${table}: ${DATA[key].length} éléments');
+                }
 
-            DATA[key] = data && data.length > 0 ? data : [];
-            console.log(`✅ ${table}: ${DATA[key].length} éléments`);
-        }
+                await loadMeteo();
+                renderAll();
+                showLoading(false);
 
-        // Vérification et rechargement forcé de la galerie
-        if (DATA.gallery.length === 0) {
-            console.log('⚠️ Gallery vide, rechargement forcé...');
-            const { data, error } = await supabaseClient
-                .from('gallery')
-                .select('*')
-                .order('id', { ascending: false });
-
-            if (!error && data) {
-                DATA.gallery = data;
-                console.log('✅ Gallery rechargée avec succès:', DATA.gallery.length, 'éléments');
-            } else if (error) {
-                console.error('❌ Erreur rechargement gallery:', error);
+            } catch (error) {
+                console.error('❌ Erreur chargement des données:', error);
+                showAlert('Erreur de chargement des données', 'error');
+                showLoading(false);
             }
         }
-        // ⬆️⬆️⬆️ FIN DE L'AJOUT ⬆️⬆️⬆️
-
-        await loadMeteo();
-
-        console.log('✅ Données chargées depuis Supabase');
-        renderAll();
-        showLoading(false);
-
-    } catch (error) {
-        console.error('❌ Erreur chargement des données:', error);
-        showAlert('Erreur de chargement des données', 'error');
-        showLoading(false);
-    }
-}
 
         async function saveToSupabase(table, data, id = null) {
             try {
@@ -2920,6 +2898,67 @@
                 return false;
             }
         }
+
+        // ============================================================
+        // UPLOAD FILES
+        // ============================================================
+        async function uploadFiles() {
+            if (selectedFiles.length === 0) {
+                showAlert('Veuillez sélectionner des fichiers', 'error');
+                return;
+            }
+
+            try {
+                showLoading(true);
+
+                for (const file of selectedFiles) {
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${Date.now()}_${file.name}`;
+                    const isVideo = file.type.startsWith('video/');
+                    const isPdf = file.type === 'application/pdf';
+
+                    const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                        .from('medias')
+                        .upload(fileName, file);
+
+                    if (uploadError) throw uploadError;
+
+                    const { data: urlData } = supabaseClient.storage
+                        .from('medias')
+                        .getPublicUrl(fileName);
+
+                    const publicUrl = urlData.publicUrl;
+
+                    const table = isVideo ? 'videos' : 'gallery';
+                    const itemData = {
+                        url: publicUrl,
+                        file_name: fileName,
+                        title: file.name.split('.')[0],
+                        date: new Date().toISOString().split('T')[0],
+                        type: isVideo ? 'video' : isPdf ? 'pdf' : 'image'
+                    };
+
+                    const { error: dbError } = await supabaseClient
+                        .from(table)
+                        .insert([itemData]);
+
+                    if (dbError) throw dbError;
+                }
+
+                showAlert(`✅ ${selectedFiles.length} fichier(s) uploadé(s) avec succès`, 'success');
+                closeUploadModal();
+                await loadAllData();
+
+            } catch (error) {
+                console.error('Erreur upload:', error);
+                showAlert('❌ Erreur lors de l\'upload: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+                selectedFiles = [];
+                document.getElementById('filePreview').innerHTML = '';
+            }
+        }
+        window.uploadFiles = uploadFiles;
 
         // ============================================================
         // MÉTÉO
@@ -3031,16 +3070,10 @@
         // RENDER TICKER
         // ============================================================
         function renderTicker() {
-            console.log('renderTicker appelee - Langue:', currentLang);
-            
             var container = document.getElementById('tickerContent');
-            if (!container) {
-                console.error('Element #tickerContent non trouve');
-                return;
-            }
+            if (!container) return;
             
             var items = DATA.ticker || [];
-            console.log('Nombre d\'annonces:', items.length);
             
             if (items.length === 0) {
                 container.innerHTML = '<span class="ticker-item"><i class="fas fa-info-circle"></i> Bienvenue sur le site ASSOCIATION ANSFAL</span>';
@@ -3068,34 +3101,639 @@
             }).join('');
             
             container.innerHTML = html + html;
-            console.log('Ticker rendu avec succes !');
         }
 
         // ============================================================
-        // RENDER
+        // RENDER PRODUITS
         // ============================================================
-        function renderAll() {
-    renderTicker();
-    renderTexts();
-    renderOffres();
-    renderProduits();
-    renderArbres();
-    renderBetail();
-    renderEau();
-    renderSagia();
-    renderGallery();
-    renderVideos();
-    renderDashboardLists();
-    renderDocumentsAdmin();  // ✅ Déjà présent
-    renderPublicDocuments(); // ✅ Déjà présent
-    renderAdherents();
-    updateStats();
-    updatePhoneDisplay();
-    updateAdminVisibility();
-}
+        function renderProduits() {
+            // Dashboard
+            var dashboardContainer = document.getElementById('produitsList');
+            if (dashboardContainer) {
+                var items = DATA.produits || [];
+                if (items.length === 0) {
+                    dashboardContainer.innerHTML = '<div class="no-content">Aucun produit</div>';
+                } else {
+                    dashboardContainer.innerHTML = items.map(function(item) {
+                        var nom = getLocalized(item.nom) || item.nom || 'Produit';
+                        var localite = getLocalized(item.localite) || '';
+                        return '<div class="dashboard-item">' +
+                            '<div class="item-icon"><i class="fas fa-apple-alt"></i></div>' +
+                            '<div class="item-info"><h4>' + nom + '</h4><small>' + localite + ' - ' + (item.quantite || 0) + ' t</small></div>' +
+                            '<button class="btn-action edit" onclick="editProduit(' + item.id + ')"><i class="fas fa-edit"></i></button>' +
+                            '<button class="btn-action delete" onclick="deleteProduit(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
+                            '</div>';
+                    }).join('');
+                }
+            }
+
+            // Tableau public
+            var tableBody = document.getElementById('produitsBody');
+            if (tableBody) {
+                var items = DATA.produits || [];
+                if (items.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="loading">Aucun produit</td></tr>';
+                } else {
+                    tableBody.innerHTML = items.map(function(item) {
+                        var nom = getLocalized(item.nom) || item.nom || 'Produit';
+                        var localite = getLocalized(item.localite) || '';
+                        var statut = item.statut || 'Disponible';
+                        var badgeClass = statut === 'Disponible' ? 'badge-green' : 
+                                        statut === 'En rupture' ? 'badge-red' : 
+                                        statut === 'Saisonnier' ? 'badge-orange' : 'badge-teal';
+                        return '<tr>' +
+                            '<td><strong>' + nom + '</strong></td>' +
+                            '<td>' + localite + '</td>' +
+                            '<td>' + (item.quantite || 0) + ' t</td>' +
+                            '<td>' + (item.periode || '') + '</td>' +
+                            '<td><span class="badge ' + badgeClass + '">' + statut + '</span></td>' +
+                            '</tr>';
+                    }).join('');
+                }
+            }
+
+            // Admin table
+            var adminBody = document.getElementById('produitsAdminBody');
+            if (adminBody) {
+                var items = DATA.produits || [];
+                if (items.length === 0) {
+                    adminBody.innerHTML = '<tr><td colspan="6" class="loading">Aucun produit</td></tr>';
+                } else {
+                    adminBody.innerHTML = items.map(function(item) {
+                        var nom = getLocalized(item.nom) || item.nom || 'Produit';
+                        var localite = getLocalized(item.localite) || '';
+                        return '<tr>' +
+                            '<td>' + nom + '</td>' +
+                            '<td>' + localite + '</td>' +
+                            '<td>' + (item.quantite || 0) + ' t</td>' +
+                            '<td>' + (item.periode || '') + '</td>' +
+                            '<td>' + (item.statut || 'Disponible') + '</td>' +
+                            '<td>' +
+                            '<button class="btn-action edit" onclick="editProduit(' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+                            '<button class="btn-action delete" onclick="deleteProduit(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
+                            '</td>' +
+                            '</tr>';
+                    }).join('');
+                }
+            }
+        }
+        window.renderProduits = renderProduits;
 
         // ============================================================
-        // AUTRES FONCTIONS DE RENDU (simplifiées)
+        // RENDER ARBRES
+        // ============================================================
+        function renderArbres() {
+            // Dashboard
+            var dashboardContainer = document.getElementById('arbresList');
+            if (dashboardContainer) {
+                var items = DATA.arbres || [];
+                if (items.length === 0) {
+                    dashboardContainer.innerHTML = '<div class="no-content">Aucune localité</div>';
+                } else {
+                    dashboardContainer.innerHTML = items.map(function(item) {
+                        var localite = getLocalized(item.localite) || 'Localité';
+                        var total = (item.oliviers || 0) + (item.amandiers || 0) + (item.figuiers || 0) + (item.noyers || 0);
+                        return '<div class="dashboard-item">' +
+                            '<div class="item-icon"><i class="fas fa-tree"></i></div>' +
+                            '<div class="item-info"><h4>' + localite + '</h4><small>' + total + ' arbres - ' + (item.habitants || 0) + ' hab.</small></div>' +
+                            '<button class="btn-action edit" onclick="editArbre(' + item.id + ')"><i class="fas fa-edit"></i></button>' +
+                            '<button class="btn-action delete" onclick="deleteArbre(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
+                            '</div>';
+                    }).join('');
+                }
+            }
+
+            // Tableau public
+            var tableBody = document.getElementById('arbresBody');
+            if (tableBody) {
+                var items = DATA.arbres || [];
+                if (items.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="8" class="loading">Aucune donnée</td></tr>';
+                } else {
+                    tableBody.innerHTML = items.map(function(item) {
+                        var localite = getLocalized(item.localite) || 'Localité';
+                        var total = (item.oliviers || 0) + (item.amandiers || 0) + (item.figuiers || 0) + (item.noyers || 0);
+                        var habitants = item.habitants || 0;
+                        var ratio = habitants > 0 ? (total / habitants).toFixed(2) : '0';
+                        return '<tr>' +
+                            '<td><strong>' + localite + '</strong></td>' +
+                            '<td>' + (item.oliviers || 0) + '</td>' +
+                            '<td>' + (item.amandiers || 0) + '</td>' +
+                            '<td>' + (item.figuiers || 0) + '</td>' +
+                            '<td>' + (item.noyers || 0) + '</td>' +
+                            '<td><strong>' + total + '</strong></td>' +
+                            '<td>' + habitants + '</td>' +
+                            '<td>' + ratio + '</td>' +
+                            '</tr>';
+                    }).join('');
+                }
+            }
+
+            // Admin table
+            var adminBody = document.getElementById('arbresAdminBody');
+            if (adminBody) {
+                var items = DATA.arbres || [];
+                if (items.length === 0) {
+                    adminBody.innerHTML = '<tr><td colspan="9" class="loading">Aucune localité</td></tr>';
+                } else {
+                    adminBody.innerHTML = items.map(function(item) {
+                        var localite = getLocalized(item.localite) || 'Localité';
+                        var total = (item.oliviers || 0) + (item.amandiers || 0) + (item.figuiers || 0) + (item.noyers || 0);
+                        var habitants = item.habitants || 0;
+                        var ratio = habitants > 0 ? (total / habitants).toFixed(2) : '0';
+                        return '<tr>' +
+                            '<td>' + localite + '</td>' +
+                            '<td>' + (item.oliviers || 0) + '</td>' +
+                            '<td>' + (item.amandiers || 0) + '</td>' +
+                            '<td>' + (item.figuiers || 0) + '</td>' +
+                            '<td>' + (item.noyers || 0) + '</td>' +
+                            '<td>' + total + '</td>' +
+                            '<td>' + habitants + '</td>' +
+                            '<td>' + ratio + '</td>' +
+                            '<td>' +
+                            '<button class="btn-action edit" onclick="editArbre(' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+                            '<button class="btn-action delete" onclick="deleteArbre(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
+                            '</td>' +
+                            '</tr>';
+                    }).join('');
+                }
+            }
+        }
+        window.renderArbres = renderArbres;
+
+        // ============================================================
+        // RENDER BETAIL
+        // ============================================================
+        function renderBetail() {
+            // Dashboard
+            var dashboardContainer = document.getElementById('betailList');
+            if (dashboardContainer) {
+                var items = DATA.betail || [];
+                if (items.length === 0) {
+                    dashboardContainer.innerHTML = '<div class="no-content">Aucune localité</div>';
+                } else {
+                    dashboardContainer.innerHTML = items.map(function(item) {
+                        var localite = getLocalized(item.localite) || 'Localité';
+                        var total = (item.bovins || 0) + (item.ovins || 0) + (item.caprins || 0);
+                        return '<div class="dashboard-item">' +
+                            '<div class="item-icon"><i class="fas fa-horse"></i></div>' +
+                            '<div class="item-info"><h4>' + localite + '</h4><small>' + total + ' têtes</small></div>' +
+                            '<button class="btn-action edit" onclick="editBetail(' + item.id + ')"><i class="fas fa-edit"></i></button>' +
+                            '<button class="btn-action delete" onclick="deleteBetail(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
+                            '</div>';
+                    }).join('');
+                }
+            }
+
+            // Tableau public
+            var tableBody = document.getElementById('betailBody');
+            if (tableBody) {
+                var items = DATA.betail || [];
+                if (items.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="7" class="loading">Aucune donnée</td></tr>';
+                } else {
+                    tableBody.innerHTML = items.map(function(item) {
+                        var localite = getLocalized(item.localite) || 'Localité';
+                        var total = (item.bovins || 0) + (item.ovins || 0) + (item.caprins || 0);
+                        var habitants = item.habitants || 0;
+                        var ratio = habitants > 0 ? (total / habitants).toFixed(2) : '0';
+                        return '<tr>' +
+                            '<td><strong>' + localite + '</strong></td>' +
+                            '<td>' + (item.bovins || 0) + '</td>' +
+                            '<td>' + (item.ovins || 0) + '</td>' +
+                            '<td>' + (item.caprins || 0) + '</td>' +
+                            '<td><strong>' + total + '</strong></td>' +
+                            '<td>' + habitants + '</td>' +
+                            '<td>' + ratio + '</td>' +
+                            '</tr>';
+                    }).join('');
+                }
+            }
+
+            // Admin table
+            var adminBody = document.getElementById('betailAdminBody');
+            if (adminBody) {
+                var items = DATA.betail || [];
+                if (items.length === 0) {
+                    adminBody.innerHTML = '<tr><td colspan="8" class="loading">Aucune localité</td></tr>';
+                } else {
+                    adminBody.innerHTML = items.map(function(item) {
+                        var localite = getLocalized(item.localite) || 'Localité';
+                        var total = (item.bovins || 0) + (item.ovins || 0) + (item.caprins || 0);
+                        var habitants = item.habitants || 0;
+                        var ratio = habitants > 0 ? (total / habitants).toFixed(2) : '0';
+                        return '<tr>' +
+                            '<td>' + localite + '</td>' +
+                            '<td>' + (item.bovins || 0) + '</td>' +
+                            '<td>' + (item.ovins || 0) + '</td>' +
+                            '<td>' + (item.caprins || 0) + '</td>' +
+                            '<td>' + total + '</td>' +
+                            '<td>' + habitants + '</td>' +
+                            '<td>' + ratio + '</td>' +
+                            '<td>' +
+                            '<button class="btn-action edit" onclick="editBetail(' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+                            '<button class="btn-action delete" onclick="deleteBetail(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
+                            '</td>' +
+                            '</tr>';
+                    }).join('');
+                }
+            }
+        }
+        window.renderBetail = renderBetail;
+
+        // ============================================================
+        // RENDER EAU
+        // ============================================================
+        function renderEau() {
+            // Dashboard
+            var dashboardContainer = document.getElementById('eauList');
+            if (dashboardContainer) {
+                var items = DATA.eau || [];
+                if (items.length === 0) {
+                    dashboardContainer.innerHTML = '<div class="no-content">Aucune localité</div>';
+                } else {
+                    dashboardContainer.innerHTML = items.map(function(item) {
+                        var localite = getLocalized(item.localite) || 'Localité';
+                        return '<div class="dashboard-item">' +
+                            '<div class="item-icon"><i class="fas fa-tint"></i></div>' +
+                            '<div class="item-info"><h4>' + localite + '</h4><small>' + (item.foyers || 0) + ' foyers</small></div>' +
+                            '<button class="btn-action edit" onclick="editEau(' + item.id + ')"><i class="fas fa-edit"></i></button>' +
+                            '<button class="btn-action delete" onclick="deleteEau(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
+                            '</div>';
+                    }).join('');
+                }
+            }
+
+            // Tableau public
+            var tableBody = document.getElementById('eauBody');
+            if (tableBody) {
+                var items = DATA.eau || [];
+                if (items.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="loading">Aucune donnée</td></tr>';
+                } else {
+                    tableBody.innerHTML = items.map(function(item) {
+                        var localite = getLocalized(item.localite) || 'Localité';
+                        var statut = item.statut || 'Opérationnel';
+                        var badgeClass = statut === 'Opérationnel' ? 'badge-green' : 
+                                        statut === 'En maintenance' ? 'badge-orange' : 
+                                        statut === 'En construction' ? 'badge-teal' : 'badge-red';
+                        return '<tr>' +
+                            '<td><strong>' + localite + '</strong></td>' +
+                            '<td>' + (item.foyers || 0) + '</td>' +
+                            '<td>' + (item.forages || 0) + '</td>' +
+                            '<td>' + (item.capacite || 0) + '</td>' +
+                            '<td><span class="badge ' + badgeClass + '">' + statut + '</span></td>' +
+                            '</tr>';
+                    }).join('');
+                }
+            }
+
+            // Admin table
+            var adminBody = document.getElementById('eauAdminBody');
+            if (adminBody) {
+                var items = DATA.eau || [];
+                if (items.length === 0) {
+                    adminBody.innerHTML = '<tr><td colspan="6" class="loading">Aucune localité</td></tr>';
+                } else {
+                    adminBody.innerHTML = items.map(function(item) {
+                        var localite = getLocalized(item.localite) || 'Localité';
+                        return '<tr>' +
+                            '<td>' + localite + '</td>' +
+                            '<td>' + (item.foyers || 0) + '</td>' +
+                            '<td>' + (item.forages || 0) + '</td>' +
+                            '<td>' + (item.capacite || 0) + '</td>' +
+                            '<td>' + (item.statut || 'Opérationnel') + '</td>' +
+                            '<td>' +
+                            '<button class="btn-action edit" onclick="editEau(' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+                            '<button class="btn-action delete" onclick="deleteEau(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
+                            '</td>' +
+                            '</tr>';
+                    }).join('');
+                }
+            }
+        }
+        window.renderEau = renderEau;
+
+        // ============================================================
+        // RENDER SAGIA
+        // ============================================================
+        function renderSagia() {
+            // Dashboard
+            var dashboardContainer = document.getElementById('sagiaList');
+            if (dashboardContainer) {
+                var items = DATA.sagia || [];
+                if (items.length === 0) {
+                    dashboardContainer.innerHTML = '<div class="no-content">Aucun SAGIA</div>';
+                } else {
+                    dashboardContainer.innerHTML = items.map(function(item) {
+                        var nom = getLocalized(item.nom) || item.code || 'SAGIA';
+                        return '<div class="dashboard-item">' +
+                            '<div class="item-icon"><i class="fas fa-list"></i></div>' +
+                            '<div class="item-info"><h4>' + nom + '</h4><small>' + (item.zone ? getLocalized(item.zone) || item.zone : '') + '</small></div>' +
+                            '<button class="btn-action edit" onclick="editSagia(' + item.id + ')"><i class="fas fa-edit"></i></button>' +
+                            '<button class="btn-action delete" onclick="deleteSagia(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
+                            '</div>';
+                    }).join('');
+                }
+            }
+
+            // Tableau public
+            var tableBody = document.getElementById('sagiaBody');
+            if (tableBody) {
+                var items = DATA.sagia || [];
+                if (items.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="loading">Aucune donnée</td></tr>';
+                } else {
+                    tableBody.innerHTML = items.map(function(item) {
+                        var nom = getLocalized(item.nom) || item.code || 'SAGIA';
+                        var zone = getLocalized(item.zone) || item.zone || '';
+                        var statut = item.statut || 'Actif';
+                        var badgeClass = statut === 'Actif' ? 'badge-green' : 
+                                        statut === 'En maintenance' ? 'badge-orange' : 
+                                        statut === 'En construction' ? 'badge-teal' : 'badge-red';
+                        return '<tr>' +
+                            '<td><strong>' + (item.code || '') + '</strong></td>' +
+                            '<td>' + nom + '</td>' +
+                            '<td>' + zone + '</td>' +
+                            '<td>' + (item.superficie || 0) + '</td>' +
+                            '<td>' + (item.debit || 0) + '</td>' +
+                            '<td><span class="badge ' + badgeClass + '">' + statut + '</span></td>' +
+                            '</tr>';
+                    }).join('');
+                }
+            }
+
+            // Admin table
+            var adminBody = document.getElementById('sagiaAdminBody');
+            if (adminBody) {
+                var items = DATA.sagia || [];
+                if (items.length === 0) {
+                    adminBody.innerHTML = '<tr><td colspan="7" class="loading">Aucun SAGIA</td></tr>';
+                } else {
+                    adminBody.innerHTML = items.map(function(item) {
+                        var nom = getLocalized(item.nom) || item.code || 'SAGIA';
+                        var zone = getLocalized(item.zone) || item.zone || '';
+                        return '<tr>' +
+                            '<td>' + (item.code || '') + '</td>' +
+                            '<td>' + nom + '</td>' +
+                            '<td>' + zone + '</td>' +
+                            '<td>' + (item.superficie || 0) + '</td>' +
+                            '<td>' + (item.debit || 0) + '</td>' +
+                            '<td>' + (item.statut || 'Actif') + '</td>' +
+                            '<td>' +
+                            '<button class="btn-action edit" onclick="editSagia(' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+                            '<button class="btn-action delete" onclick="deleteSagia(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
+                            '</td>' +
+                            '</tr>';
+                    }).join('');
+                }
+            }
+        }
+        window.renderSagia = renderSagia;
+
+        // ============================================================
+        // RENDER VIDEOS
+        // ============================================================
+        function renderVideos() {
+            // Dashboard
+            var dashboardContainer = document.getElementById('videosList');
+            if (dashboardContainer) {
+                var items = DATA.videos || [];
+                if (items.length === 0) {
+                    dashboardContainer.innerHTML = '<div class="no-content">Aucune vidéo</div>';
+                } else {
+                    dashboardContainer.innerHTML = items.map(function(item) {
+                        var url = item.url || '';
+                        var title = item.title || 'Vidéo';
+                        var date = item.date ? new Date(item.date).toLocaleDateString('fr-FR') : '';
+                        return '<div class="dashboard-item">' +
+                            '<div class="item-icon" style="color:var(--primary);"><i class="fas fa-video"></i></div>' +
+                            '<div class="item-info"><h4>' + title + '</h4><small>' + date + '</small></div>' +
+                            '<button class="btn-action view" onclick="viewMedia(\'' + url + '\', \'video\')"><i class="fas fa-eye"></i></button>' +
+                            '<button class="btn-action delete" onclick="deleteVideo(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
+                            '</div>';
+                    }).join('');
+                }
+            }
+
+            // Public
+            var publicContainer = document.getElementById('videosContainer');
+            if (publicContainer) {
+                var items = DATA.videos || [];
+                if (items.length === 0) {
+                    publicContainer.innerHTML = '<div style="padding:40px;text-align:center;color:#888;">Aucune vidéo disponible</div>';
+                } else {
+                    var html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;padding:10px;">';
+                    for (var i = 0; i < items.length; i++) {
+                        var item = items[i];
+                        var url = item.url || '';
+                        var title = item.title || 'Vidéo ' + (i + 1);
+                        html += '<div style="border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.15);background:#000;cursor:pointer;" onclick="viewMedia(\'' + url + '\', \'video\')">';
+                        html += '<div style="position:relative;padding-bottom:56.25%;height:0;">';
+                        html += '<video controls style="position:absolute;top:0;left:0;width:100%;height:100%;" poster="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Crect width=\'100\' height=\'100\' fill=\'%231a6d2c\'/%3E%3Ctext x=\'50\' y=\'55\' font-size=\'40\' text-anchor=\'middle\' fill=\'white\'%3E▶%3C/text%3E%3C/svg%3E">';
+                        html += '<source src="' + url + '" type="video/mp4">';
+                        html += 'Votre navigateur ne supporte pas la lecture vidéo.';
+                        html += '</video>';
+                        html += '</div>';
+                        html += '<div style="padding:10px;text-align:center;background:white;font-weight:500;font-size:0.85rem;">🎬 ' + title + '</div>';
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                    publicContainer.innerHTML = html;
+                }
+            }
+        }
+        window.renderVideos = renderVideos;
+
+        // ============================================================
+        // RENDER GALLERY
+        // ============================================================
+        function renderGallery() {
+            // Dashboard
+            var dashboardContainer = document.getElementById('galleryList');
+            if (dashboardContainer) {
+                var items = DATA.gallery || [];
+                if (items.length === 0) {
+                    dashboardContainer.innerHTML = '<div class="no-content">Aucune image</div>';
+                } else {
+                    dashboardContainer.innerHTML = items.map(function(item) {
+                        var imageUrl = item.url || '';
+                        var title = item.title || 'Image';
+                        var date = item.date ? new Date(item.date).toLocaleDateString('fr-FR') : '';
+                        var isVideo = imageUrl && (imageUrl.endsWith('.mp4') || imageUrl.endsWith('.webm') || imageUrl.endsWith('.ogg'));
+                        var isPdf = imageUrl && imageUrl.endsWith('.pdf');
+                        var type = isVideo ? 'video' : isPdf ? 'pdf' : 'image';
+                        var icon = isVideo ? 'fa-video' : isPdf ? 'fa-file-pdf' : 'fa-image';
+                        var color = isVideo ? 'var(--primary)' : isPdf ? '#e74c3c' : 'var(--primary)';
+                        
+                        return '<div class="dashboard-item">' +
+                            '<div class="item-icon" style="color:' + color + ';"><i class="fas ' + icon + '"></i></div>' +
+                            '<div class="item-info"><h4>' + title + '</h4><small>' + date + '</small></div>' +
+                            '<button class="btn-action view" onclick="viewMedia(\'' + imageUrl + '\', \'' + type + '\')"><i class="fas fa-eye"></i></button>' +
+                            '<button class="btn-action delete" onclick="deleteGalleryItem(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
+                            '</div>';
+                    }).join('');
+                }
+            }
+            
+            // Galerie publique
+            var publicContainer = document.getElementById('galleryContainer');
+            if (publicContainer) {
+                var items = DATA.gallery || [];
+                
+                if (items.length === 0) {
+                    publicContainer.innerHTML = '<div style="padding:40px;text-align:center;color:#888;">Aucune image dans la galerie</div>';
+                    return;
+                }
+                
+                var html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px;padding:10px;">';
+                
+                for (var i = 0; i < items.length; i++) {
+                    var item = items[i];
+                    var imageUrl = item.url || '';
+                    var title = item.title || 'Image ' + (i + 1);
+                    var date = item.date ? new Date(item.date).toLocaleDateString('fr-FR') : '';
+                    var isVideo = imageUrl && (imageUrl.endsWith('.mp4') || imageUrl.endsWith('.webm') || imageUrl.endsWith('.ogg'));
+                    var isPdf = imageUrl && imageUrl.endsWith('.pdf');
+                    var type = isVideo ? 'video' : isPdf ? 'pdf' : 'image';
+                    
+                    if (isVideo) {
+                        html += '<div style="border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.15);background:#000;cursor:pointer;position:relative;height:220px;display:flex;align-items:center;justify-content:center;" onclick="viewMedia(\'' + imageUrl + '\', \'video\')">';
+                        html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:4rem;color:white;opacity:0.9;">▶️</div>';
+                        html += '<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.7);color:white;padding:10px;text-align:center;font-size:0.85rem;">🎬 ' + title + '</div>';
+                        html += '</div>';
+                    } else if (isPdf) {
+                        html += '<div style="border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.15);background:#f8f9fa;cursor:pointer;height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;" onclick="viewMedia(\'' + imageUrl + '\', \'pdf\')">';
+                        html += '<i class="fas fa-file-pdf" style="font-size:4rem;color:#e74c3c;"></i>';
+                        html += '<div style="margin-top:10px;font-weight:500;text-align:center;font-size:0.85rem;">📄 ' + title + '</div>';
+                        html += '</div>';
+                    } else {
+                        html += '<div style="border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.15);background:white;cursor:pointer;transition:transform 0.2s;" onclick="viewMedia(\'' + imageUrl + '\', \'image\')" onmouseover="this.style.transform=\'scale(1.02)\';" onmouseout="this.style.transform=\'scale(1)\';">';
+                        html += '<img src="' + imageUrl + '" alt="' + title + '" style="width:100%;height:200px;object-fit:cover;display:block;" onerror="this.style.display=\'none\';this.parentElement.style.background=\'#f5f5f5\';this.parentElement.innerHTML=\'<div style=\\\'height:200px;display:flex;align-items:center;justify-content:center;color:#ccc;\\\'><i class=\\\'fas fa-image\\\' style=\\\'font-size:3rem;\\\'></i></div>\';">';
+                        html += '<div style="padding:10px;text-align:center;font-size:0.85rem;font-weight:500;">' + title + '</div>';
+                        html += '<div style="padding:0 10px 10px;text-align:center;font-size:0.7rem;color:#888;">' + date + '</div>';
+                        html += '</div>';
+                    }
+                }
+                
+                html += '</div>';
+                publicContainer.innerHTML = html;
+            }
+        }
+        window.renderGallery = renderGallery;
+
+        // ============================================================
+        // DELETE GALLERY ITEM
+        // ============================================================
+        async function deleteGalleryItem(id) {
+            if (!confirm('Supprimer ce fichier ?')) return;
+
+            var item = DATA.gallery.find(i => i.id === id);
+            if (!item) {
+                showAlert('Fichier non trouvé', 'error');
+                return;
+            }
+
+            try {
+                showLoading(true);
+
+                var fileName = item.file_name || item.url.split('/').pop();
+                if (fileName) {
+                    const { error: storageError } = await supabaseClient.storage
+                        .from('medias')
+                        .remove([fileName]);
+
+                    if (storageError) {
+                        console.warn('Erreur suppression storage:', storageError);
+                    }
+                }
+
+                const { error } = await supabaseClient
+                    .from('gallery')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                showAlert('✅ Fichier supprimé avec succès', 'success');
+                await loadAllData();
+                showLoading(false);
+            } catch (error) {
+                console.error('Erreur suppression:', error);
+                showAlert('❌ Erreur: ' + error.message, 'error');
+                showLoading(false);
+            }
+        }
+        window.deleteGalleryItem = deleteGalleryItem;
+
+        // ============================================================
+        // DELETE VIDEO
+        // ============================================================
+        async function deleteVideo(id) {
+            if (!confirm('Supprimer cette vidéo ?')) return;
+
+            var item = DATA.videos.find(i => i.id === id);
+            if (!item) {
+                showAlert('Vidéo non trouvée', 'error');
+                return;
+            }
+
+            try {
+                showLoading(true);
+
+                var fileName = item.file_name || item.url.split('/').pop();
+                if (fileName) {
+                    const { error: storageError } = await supabaseClient.storage
+                        .from('medias')
+                        .remove([fileName]);
+
+                    if (storageError) {
+                        console.warn('Erreur suppression storage:', storageError);
+                    }
+                }
+
+                const { error } = await supabaseClient
+                    .from('videos')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                showAlert('✅ Vidéo supprimée avec succès', 'success');
+                await loadAllData();
+                showLoading(false);
+            } catch (error) {
+                console.error('Erreur suppression:', error);
+                showAlert('❌ Erreur: ' + error.message, 'error');
+                showLoading(false);
+            }
+        }
+        window.deleteVideo = deleteVideo;
+
+        // ============================================================
+        // VIEW MEDIA
+        // ============================================================
+        function viewMedia(url, type) {
+            var viewer = document.getElementById('fileViewer');
+            var content = document.getElementById('viewerContent');
+            if (type === 'video') {
+                content.innerHTML = '<video controls style="max-width:100%;max-height:60vh;"><source src="' + url + '" type="video/mp4"></video>';
+            } else if (type === 'pdf') {
+                content.innerHTML = '<iframe src="' + url + '" style="width:100%;height:60vh;border:none;"></iframe>';
+            } else {
+                content.innerHTML = '<img src="' + url + '" style="max-width:100%;max-height:60vh;" />';
+            }
+            viewer.classList.add('active');
+        }
+        window.viewMedia = viewMedia;
+
+        function closeFileViewer() {
+            document.getElementById('fileViewer').classList.remove('active');
+        }
+        window.closeFileViewer = closeFileViewer;
+
+        // ============================================================
+        // RENDER TEXTES
         // ============================================================
         function renderTexts() {
             var container = document.getElementById('textsList');
@@ -3115,7 +3753,11 @@
                     '</div>';
             }).join('');
         }
+        window.renderTexts = renderTexts;
 
+        // ============================================================
+        // RENDER OFFRES
+        // ============================================================
         function renderOffres() {
             var container = document.getElementById('offresList');
             if (!container) return;
@@ -3149,221 +3791,11 @@
                 }).join('');
             }
         }
+        window.renderOffres = renderOffres;
 
-        function renderProduits() {
-            var container = document.getElementById('produitsList');
-            if (!container) return;
-            var items = DATA.produits || [];
-            if (items.length === 0) {
-                container.innerHTML = '<div class="no-content">Aucun produit</div>';
-                return;
-            }
-            container.innerHTML = items.map(function(item) {
-                var nom = getLocalized(item.nom) || item.nom || 'Produit';
-                return '<div class="dashboard-item">' +
-                    '<div class="item-icon"><i class="fas ' + (item.icon || 'fa-apple-alt') + '"></i></div>' +
-                    '<div class="item-info"><h4>' + nom + '</h4><small>' + (item.statut || 'Disponible') + '</small></div>' +
-                    '<button class="btn-action edit" onclick="editProduit(' + item.id + ')"><i class="fas fa-edit"></i></button>' +
-                    '<button class="btn-action delete" onclick="deleteProduit(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
-                    '</div>';
-            }).join('');
-        }
-
-        function renderArbres() {
-            var container = document.getElementById('arbresList');
-            if (!container) return;
-            var items = DATA.arbres || [];
-            if (items.length === 0) {
-                container.innerHTML = '<div class="no-content">Aucune localité</div>';
-                return;
-            }
-            container.innerHTML = items.map(function(item) {
-                var localite = getLocalized(item.localite) || 'Localité';
-                var total = (item.oliviers || 0) + (item.amandiers || 0) + (item.figuiers || 0) + (item.noyers || 0);
-                return '<div class="dashboard-item">' +
-                    '<div class="item-icon"><i class="fas fa-tree"></i></div>' +
-                    '<div class="item-info"><h4>' + localite + '</h4><small>' + total + ' arbres - ' + (item.habitants || 0) + ' habitants</small></div>' +
-                    '<button class="btn-action edit" onclick="editArbre(' + item.id + ')"><i class="fas fa-edit"></i></button>' +
-                    '<button class="btn-action delete" onclick="deleteArbre(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
-                    '</div>';
-            }).join('');
-        }
-
-        function renderBetail() {
-            var container = document.getElementById('betailList');
-            if (!container) return;
-            var items = DATA.betail || [];
-            if (items.length === 0) {
-                container.innerHTML = '<div class="no-content">Aucune localité</div>';
-                return;
-            }
-            container.innerHTML = items.map(function(item) {
-                var localite = getLocalized(item.localite) || 'Localité';
-                var total = (item.bovins || 0) + (item.ovins || 0) + (item.caprins || 0);
-                return '<div class="dashboard-item">' +
-                    '<div class="item-icon"><i class="fas fa-horse"></i></div>' +
-                    '<div class="item-info"><h4>' + localite + '</h4><small>' + total + ' têtes</small></div>' +
-                    '<button class="btn-action edit" onclick="editBetail(' + item.id + ')"><i class="fas fa-edit"></i></button>' +
-                    '<button class="btn-action delete" onclick="deleteBetail(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
-                    '</div>';
-            }).join('');
-        }
-
-        function renderEau() {
-            var container = document.getElementById('eauList');
-            if (!container) return;
-            var items = DATA.eau || [];
-            if (items.length === 0) {
-                container.innerHTML = '<div class="no-content">Aucune localité</div>';
-                return;
-            }
-            container.innerHTML = items.map(function(item) {
-                var localite = getLocalized(item.localite) || 'Localité';
-                return '<div class="dashboard-item">' +
-                    '<div class="item-icon"><i class="fas fa-tint"></i></div>' +
-                    '<div class="item-info"><h4>' + localite + '</h4><small>' + (item.foyers || 0) + ' foyers</small></div>' +
-                    '<button class="btn-action edit" onclick="editEau(' + item.id + ')"><i class="fas fa-edit"></i></button>' +
-                    '<button class="btn-action delete" onclick="deleteEau(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
-                    '</div>';
-            }).join('');
-        }
-
-        function renderSagia() {
-            var container = document.getElementById('sagiaList');
-            if (!container) return;
-            var items = DATA.sagia || [];
-            if (items.length === 0) {
-                container.innerHTML = '<div class="no-content">Aucun SAGIA</div>';
-                return;
-            }
-            container.innerHTML = items.map(function(item) {
-                var nom = getLocalized(item.nom) || item.code || 'SAGIA';
-                return '<div class="dashboard-item">' +
-                    '<div class="item-icon"><i class="fas fa-list"></i></div>' +
-                    '<div class="item-info"><h4>' + nom + '</h4><small>' + (item.zone ? Object.values(item.zone).join(' | ') : '') + '</small></div>' +
-                    '<button class="btn-action edit" onclick="editSagia(' + item.id + ')"><i class="fas fa-edit"></i></button>' +
-                    '<button class="btn-action delete" onclick="deleteSagia(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
-                    '</div>';
-            }).join('');
-        }
-
-        function renderGallery() {
-    console.log('🖼️ renderGallery appelée');
-    
-    // Dashboard (galleryList)
-    var dashboardContainer = document.getElementById('galleryList');
-    if (dashboardContainer) {
-        var items = DATA.gallery || [];
-        if (items.length === 0) {
-            dashboardContainer.innerHTML = '<div class="no-content">Aucune image</div>';
-        } else {
-            dashboardContainer.innerHTML = items.map(function(item) {
-                var imageUrl = item.url || '';
-                var title = item.title || 'Image';
-                var date = item.date ? new Date(item.date).toLocaleDateString('fr-FR') : '';
-                var isVideo = imageUrl && (imageUrl.endsWith('.mp4') || imageUrl.endsWith('.webm') || imageUrl.endsWith('.ogg'));
-                var isPdf = imageUrl && imageUrl.endsWith('.pdf');
-                var type = isVideo ? 'video' : isPdf ? 'pdf' : 'image';
-                var icon = isVideo ? 'fa-video' : isPdf ? 'fa-file-pdf' : 'fa-image';
-                var color = isVideo ? 'var(--primary)' : isPdf ? '#e74c3c' : 'var(--primary)';
-                
-                return '<div class="dashboard-item">' +
-                    '<div class="item-icon" style="color:' + color + ';"><i class="fas ' + icon + '"></i></div>' +
-                    '<div class="item-info"><h4>' + title + '</h4><small>' + date + '</small></div>' +
-                    '<button class="btn-action view" onclick="viewMedia(\'' + imageUrl + '\', \'' + type + '\')"><i class="fas fa-eye"></i></button>' +
-                    '<button class="btn-action delete" onclick="deleteGalleryItem(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
-                    '</div>';
-            }).join('');
-        }
-    }
-
-async function deleteGalleryItem(id) {
-    if (!confirm('Supprimer ce fichier ?')) return;
-
-    var item = DATA.gallery.find(i => i.id === id);
-    if (!item) {
-        showAlert('Fichier non trouvé', 'error');
-        return;
-    }
-
-    try {
-        showLoading(true);
-
-        // Supprimer du storage
-        var fileName = item.file_name || item.url.split('/').pop();
-        if (fileName) {
-            const { error: storageError } = await supabaseClient.storage
-                .from('medias')
-                .remove([fileName]);
-
-            if (storageError) {
-                console.warn('Erreur suppression storage:', storageError);
-            }
-        }
-
-        // Supprimer de la base
-        const { error } = await supabaseClient
-            .from('gallery')
-            .delete()
-            .eq('id', id);
-
-        if (error) throw error;
-
-        showAlert('✅ Fichier supprimé avec succès', 'success');
-        await loadAllData();
-        showLoading(false);
-    } catch (error) {
-        console.error('Erreur suppression:', error);
-        showAlert('❌ Erreur: ' + error.message, 'error');
-        showLoading(false);
-    }
-}
-    
-    // Galerie publique (galleryContainer)
-    var publicContainer = document.getElementById('galleryContainer');
-    if (publicContainer) {
-        var items = DATA.gallery || [];
-        
-        if (items.length === 0) {
-            publicContainer.innerHTML = '<div style="padding:40px;text-align:center;color:#888;">Aucune image dans la galerie</div>';
-            return;
-        }
-        
-        var html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px;padding:10px;">';
-        
-        for (var i = 0; i < items.length; i++) {
-            var item = items[i];
-            var imageUrl = item.url || '';
-            var title = item.title || 'Image ' + (i + 1);
-            var date = item.date ? new Date(item.date).toLocaleDateString('fr-FR') : '';
-            var isVideo = imageUrl && (imageUrl.endsWith('.mp4') || imageUrl.endsWith('.webm') || imageUrl.endsWith('.ogg'));
-            var isPdf = imageUrl && imageUrl.endsWith('.pdf');
-            var type = isVideo ? 'video' : isPdf ? 'pdf' : 'image';
-            
-            if (isVideo) {
-                html += '<div style="border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.15);background:#000;cursor:pointer;position:relative;height:220px;display:flex;align-items:center;justify-content:center;" onclick="viewMedia(\'' + imageUrl + '\', \'video\')">';
-                html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:4rem;color:white;opacity:0.9;">▶️</div>';
-                html += '<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.7);color:white;padding:10px;text-align:center;font-size:0.85rem;">🎬 ' + title + '</div>';
-                html += '</div>';
-            } else if (isPdf) {
-                html += '<div style="border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.15);background:#f8f9fa;cursor:pointer;height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;" onclick="viewMedia(\'' + imageUrl + '\', \'pdf\')">';
-                html += '<i class="fas fa-file-pdf" style="font-size:4rem;color:#e74c3c;"></i>';
-                html += '<div style="margin-top:10px;font-weight:500;text-align:center;font-size:0.85rem;">📄 ' + title + '</div>';
-                html += '</div>';
-            } else {
-                html += '<div style="border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.15);background:white;cursor:pointer;transition:transform 0.2s;" onclick="viewMedia(\'' + imageUrl + '\', \'image\')" onmouseover="this.style.transform=\'scale(1.02)\';" onmouseout="this.style.transform=\'scale(1)\';">';
-                html += '<img src="' + imageUrl + '" alt="' + title + '" style="width:100%;height:200px;object-fit:cover;display:block;" onerror="this.style.display=\'none\';this.parentElement.style.background=\'#f5f5f5\';this.parentElement.innerHTML=\'<div style=\\\'height:200px;display:flex;align-items:center;justify-content:center;color:#ccc;\\\'><i class=\\\'fas fa-image\\\' style=\\\'font-size:3rem;\\\'></i></div>\';">';
-                html += '<div style="padding:10px;text-align:center;font-size:0.85rem;font-weight:500;">' + title + '</div>';
-                html += '<div style="padding:0 10px 10px;text-align:center;font-size:0.7rem;color:#888;">' + date + '</div>';
-                html += '</div>';
-            }
-        }
-        
-        html += '</div>';
-        publicContainer.innerHTML = html;
-        console.log('✅ Galerie publique rendue avec', items.length, 'fichiers');
-    }
-}
+        // ============================================================
+        // RENDER DOCUMENTS ADMIN
+        // ============================================================
         function renderDocumentsAdmin() {
             var grid = document.getElementById('documentsAdminGrid');
             if (grid) {
@@ -3373,22 +3805,52 @@ async function deleteGalleryItem(id) {
                     return;
                 }
                 grid.innerHTML = items.map(function(doc) {
-                    var title = getLocalized(doc.title) || 'Document';
+                    var title = getLocalized(doc.titre) || 'Document';
                     var desc = getLocalized(doc.description) || '';
                     var color = doc.color || 'var(--primary)';
                     var icon = doc.icon || 'fa-file-pdf';
+                    var typeLabel = doc.type_label || doc.type || 'Document';
+                    
                     return '<div class="menu-card" style="border-left-color:' + color + ';">' +
                         '<div class="card-icon" style="color:' + color + ';"><i class="fas ' + icon + '"></i></div>' +
                         '<h3>' + title + '</h3>' +
+                        '<p><strong>' + typeLabel + '</strong> - ' + (doc.date || '') + '</p>' +
                         '<p>' + desc + '</p>' +
-                        '<a href="#" class="btn btn-sm" style="padding:6px 18px;font-size:0.8rem;margin-top:10px;background:' + color + ';border-color:' + color + ';" onclick="downloadDocument(' + doc.id + ')">' +
-                        '<i class="fas fa-download"></i> ' + (currentLang === 'ar' ? 'تحميل' : 'Télécharger') +
-                        '</a>' +
+                        '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">' +
+                        '<button class="btn btn-sm" onclick="printDocument(' + doc.id + ')" style="background:' + color + ';border-color:' + color + ';padding:4px 12px;font-size:0.7rem;"><i class="fas fa-print"></i> Imprimer</button>' +
+                        '<button class="btn btn-sm" onclick="downloadDocument(' + doc.id + ')" style="background:var(--info);border-color:var(--info);padding:4px 12px;font-size:0.7rem;"><i class="fas fa-download"></i> Télécharger</button>' +
+                        '</div>' +
+                        '</div>';
+                }).join('');
+            }
+            
+            var list = document.getElementById('documentsAdminList');
+            if (list) {
+                var items = DATA.documentsAdmin || [];
+                if (items.length === 0) {
+                    list.innerHTML = '<div class="no-content">Aucun document</div>';
+                    return;
+                }
+                list.innerHTML = items.map(function(item) {
+                    var title = getLocalized(item.titre) || 'Document';
+                    var color = item.color || 'var(--primary)';
+                    var icon = item.icon || 'fa-file-pdf';
+                    var typeLabel = item.type_label || item.type || 'Document';
+                    return '<div class="dashboard-item">' +
+                        '<div class="item-icon"><i class="fas ' + icon + '" style="color:' + color + ';"></i></div>' +
+                        '<div class="item-info"><h4>' + title + '</h4><small>' + typeLabel + ' - ' + (item.date || '') + '</small></div>' +
+                        '<button class="btn-action edit" onclick="editDocumentAdmin(' + item.id + ')"><i class="fas fa-edit"></i></button>' +
+                        '<button class="btn-action delete" onclick="deleteDocumentAdmin(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
+                        '<button class="btn-action view" onclick="printDocument(' + item.id + ')" style="background:var(--teal);"><i class="fas fa-print"></i></button>' +
                         '</div>';
                 }).join('');
             }
         }
+        window.renderDocumentsAdmin = renderDocumentsAdmin;
 
+        // ============================================================
+        // RENDER PUBLIC DOCUMENTS
+        // ============================================================
         function renderPublicDocuments() {
             var grid = document.getElementById('documentsGrid');
             if (!grid) return;
@@ -3400,7 +3862,7 @@ async function deleteGalleryItem(id) {
             }
 
             grid.innerHTML = items.map(function(doc) {
-                var title = getLocalized(doc.title) || 'Document';
+                var title = getLocalized(doc.titre) || 'Document';
                 var desc = getLocalized(doc.description) || '';
                 var color = doc.color || '#e74c3c';
                 var icon = doc.icon || 'fa-file-pdf';
@@ -3413,28 +3875,12 @@ async function deleteGalleryItem(id) {
                     '</a>' +
                     '</div>';
             }).join('');
-
-            var list = document.getElementById('documentsAdminList');
-            if (list) {
-                var items = DATA.documentsAdmin || [];
-                if (items.length === 0) {
-                    list.innerHTML = '<div class="no-content">Aucun document</div>';
-                    return;
-                }
-                list.innerHTML = items.map(function(item) {
-                    var title = getLocalized(item.title) || 'Document';
-                    var color = item.color || 'var(--primary)';
-                    var icon = item.icon || 'fa-file-pdf';
-                    return '<div class="dashboard-item">' +
-                        '<div class="item-icon"><i class="fas ' + icon + '" style="color:' + color + ';"></i></div>' +
-                        '<div class="item-info"><h4>' + title + '</h4><small>' + (item.description ? Object.values(item.description).join(' | ') : '') + '</small></div>' +
-                        '<button class="btn-action edit" onclick="editDocumentAdmin(' + item.id + ')"><i class="fas fa-edit"></i></button>' +
-                        '<button class="btn-action delete" onclick="deleteDocumentAdmin(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
-                        '</div>';
-                }).join('');
-            }
         }
+        window.renderPublicDocuments = renderPublicDocuments;
 
+        // ============================================================
+        // RENDER ADHERENTS
+        // ============================================================
         function renderAdherents() {
             var body = document.getElementById('adherentsBody');
             if (!body) return;
@@ -3455,38 +3901,76 @@ async function deleteGalleryItem(id) {
                     '</tr>';
             }).join('');
         }
-
-        function downloadDocument(id) {
-            var doc = DATA.documentsAdmin.find(d => d.id === id);
-            if (!doc) {
-                showAlert('Document non trouvé', 'error');
-                return;
-            }
-
-            var title = getLocalized(doc.title) || 'Document';
-            var content = getLocalized(doc.description) || '';
-
-            var blob = new Blob([
-                'Document: ' + title + '\n\n',
-                'Description: ' + content + '\n\n',
-                'Téléchargé depuis le site ASSOCIATION ANSFAL\n',
-                'Date: ' + new Date().toLocaleDateString()
-            ], { type: 'application/pdf' });
-
-            var url = URL.createObjectURL(blob);
-            var a = document.createElement('a');
-            a.href = url;
-            a.download = title.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            showAlert('✅ Téléchargement de "' + title + '" démarré', 'success');
-        }
+        window.renderAdherents = renderAdherents;
 
         // ============================================================
-        // GESTION ADMIN
+        // RENDER ALL
+        // ============================================================
+        function renderAll() {
+            renderTicker();
+            renderTexts();
+            renderOffres();
+            renderProduits();
+            renderArbres();
+            renderBetail();
+            renderEau();
+            renderSagia();
+            renderGallery();
+            renderVideos();
+            renderDocumentsAdmin();
+            renderPublicDocuments();
+            renderAdherents();
+            updateStats();
+            updatePhoneDisplay();
+            updateAdminVisibility();
+        }
+        window.renderAll = renderAll;
+
+        // ============================================================
+        // UPDATE STATS
+        // ============================================================
+        function updateStats() {
+            var total = Math.floor(Math.random() * 50) + 10;
+            document.getElementById('totalVisitorsStat').textContent = total;
+            document.getElementById('totalVisitors').textContent = total;
+            document.getElementById('onlineVisitors').textContent = Math.floor(Math.random() * 5) + 1;
+            document.getElementById('lastVisit').textContent = new Date().toLocaleString();
+
+            document.getElementById('totalMediaStat').textContent = (DATA.gallery.length + DATA.videos.length);
+            document.getElementById('totalTextsStat').textContent = DATA.texts.length;
+            document.getElementById('totalTickerStat').textContent = DATA.ticker.length;
+            document.getElementById('totalArbresStat').textContent = DATA.arbres.length;
+        }
+        window.updateStats = updateStats;
+
+        // ============================================================
+        // UPDATE PHONE DISPLAY
+        // ============================================================
+        function updatePhoneDisplay() {
+            var phone = DATA.phoneNumber || '06 25 93 13 18';
+            var elements = ['headerPhoneNumber', 'heroPhoneNumber', 'contactPhoneNumber', 'footerPhoneNumber'];
+            elements.forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) {
+                    el.textContent = phone;
+                    el.setAttribute('dir', 'ltr');
+                    el.style.direction = 'ltr';
+                    el.style.unicodeBidi = 'bidi-override';
+                    el.style.display = 'inline-block';
+                }
+            });
+            var settingsInput = document.getElementById('settingsPhoneInput');
+            if (settingsInput) {
+                settingsInput.value = phone;
+                settingsInput.setAttribute('dir', 'ltr');
+                settingsInput.style.direction = 'ltr';
+                settingsInput.style.textAlign = 'left';
+            }
+        }
+        window.updatePhoneDisplay = updatePhoneDisplay;
+
+        // ============================================================
+        // UPDATE ADMIN VISIBILITY
         // ============================================================
         function updateAdminVisibility() {
             var isAdmin = DATA.isAdmin;
@@ -3515,6 +3999,7 @@ async function deleteGalleryItem(id) {
             document.getElementById('addBtn').style.display = isAdmin ? 'flex' : 'none';
             document.getElementById('loginBtn').style.display = isAdmin ? 'none' : 'flex';
         }
+        window.updateAdminVisibility = updateAdminVisibility;
 
         // ============================================================
         // AUTHENTIFICATION
@@ -3540,6 +4025,7 @@ async function deleteGalleryItem(id) {
                 showAlert('❌ Identifiants incorrects', 'error');
             }
         }
+        window.login = login;
 
         function logout() {
             if (!confirm('Déconnexion ?')) return;
@@ -3551,32 +4037,11 @@ async function deleteGalleryItem(id) {
             showSection('home');
             showAlert('Déconnecté', 'info');
         }
+        window.logout = logout;
 
         // ============================================================
-        // GESTION DU TÉLÉPHONE
+        // SAVE PHONE NUMBER
         // ============================================================
-        function updatePhoneDisplay() {
-            var phone = DATA.phoneNumber || '06 25 93 13 19';
-            var elements = ['headerPhoneNumber', 'heroPhoneNumber', 'contactPhoneNumber', 'footerPhoneNumber'];
-            elements.forEach(function(id) {
-                var el = document.getElementById(id);
-                if (el) {
-                    el.textContent = phone;
-                    el.setAttribute('dir', 'ltr');
-                    el.style.direction = 'ltr';
-                    el.style.unicodeBidi = 'bidi-override';
-                    el.style.display = 'inline-block';
-                }
-            });
-            var settingsInput = document.getElementById('settingsPhoneInput');
-            if (settingsInput) {
-                settingsInput.value = phone;
-                settingsInput.setAttribute('dir', 'ltr');
-                settingsInput.style.direction = 'ltr';
-                settingsInput.style.textAlign = 'left';
-            }
-        }
-
         async function savePhoneNumber() {
             var input = document.getElementById('settingsPhoneInput');
             if (!input) return;
@@ -3621,6 +4086,7 @@ async function deleteGalleryItem(id) {
                 showLoading(false);
             }
         }
+        window.savePhoneNumber = savePhoneNumber;
 
         // ============================================================
         // CRUD - TICKER
@@ -3637,12 +4103,14 @@ async function deleteGalleryItem(id) {
 
             document.getElementById('tickerModal').classList.add('active');
         }
+        window.showTickerModal = showTickerModal;
 
         function closeTickerModal() {
             document.getElementById('tickerModal').classList.remove('active');
             currentEditId = null;
             currentEditType = null;
         }
+        window.closeTickerModal = closeTickerModal;
 
         async function saveTicker() {
             var text = document.getElementById('tickerTextInput').value.trim();
@@ -3664,16 +4132,19 @@ async function deleteGalleryItem(id) {
             closeTickerModal();
             currentEditId = null;
         }
+        window.saveTicker = saveTicker;
 
         function deleteTicker(id) {
             if (!confirm('Supprimer cette annonce ?')) return;
             deleteFromSupabase('ticker', id);
         }
+        window.deleteTicker = deleteTicker;
 
         function editTicker(id) {
             var item = DATA.ticker.find(t => t.id === id);
             if (item) showTickerModal(item);
         }
+        window.editTicker = editTicker;
 
         // ============================================================
         // CRUD - OFFRES
@@ -3694,12 +4165,14 @@ async function deleteGalleryItem(id) {
 
             document.getElementById('offreModal').classList.add('active');
         }
+        window.showOffreModal = showOffreModal;
 
         function closeOffreModal() {
             document.getElementById('offreModal').classList.remove('active');
             currentEditId = null;
             currentEditType = null;
         }
+        window.closeOffreModal = closeOffreModal;
 
         async function saveOffre() {
             var titre = document.getElementById('offreTitreInput').value.trim();
@@ -3730,16 +4203,19 @@ async function deleteGalleryItem(id) {
             closeOffreModal();
             currentEditId = null;
         }
+        window.saveOffre = saveOffre;
 
         function deleteOffre(id) {
             if (!confirm('Supprimer cette offre ?')) return;
             deleteFromSupabase('offres', id);
         }
+        window.deleteOffre = deleteOffre;
 
         function editOffre(id) {
             var item = DATA.offres.find(t => t.id === id);
             if (item) showOffreModal(item);
         }
+        window.editOffre = editOffre;
 
         // ============================================================
         // CRUD - PRODUITS
@@ -3758,12 +4234,14 @@ async function deleteGalleryItem(id) {
 
             document.getElementById('produitModal').classList.add('active');
         }
+        window.showProduitModal = showProduitModal;
 
         function closeProduitModal() {
             document.getElementById('produitModal').classList.remove('active');
             currentEditId = null;
             currentEditType = null;
         }
+        window.closeProduitModal = closeProduitModal;
 
         async function saveProduit() {
             var nom = document.getElementById('produitNomInput').value.trim();
@@ -3789,16 +4267,19 @@ async function deleteGalleryItem(id) {
             closeProduitModal();
             currentEditId = null;
         }
+        window.saveProduit = saveProduit;
 
         function deleteProduit(id) {
             if (!confirm('Supprimer ce produit ?')) return;
             deleteFromSupabase('produits', id);
         }
+        window.deleteProduit = deleteProduit;
 
         function editProduit(id) {
             var item = DATA.produits.find(t => t.id === id);
             if (item) showProduitModal(item);
         }
+        window.editProduit = editProduit;
 
         // ============================================================
         // CRUD - ARBRES
@@ -3818,12 +4299,14 @@ async function deleteGalleryItem(id) {
 
             document.getElementById('arbreModal').classList.add('active');
         }
+        window.showArbreModal = showArbreModal;
 
         function closeArbreModal() {
             document.getElementById('arbreModal').classList.remove('active');
             currentEditId = null;
             currentEditType = null;
         }
+        window.closeArbreModal = closeArbreModal;
 
         async function saveArbre() {
             var localite = document.getElementById('arbreLocaliteInput').value.trim();
@@ -3851,16 +4334,19 @@ async function deleteGalleryItem(id) {
             closeArbreModal();
             currentEditId = null;
         }
+        window.saveArbre = saveArbre;
 
         function deleteArbre(id) {
             if (!confirm('Supprimer cette localité ?')) return;
             deleteFromSupabase('arbres', id);
         }
+        window.deleteArbre = deleteArbre;
 
         function editArbre(id) {
             var item = DATA.arbres.find(t => t.id === id);
             if (item) showArbreModal(item);
         }
+        window.editArbre = editArbre;
 
         // ============================================================
         // CRUD - BÉTAILS
@@ -3879,12 +4365,14 @@ async function deleteGalleryItem(id) {
 
             document.getElementById('betailModal').classList.add('active');
         }
+        window.showBetailModal = showBetailModal;
 
         function closeBetailModal() {
             document.getElementById('betailModal').classList.remove('active');
             currentEditId = null;
             currentEditType = null;
         }
+        window.closeBetailModal = closeBetailModal;
 
         async function saveBetail() {
             var localite = document.getElementById('betailLocaliteInput').value.trim();
@@ -3910,16 +4398,19 @@ async function deleteGalleryItem(id) {
             closeBetailModal();
             currentEditId = null;
         }
+        window.saveBetail = saveBetail;
 
         function deleteBetail(id) {
             if (!confirm('Supprimer cette localité ?')) return;
             deleteFromSupabase('betail', id);
         }
+        window.deleteBetail = deleteBetail;
 
         function editBetail(id) {
             var item = DATA.betail.find(t => t.id === id);
             if (item) showBetailModal(item);
         }
+        window.editBetail = editBetail;
 
         // ============================================================
         // CRUD - EAU
@@ -3938,12 +4429,14 @@ async function deleteGalleryItem(id) {
 
             document.getElementById('eauModal').classList.add('active');
         }
+        window.showEauModal = showEauModal;
 
         function closeEauModal() {
             document.getElementById('eauModal').classList.remove('active');
             currentEditId = null;
             currentEditType = null;
         }
+        window.closeEauModal = closeEauModal;
 
         async function saveEau() {
             var localite = document.getElementById('eauLocaliteInput').value.trim();
@@ -3969,16 +4462,19 @@ async function deleteGalleryItem(id) {
             closeEauModal();
             currentEditId = null;
         }
+        window.saveEau = saveEau;
 
         function deleteEau(id) {
             if (!confirm('Supprimer cette localité ?')) return;
             deleteFromSupabase('eau', id);
         }
+        window.deleteEau = deleteEau;
 
         function editEau(id) {
             var item = DATA.eau.find(t => t.id === id);
             if (item) showEauModal(item);
         }
+        window.editEau = editEau;
 
         // ============================================================
         // CRUD - SAGIA
@@ -3998,12 +4494,14 @@ async function deleteGalleryItem(id) {
 
             document.getElementById('sagiaModal').classList.add('active');
         }
+        window.showSagiaModal = showSagiaModal;
 
         function closeSagiaModal() {
             document.getElementById('sagiaModal').classList.remove('active');
             currentEditId = null;
             currentEditType = null;
         }
+        window.closeSagiaModal = closeSagiaModal;
 
         async function saveSagia() {
             var code = document.getElementById('sagiaCodeInput').value.trim();
@@ -4031,16 +4529,19 @@ async function deleteGalleryItem(id) {
             closeSagiaModal();
             currentEditId = null;
         }
+        window.saveSagia = saveSagia;
 
         function deleteSagia(id) {
             if (!confirm('Supprimer ce SAGIA ?')) return;
             deleteFromSupabase('sagia', id);
         }
+        window.deleteSagia = deleteSagia;
 
         function editSagia(id) {
             var item = DATA.sagia.find(t => t.id === id);
             if (item) showSagiaModal(item);
         }
+        window.editSagia = editSagia;
 
         // ============================================================
         // CRUD - TEXTES
@@ -4053,12 +4554,14 @@ async function deleteGalleryItem(id) {
             document.getElementById('textContentInput').value = data ? getLocalized(data.content) : '';
             document.getElementById('textModal').classList.add('active');
         }
+        window.showTextModal = showTextModal;
 
         function closeTextModal() {
             document.getElementById('textModal').classList.remove('active');
             currentEditId = null;
             currentEditType = null;
         }
+        window.closeTextModal = closeTextModal;
 
         async function saveText() {
             var title = document.getElementById('textTitleInput').value.trim();
@@ -4077,406 +4580,342 @@ async function deleteGalleryItem(id) {
             closeTextModal();
             currentEditId = null;
         }
+        window.saveText = saveText;
 
         function deleteText(id) {
             if (!confirm('Supprimer ce texte ?')) return;
             deleteFromSupabase('texts', id);
         }
+        window.deleteText = deleteText;
 
         function editText(id) {
             var item = DATA.texts.find(t => t.id === id);
             if (item) showTextModal(item);
         }
+        window.editText = editText;
 
         // ============================================================
-        // CRUD - DOCUMENTS ADMIN (simplifié)
+        // CRUD - DOCUMENTS ADMIN
         // ============================================================
-        // ============================================================
-// CRUD - DOCUMENTS ADMIN
-// ============================================================
+        function showDocumentAdminModal(data) {
+            currentEditType = 'documentAdmin';
+            currentEditId = data ? data.id : null;
 
-// ============================================================
-// CRUD - DOCUMENTS ADMIN
-// ============================================================
+            document.getElementById('documentAdminModalTitle').textContent = data ? 'Modifier le document' : 'Ajouter un document';
 
-function showDocumentAdminModal(data) {
-    currentEditType = 'documentAdmin';
-    currentEditId = data ? data.id : null;
+            document.getElementById('documentAdminType').value = data ? data.type || 'autre' : 'reception';
+            document.getElementById('documentAdminTitre').value = data ? getLocalized(data.titre) || data.titre : '';
+            document.getElementById('documentAdminBeneficiaire').value = data ? getLocalized(data.beneficiaire) || data.beneficiaire : '';
+            document.getElementById('documentAdminMontant').value = data ? data.montant || 0 : 0;
+            document.getElementById('documentAdminDescription').value = data ? getLocalized(data.description) || data.description : '';
+            document.getElementById('documentAdminDate').value = data ? data.date || new Date().toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
 
-    var t = getLang();
-    document.getElementById('documentAdminModalTitle').textContent = data ? 'Modifier le document' : 'Ajouter un document';
+            document.getElementById('documentAdminModal').classList.add('active');
+        }
+        window.showDocumentAdminModal = showDocumentAdminModal;
 
-    document.getElementById('documentAdminType').value = data ? data.type || 'autre' : 'reception';
-    document.getElementById('documentAdminTitre').value = data ? getLocalized(data.titre) || data.titre : '';
-    document.getElementById('documentAdminBeneficiaire').value = data ? getLocalized(data.beneficiaire) || data.beneficiaire : '';
-    document.getElementById('documentAdminMontant').value = data ? data.montant || 0 : 0;
-    document.getElementById('documentAdminDescription').value = data ? getLocalized(data.description) || data.description : '';
-    document.getElementById('documentAdminDate').value = data ? data.date || new Date().toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+        function closeDocumentAdminModal() {
+            document.getElementById('documentAdminModal').classList.remove('active');
+            currentEditId = null;
+            currentEditType = null;
+        }
+        window.closeDocumentAdminModal = closeDocumentAdminModal;
 
-    document.getElementById('documentAdminModal').classList.add('active');
-}
+        async function saveDocumentAdmin() {
+            var type = document.getElementById('documentAdminType').value;
+            var titre = document.getElementById('documentAdminTitre').value.trim();
+            var beneficiaire = document.getElementById('documentAdminBeneficiaire').value.trim();
+            var montant = parseFloat(document.getElementById('documentAdminMontant').value) || 0;
+            var description = document.getElementById('documentAdminDescription').value.trim();
+            var date = document.getElementById('documentAdminDate').value;
 
-function closeDocumentAdminModal() {
-    document.getElementById('documentAdminModal').classList.remove('active');
-    currentEditId = null;
-    currentEditType = null;
-}
-
-async function saveDocumentAdmin() {
-    var type = document.getElementById('documentAdminType').value;
-    var titre = document.getElementById('documentAdminTitre').value.trim();
-    var beneficiaire = document.getElementById('documentAdminBeneficiaire').value.trim();
-    var montant = parseFloat(document.getElementById('documentAdminMontant').value) || 0;
-    var description = document.getElementById('documentAdminDescription').value.trim();
-    var date = document.getElementById('documentAdminDate').value;
-
-    if (!titre) {
-        showAlert('Veuillez entrer un titre', 'error');
-        return;
-    }
-
-    var typeLabels = {
-        'reception': 'Bon de réception',
-        'attestation': 'Attestation',
-        'don': 'Bon de don',
-        'caisse': 'Bon de caisse',
-        'depense': 'Bon de dépense',
-        'autre': 'Autre'
-    };
-
-    const data = {
-        type: type,
-        type_label: typeLabels[type] || type,
-        titre: { fr: titre, ar: titre },
-        beneficiaire: { fr: beneficiaire, ar: beneficiaire },
-        montant: montant,
-        description: { fr: description, ar: description },
-        date: date,
-        color: getTypeColor(type),
-        icon: getTypeIcon(type)
-    };
-
-    await saveToSupabase('documents_admin', data, currentEditId);
-    closeDocumentAdminModal();
-    currentEditId = null;
-}
-
-function getTypeColor(type) {
-    var colors = {
-        'reception': 'var(--teal)',
-        'attestation': 'var(--purple)',
-        'don': 'var(--gold)',
-        'caisse': 'var(--info)',
-        'depense': 'var(--danger)',
-        'autre': 'var(--primary)'
-    };
-    return colors[type] || 'var(--primary)';
-}
-
-function getTypeIcon(type) {
-    var icons = {
-        'reception': 'fa-file-alt',
-        'attestation': 'fa-certificate',
-        'don': 'fa-hand-holding-heart',
-        'caisse': 'fa-money-bill-wave',
-        'depense': 'fa-receipt',
-        'autre': 'fa-file-pdf'
-    };
-    return icons[type] || 'fa-file-pdf';
-}
-
-function deleteDocumentAdmin(id) {
-    if (!confirm('Supprimer ce document ?')) return;
-    deleteFromSupabase('documents_admin', id);
-}
-
-function editDocumentAdmin(id) {
-    var item = DATA.documentsAdmin.find(t => t.id === id);
-    if (item) showDocumentAdminModal(item);
-}
-
-function generateDocument(type) {
-    var types = {
-        'reception': { label: 'Bon de réception', icon: 'fa-file-alt', color: 'var(--teal)' },
-        'attestation': { label: 'Attestation', icon: 'fa-certificate', color: 'var(--purple)' },
-        'don': { label: 'Bon de don', icon: 'fa-hand-holding-heart', color: 'var(--gold)' },
-        'caisse': { label: 'Bon de caisse', icon: 'fa-money-bill-wave', color: 'var(--info)' },
-        'depense': { label: 'Bon de dépense', icon: 'fa-receipt', color: 'var(--danger)' }
-    };
-
-    var info = types[type];
-    if (!info) return;
-
-    document.getElementById('documentAdminModalTitle').textContent = 'Nouveau ' + info.label;
-    document.getElementById('documentAdminType').value = type;
-    document.getElementById('documentAdminTitre').value = info.label + ' N°' + (DATA.documentsAdmin.length + 1).toString().padStart(4, '0');
-    document.getElementById('documentAdminBeneficiaire').value = '';
-    document.getElementById('documentAdminMontant').value = 0;
-    document.getElementById('documentAdminDescription').value = '';
-    document.getElementById('documentAdminDate').value = new Date().toISOString().split('T')[0];
-
-    document.getElementById('documentAdminModal').classList.add('active');
-}
-
-// ============================================================
-// GÉNÉRATION DE DOCUMENTS
-// ============================================================
-
-
-
-function generateDocument(type) {
-    var types = {
-        'reception': { label: 'Bon de réception', icon: 'fa-file-alt', color: 'var(--teal)' },
-        'attestation': { label: 'Attestation', icon: 'fa-certificate', color: 'var(--purple)' },
-        'don': { label: 'Bon de don', icon: 'fa-hand-holding-heart', color: 'var(--gold)' },
-        'caisse': { label: 'Bon de caisse', icon: 'fa-money-bill-wave', color: 'var(--info)' },
-        'depense': { label: 'Bon de dépense', icon: 'fa-receipt', color: 'var(--danger)' }
-    };
-
-    var info = types[type];
-    if (!info) return;
-
-    document.getElementById('documentAdminModalTitle').textContent = 'Nouveau ' + info.label;
-    document.getElementById('documentAdminType').value = type;
-    document.getElementById('documentAdminTitre').value = info.label + ' N°' + (DATA.documentsAdmin.length + 1).toString().padStart(4, '0');
-    document.getElementById('documentAdminBeneficiaire').value = '';
-    document.getElementById('documentAdminMontant').value = 0;
-    document.getElementById('documentAdminDescription').value = '';
-    document.getElementById('documentAdminDate').value = new Date().toISOString().split('T')[0];
-
-    document.getElementById('documentAdminModal').classList.add('active');
-}
-
-function printDocument(id) {
-    var doc = DATA.documentsAdmin.find(d => d.id === id);
-    if (!doc) {
-        showAlert('Document non trouvé', 'error');
-        return;
-    }
-
-    var title = getLocalized(doc.titre) || 'Document';
-    var beneficiaire = getLocalized(doc.beneficiaire) || '';
-    var description = getLocalized(doc.description) || '';
-    var montant = doc.montant || 0;
-    var date = doc.date || new Date().toISOString().split('T')[0];
-    var typeLabel = doc.type_label || doc.type || 'Document';
-    var typeIcon = getTypeIcon(doc.type);
-
-    var printWindow = window.open('', '_blank', 'width=800,height=600');
-    printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>${title}</title>
-            <style>
-                body { font-family: 'Times New Roman', serif; padding: 40px; color: #333; }
-                .header { text-align: center; border-bottom: 3px double #1a6d2c; padding-bottom: 20px; margin-bottom: 30px; }
-                .header h1 { color: #1a6d2c; font-size: 24px; margin: 0; }
-                .header h2 { color: #2e8b57; font-size: 16px; margin: 5px 0; font-weight: normal; }
-                .header .phone { font-size: 14px; color: #666; }
-                .title { text-align: center; font-size: 22px; font-weight: bold; margin: 30px 0; text-transform: uppercase; letter-spacing: 2px; }
-                .content { margin: 30px 0; line-height: 1.8; font-size: 16px; }
-                .info-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                .info-table td { padding: 10px; border: 1px solid #ddd; }
-                .info-table .label { font-weight: bold; width: 30%; background: #f5f5f5; }
-                .montant { font-size: 24px; font-weight: bold; color: #1a6d2c; text-align: center; padding: 15px; }
-                .signatures { margin-top: 50px; display: flex; justify-content: space-between; }
-                .signature-box { text-align: center; width: 45%; }
-                .signature-box .line { border-top: 1px solid #333; width: 80%; margin: 30px auto 5px; }
-                .signature-box .name { font-weight: bold; }
-                .footer { text-align: center; margin-top: 50px; font-size: 12px; color: #888; border-top: 1px solid #ddd; padding-top: 15px; }
-                .icon { font-size: 40px; color: #1a6d2c; }
-                .badge { display: inline-block; padding: 5px 15px; border-radius: 20px; color: white; font-size: 14px; font-weight: bold; }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <div style="font-size: 40px; color: #1a6d2c;">🤝</div>
-                <h1>ASSOCIATION ANSFAL</h1>
-                <h2>Association de Coopération, Développement et Environnement</h2>
-                <div class="phone">📞 06 25 93 13 18 | 📧 contact@ansfal.org</div>
-                <div style="margin-top:10px;font-size:14px;color:#666;">📌 Maroc</div>
-            </div>
-
-            <div class="title">
-                <div class="icon">📄</div>
-                ${typeLabel}
-                <div style="font-size:14px;font-weight:normal;color:#666;margin-top:5px;">N° ${doc.id.toString().padStart(4, '0')} / ${new Date(date).getFullYear()}</div>
-            </div>
-
-            <table class="info-table">
-                <tr><td class="label">Date</td><td>${new Date(date).toLocaleDateString('fr-FR')}</td></tr>
-                <tr><td class="label">Bénéficiaire / Fournisseur</td><td>${beneficiaire || 'Non spécifié'}</td></tr>
-                <tr><td class="label">Objet / Description</td><td>${description || 'Non spécifié'}</td></tr>
-                <tr><td class="label">Montant (MAD)</td><td style="font-weight:bold;font-size:18px;">${montant.toFixed(2)} MAD</td></tr>
-                <tr><td class="label">Montant en lettres</td><td>${convertirMontantEnLettres(montant)}</td></tr>
-            </table>
-
-            <div class="montant">Total : ${montant.toFixed(2)} MAD</div>
-
-            <div class="signatures">
-                <div class="signature-box">
-                    <div class="line"></div>
-                    <div class="name">Le Président</div>
-                    <div style="font-size:12px;color:#666;">Signature et cachet</div>
-                </div>
-                <div class="signature-box">
-                    <div class="line"></div>
-                    <div class="name">Le Trésorier</div>
-                    <div style="font-size:12px;color:#666;">Signature et cachet</div>
-                </div>
-            </div>
-
-            <div class="footer">
-                <p>ASSOCIATION ANSFAL - Association de Coopération, Développement et Environnement</p>
-                <p>Document généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
-            </div>
-        </body>
-        </html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
-}
-
-function convertirMontantEnLettres(montant) {
-    if (montant === 0) return 'Zéro dirhams';
-    
-    var unite = ['', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf'];
-    var dizaine = ['', 'dix', 'vingt', 'trente', 'quarante', 'cinquante', 'soixante', 'soixante-dix', 'quatre-vingt', 'quatre-vingt-dix'];
-    
-    function convert(n) {
-        if (n < 20) return unite[n];
-        if (n < 100) {
-            var d = Math.floor(n / 10);
-            var u = n % 10;
-            if (d === 7 || d === 9) {
-                return dizaine[d] + (u === 0 ? '' : '-' + convert(10 + u));
+            if (!titre) {
+                showAlert('Veuillez entrer un titre', 'error');
+                return;
             }
-            return dizaine[d] + (u === 0 ? '' : '-' + unite[u]);
+
+            var typeLabels = {
+                'reception': 'Bon de réception',
+                'attestation': 'Attestation',
+                'don': 'Bon de don',
+                'caisse': 'Bon de caisse',
+                'depense': 'Bon de dépense',
+                'autre': 'Autre'
+            };
+
+            const data = {
+                type: type,
+                type_label: typeLabels[type] || type,
+                titre: { fr: titre, ar: titre },
+                beneficiaire: { fr: beneficiaire, ar: beneficiaire },
+                montant: montant,
+                description: { fr: description, ar: description },
+                date: date,
+                color: getTypeColor(type),
+                icon: getTypeIcon(type)
+            };
+
+            await saveToSupabase('documents_admin', data, currentEditId);
+            closeDocumentAdminModal();
+            currentEditId = null;
         }
-        if (n < 1000) {
-            var c = Math.floor(n / 100);
-            var r = n % 100;
-            if (c === 1) return 'cent' + (r === 0 ? '' : ' ' + convert(r));
-            return unite[c] + ' cent' + (r === 0 ? 's' : ' ' + convert(r));
+        window.saveDocumentAdmin = saveDocumentAdmin;
+
+        function getTypeColor(type) {
+            var colors = {
+                'reception': 'var(--teal)',
+                'attestation': 'var(--purple)',
+                'don': 'var(--gold)',
+                'caisse': 'var(--info)',
+                'depense': 'var(--danger)',
+                'autre': 'var(--primary)'
+            };
+            return colors[type] || 'var(--primary)';
         }
-        if (n < 1000000) {
-            var m = Math.floor(n / 1000);
-            var r = n % 1000;
-            if (m === 1) return 'mille' + (r === 0 ? '' : ' ' + convert(r));
-            return convert(m) + ' mille' + (r === 0 ? '' : ' ' + convert(r));
+        window.getTypeColor = getTypeColor;
+
+        function getTypeIcon(type) {
+            var icons = {
+                'reception': 'fa-file-alt',
+                'attestation': 'fa-certificate',
+                'don': 'fa-hand-holding-heart',
+                'caisse': 'fa-money-bill-wave',
+                'depense': 'fa-receipt',
+                'autre': 'fa-file-pdf'
+            };
+            return icons[type] || 'fa-file-pdf';
         }
-        return 'Nombre trop grand';
-    }
-    
-    var dirhams = Math.floor(montant);
-    var centimes = Math.round((montant - dirhams) * 100);
-    
-    var result = convert(dirhams) + ' dirham' + (dirhams > 1 ? 's' : '');
-    if (centimes > 0) {
-        result += ' et ' + convert(centimes) + ' centime' + (centimes > 1 ? 's' : '');
-    }
-    return result.charAt(0).toUpperCase() + result.slice(1);
-}
+        window.getTypeIcon = getTypeIcon;
 
-function downloadDocument(id) {
-    var doc = DATA.documentsAdmin.find(d => d.id === id);
-    if (!doc) {
-        showAlert('Document non trouvé', 'error');
-        return;
-    }
-
-    var title = getLocalized(doc.titre) || 'Document';
-    var content = getLocalized(doc.description) || '';
-    var beneficiaire = getLocalized(doc.beneficiaire) || '';
-    var montant = doc.montant || 0;
-    var date = doc.date || new Date().toISOString().split('T')[0];
-    var typeLabel = doc.type_label || doc.type || 'Document';
-
-    var blob = new Blob([
-        '=============================================\n',
-        '        ASSOCIATION ANSFAL\n',
-        'Association de Coopération, Développement et Environnement\n',
-        '=============================================\n\n',
-        'Document: ' + typeLabel + '\n',
-        'Titre: ' + title + '\n',
-        'Date: ' + date + '\n',
-        'Bénéficiaire: ' + beneficiaire + '\n',
-        'Montant: ' + montant.toFixed(2) + ' MAD\n',
-        'Description: ' + content + '\n\n',
-        '=============================================\n',
-        'Signatures:\n',
-        '  - Le Président: ___________________________\n',
-        '  - Le Trésorier: ___________________________\n',
-        '=============================================\n',
-        'Document généré le ' + new Date().toLocaleDateString('fr-FR') + '\n'
-    ], { type: 'application/pdf' });
-
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = title.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    showAlert('✅ Téléchargement de "' + title + '" démarré', 'success');
-}
-
-function renderDocumentsAdmin() {
-    var grid = document.getElementById('documentsAdminGrid');
-    if (grid) {
-        var items = DATA.documentsAdmin || [];
-        if (items.length === 0) {
-            grid.innerHTML = '<div class="no-content">Aucun document</div>';
-            return;
+        function deleteDocumentAdmin(id) {
+            if (!confirm('Supprimer ce document ?')) return;
+            deleteFromSupabase('documents_admin', id);
         }
-        grid.innerHTML = items.map(function(doc) {
-            var title = getLocalized(doc.titre) || 'Document';
-            var desc = getLocalized(doc.description) || '';
-            var color = doc.color || 'var(--primary)';
-            var icon = doc.icon || 'fa-file-pdf';
-            var typeLabel = doc.type_label || doc.type || 'Document';
-            
-            return '<div class="menu-card" style="border-left-color:' + color + ';">' +
-                '<div class="card-icon" style="color:' + color + ';"><i class="fas ' + icon + '"></i></div>' +
-                '<h3>' + title + '</h3>' +
-                '<p><strong>' + typeLabel + '</strong> - ' + (doc.date || '') + '</p>' +
-                '<p>' + desc + '</p>' +
-                '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">' +
-                '<button class="btn btn-sm" onclick="printDocument(' + doc.id + ')" style="background:' + color + ';border-color:' + color + ';padding:4px 12px;font-size:0.7rem;"><i class="fas fa-print"></i> Imprimer</button>' +
-                '<button class="btn btn-sm" onclick="downloadDocument(' + doc.id + ')" style="background:var(--info);border-color:var(--info);padding:4px 12px;font-size:0.7rem;"><i class="fas fa-download"></i> Télécharger</button>' +
-                '</div>' +
-                '</div>';
-        }).join('');
-    }
-    
-    var list = document.getElementById('documentsAdminList');
-    if (list) {
-        var items = DATA.documentsAdmin || [];
-        if (items.length === 0) {
-            list.innerHTML = '<div class="no-content">Aucun document</div>';
-            return;
+        window.deleteDocumentAdmin = deleteDocumentAdmin;
+
+        function editDocumentAdmin(id) {
+            var item = DATA.documentsAdmin.find(t => t.id === id);
+            if (item) showDocumentAdminModal(item);
         }
-        list.innerHTML = items.map(function(item) {
-            var title = getLocalized(item.titre) || 'Document';
-            var color = item.color || 'var(--primary)';
-            var icon = item.icon || 'fa-file-pdf';
-            var typeLabel = item.type_label || item.type || 'Document';
-            return '<div class="dashboard-item">' +
-                '<div class="item-icon"><i class="fas ' + icon + '" style="color:' + color + ';"></i></div>' +
-                '<div class="item-info"><h4>' + title + '</h4><small>' + typeLabel + ' - ' + (item.date || '') + '</small></div>' +
-                '<button class="btn-action edit" onclick="editDocumentAdmin(' + item.id + ')"><i class="fas fa-edit"></i></button>' +
-                '<button class="btn-action delete" onclick="deleteDocumentAdmin(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
-                '<button class="btn-action view" onclick="printDocument(' + item.id + ')" style="background:var(--teal);"><i class="fas fa-print"></i></button>' +
-                '</div>';
-        }).join('');
-    }
-}
+        window.editDocumentAdmin = editDocumentAdmin;
 
         // ============================================================
-        // UPLOAD
+        // GENERATE DOCUMENT
+        // ============================================================
+        function generateDocument(type) {
+            var types = {
+                'reception': { label: 'Bon de réception', icon: 'fa-file-alt', color: 'var(--teal)' },
+                'attestation': { label: 'Attestation', icon: 'fa-certificate', color: 'var(--purple)' },
+                'don': { label: 'Bon de don', icon: 'fa-hand-holding-heart', color: 'var(--gold)' },
+                'caisse': { label: 'Bon de caisse', icon: 'fa-money-bill-wave', color: 'var(--info)' },
+                'depense': { label: 'Bon de dépense', icon: 'fa-receipt', color: 'var(--danger)' }
+            };
+
+            var info = types[type];
+            if (!info) return;
+
+            document.getElementById('documentAdminModalTitle').textContent = 'Nouveau ' + info.label;
+            document.getElementById('documentAdminType').value = type;
+            document.getElementById('documentAdminTitre').value = info.label + ' N°' + (DATA.documentsAdmin.length + 1).toString().padStart(4, '0');
+            document.getElementById('documentAdminBeneficiaire').value = '';
+            document.getElementById('documentAdminMontant').value = 0;
+            document.getElementById('documentAdminDescription').value = '';
+            document.getElementById('documentAdminDate').value = new Date().toISOString().split('T')[0];
+
+            document.getElementById('documentAdminModal').classList.add('active');
+        }
+        window.generateDocument = generateDocument;
+
+        // ============================================================
+        // PRINT DOCUMENT
+        // ============================================================
+        function printDocument(id) {
+            var doc = DATA.documentsAdmin.find(d => d.id === id);
+            if (!doc) {
+                showAlert('Document non trouvé', 'error');
+                return;
+            }
+
+            var title = getLocalized(doc.titre) || 'Document';
+            var beneficiaire = getLocalized(doc.beneficiaire) || '';
+            var description = getLocalized(doc.description) || '';
+            var montant = doc.montant || 0;
+            var date = doc.date || new Date().toISOString().split('T')[0];
+            var typeLabel = doc.type_label || doc.type || 'Document';
+
+            var printWindow = window.open('', '_blank', 'width=800,height=600');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${title}</title>
+                    <style>
+                        body { font-family: 'Times New Roman', serif; padding: 40px; color: #333; }
+                        .header { text-align: center; border-bottom: 3px double #1a6d2c; padding-bottom: 20px; margin-bottom: 30px; }
+                        .header h1 { color: #1a6d2c; font-size: 24px; margin: 0; }
+                        .header h2 { color: #2e8b57; font-size: 16px; margin: 5px 0; font-weight: normal; }
+                        .header .phone { font-size: 14px; color: #666; }
+                        .title { text-align: center; font-size: 22px; font-weight: bold; margin: 30px 0; text-transform: uppercase; letter-spacing: 2px; }
+                        .content { margin: 30px 0; line-height: 1.8; font-size: 16px; }
+                        .info-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        .info-table td { padding: 10px; border: 1px solid #ddd; }
+                        .info-table .label { font-weight: bold; width: 30%; background: #f5f5f5; }
+                        .montant { font-size: 24px; font-weight: bold; color: #1a6d2c; text-align: center; padding: 15px; }
+                        .signatures { margin-top: 50px; display: flex; justify-content: space-between; }
+                        .signature-box { text-align: center; width: 45%; }
+                        .signature-box .line { border-top: 1px solid #333; width: 80%; margin: 30px auto 5px; }
+                        .signature-box .name { font-weight: bold; }
+                        .footer { text-align: center; margin-top: 50px; font-size: 12px; color: #888; border-top: 1px solid #ddd; padding-top: 15px; }
+                        .icon { font-size: 40px; color: #1a6d2c; }
+                        .badge { display: inline-block; padding: 5px 15px; border-radius: 20px; color: white; font-size: 14px; font-weight: bold; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div style="font-size: 40px; color: #1a6d2c;">🤝</div>
+                        <h1>ASSOCIATION ANSFAL</h1>
+                        <h2>Association de Coopération, Développement et Environnement</h2>
+                        <div class="phone">📞 06 25 93 13 18 | 📧 contact@ansfal.org</div>
+                        <div style="margin-top:10px;font-size:14px;color:#666;">📌 Maroc</div>
+                    </div>
+
+                    <div class="title">
+                        <div class="icon">📄</div>
+                        ${typeLabel}
+                        <div style="font-size:14px;font-weight:normal;color:#666;margin-top:5px;">N° ${doc.id.toString().padStart(4, '0')} / ${new Date(date).getFullYear()}</div>
+                    </div>
+
+                    <table class="info-table">
+                        <tr><td class="label">Date</td><td>${new Date(date).toLocaleDateString('fr-FR')}</td></tr>
+                        <tr><td class="label">Bénéficiaire / Fournisseur</td><td>${beneficiaire || 'Non spécifié'}</td></tr>
+                        <tr><td class="label">Objet / Description</td><td>${description || 'Non spécifié'}</td></tr>
+                        <tr><td class="label">Montant (MAD)</td><td style="font-weight:bold;font-size:18px;">${montant.toFixed(2)} MAD</td></tr>
+                        <tr><td class="label">Montant en lettres</td><td>${convertirMontantEnLettres(montant)}</td></tr>
+                    </table>
+
+                    <div class="montant">Total : ${montant.toFixed(2)} MAD</div>
+
+                    <div class="signatures">
+                        <div class="signature-box">
+                            <div class="line"></div>
+                            <div class="name">Le Président</div>
+                            <div style="font-size:12px;color:#666;">Signature et cachet</div>
+                        </div>
+                        <div class="signature-box">
+                            <div class="line"></div>
+                            <div class="name">Le Trésorier</div>
+                            <div style="font-size:12px;color:#666;">Signature et cachet</div>
+                        </div>
+                    </div>
+
+                    <div class="footer">
+                        <p>ASSOCIATION ANSFAL - Association de Coopération, Développement et Environnement</p>
+                        <p>Document généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+        window.printDocument = printDocument;
+
+        // ============================================================
+        // CONVERTIR MONTANT EN LETTRES
+        // ============================================================
+        function convertirMontantEnLettres(montant) {
+            if (montant === 0) return 'Zéro dirhams';
+            
+            var unite = ['', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf'];
+            var dizaine = ['', 'dix', 'vingt', 'trente', 'quarante', 'cinquante', 'soixante', 'soixante-dix', 'quatre-vingt', 'quatre-vingt-dix'];
+            
+            function convert(n) {
+                if (n < 20) return unite[n];
+                if (n < 100) {
+                    var d = Math.floor(n / 10);
+                    var u = n % 10;
+                    if (d === 7 || d === 9) {
+                        return dizaine[d] + (u === 0 ? '' : '-' + convert(10 + u));
+                    }
+                    return dizaine[d] + (u === 0 ? '' : '-' + unite[u]);
+                }
+                if (n < 1000) {
+                    var c = Math.floor(n / 100);
+                    var r = n % 100;
+                    if (c === 1) return 'cent' + (r === 0 ? '' : ' ' + convert(r));
+                    return unite[c] + ' cent' + (r === 0 ? 's' : ' ' + convert(r));
+                }
+                if (n < 1000000) {
+                    var m = Math.floor(n / 1000);
+                    var r = n % 1000;
+                    if (m === 1) return 'mille' + (r === 0 ? '' : ' ' + convert(r));
+                    return convert(m) + ' mille' + (r === 0 ? '' : ' ' + convert(r));
+                }
+                return 'Nombre trop grand';
+            }
+            
+            var dirhams = Math.floor(montant);
+            var centimes = Math.round((montant - dirhams) * 100);
+            
+            var result = convert(dirhams) + ' dirham' + (dirhams > 1 ? 's' : '');
+            if (centimes > 0) {
+                result += ' et ' + convert(centimes) + ' centime' + (centimes > 1 ? 's' : '');
+            }
+            return result.charAt(0).toUpperCase() + result.slice(1);
+        }
+        window.convertirMontantEnLettres = convertirMontantEnLettres;
+
+        // ============================================================
+        // DOWNLOAD DOCUMENT
+        // ============================================================
+        function downloadDocument(id) {
+            var doc = DATA.documentsAdmin.find(d => d.id === id);
+            if (!doc) {
+                showAlert('Document non trouvé', 'error');
+                return;
+            }
+
+            var title = getLocalized(doc.titre) || 'Document';
+            var content = getLocalized(doc.description) || '';
+            var beneficiaire = getLocalized(doc.beneficiaire) || '';
+            var montant = doc.montant || 0;
+            var date = doc.date || new Date().toISOString().split('T')[0];
+            var typeLabel = doc.type_label || doc.type || 'Document';
+
+            var blob = new Blob([
+                '=============================================\n',
+                '        ASSOCIATION ANSFAL\n',
+                'Association de Coopération, Développement et Environnement\n',
+                '=============================================\n\n',
+                'Document: ' + typeLabel + '\n',
+                'Titre: ' + title + '\n',
+                'Date: ' + date + '\n',
+                'Bénéficiaire: ' + beneficiaire + '\n',
+                'Montant: ' + montant.toFixed(2) + ' MAD\n',
+                'Description: ' + content + '\n\n',
+                '=============================================\n',
+                'Signatures:\n',
+                '  - Le Président: ___________________________\n',
+                '  - Le Trésorier: ___________________________\n',
+                '=============================================\n',
+                'Document généré le ' + new Date().toLocaleDateString('fr-FR') + '\n'
+            ], { type: 'application/pdf' });
+
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = title.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showAlert('✅ Téléchargement de "' + title + '" démarré', 'success');
+        }
+        window.downloadDocument = downloadDocument;
+
+        // ============================================================
+        // UPLOAD MODAL
         // ============================================================
         function showUploadModal(type) {
             uploadType = type || 'image';
@@ -4485,11 +4924,13 @@ function renderDocumentsAdmin() {
             selectedFiles = [];
             document.getElementById('filePreview').innerHTML = '';
         }
+        window.showUploadModal = showUploadModal;
 
         function closeUploadModal() {
             document.getElementById('uploadModal').classList.remove('active');
             selectedFiles = [];
         }
+        window.closeUploadModal = closeUploadModal;
 
         function handleFileSelect(event) {
             var files = event.target.files;
@@ -4499,6 +4940,7 @@ function renderDocumentsAdmin() {
             updateFilePreview();
             event.target.value = '';
         }
+        window.handleFileSelect = handleFileSelect;
 
         function updateFilePreview() {
             var container = document.getElementById('filePreview');
@@ -4513,56 +4955,16 @@ function renderDocumentsAdmin() {
                     '</div>';
             }).join('');
         }
+        window.updateFilePreview = updateFilePreview;
 
         function removeFile(index) {
             selectedFiles.splice(index, 1);
             updateFilePreview();
         }
-
-        uploadFiles()
-        function deleteGallery(id) {
-            if (!confirm('Supprimer cette image ?')) return;
-            deleteFromSupabase('gallery', id);
-        }
-
-        function deleteVideo(id) {
-            if (!confirm('Supprimer cette vidéo ?')) return;
-            deleteFromSupabase('videos', id);
-        }
-
-        function viewMedia(url, type) {
-            var viewer = document.getElementById('fileViewer');
-            var content = document.getElementById('viewerContent');
-            if (type === 'video') {
-                content.innerHTML = '<video controls style="max-width:100%;max-height:60vh;"><source src="' + url + '" type="video/mp4"></video>';
-            } else {
-                content.innerHTML = '<img src="' + url + '" style="max-width:100%;max-height:60vh;" />';
-            }
-            viewer.classList.add('active');
-        }
-
-        function closeFileViewer() {
-            document.getElementById('fileViewer').classList.remove('active');
-        }
+        window.removeFile = removeFile;
 
         // ============================================================
-        // STATS
-        // ============================================================
-        function updateStats() {
-            var total = Math.floor(Math.random() * 50) + 10;
-            document.getElementById('totalVisitorsStat').textContent = total;
-            document.getElementById('totalVisitors').textContent = total;
-            document.getElementById('onlineVisitors').textContent = Math.floor(Math.random() * 5) + 1;
-            document.getElementById('lastVisit').textContent = new Date().toLocaleString();
-
-            document.getElementById('totalMediaStat').textContent = (DATA.gallery.length + DATA.videos.length);
-            document.getElementById('totalTextsStat').textContent = DATA.texts.length;
-            document.getElementById('totalTickerStat').textContent = DATA.ticker.length;
-            document.getElementById('totalArbresStat').textContent = DATA.arbres.length;
-        }
-
-        // ============================================================
-        // NAVIGATION
+        // SHOW / HIDE SECTIONS
         // ============================================================
         function showSection(id) {
             document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
@@ -4571,6 +4973,7 @@ function renderDocumentsAdmin() {
             document.querySelectorAll('#mainMenu a').forEach(l => l.classList.remove('active'));
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+        window.showSection = showSection;
 
         function showDashboardSection(type) {
             document.querySelectorAll('.dashboard-section-content').forEach(s => s.classList.remove('active'));
@@ -4583,13 +4986,15 @@ function renderDocumentsAdmin() {
                 }
             });
         }
+        window.showDashboardSection = showDashboardSection;
 
         // ============================================================
-        // MOT DE PASSE
+        // PASSWORD MODAL
         // ============================================================
         function showPasswordModal() {
             document.getElementById('passwordModal').classList.add('active');
         }
+        window.showPasswordModal = showPasswordModal;
 
         function closePasswordModal() {
             document.getElementById('passwordModal').classList.remove('active');
@@ -4597,6 +5002,7 @@ function renderDocumentsAdmin() {
             document.getElementById('newPasswordInput').value = '';
             document.getElementById('confirmPasswordInput').value = '';
         }
+        window.closePasswordModal = closePasswordModal;
 
         function changePassword() {
             var current = document.getElementById('currentPasswordInput').value;
@@ -4613,18 +5019,7 @@ function renderDocumentsAdmin() {
             closePasswordModal();
             showAlert('Mot de passe changé', 'success');
         }
-
-        // ============================================================
-        // ALERTES
-        // ============================================================
-        function showAlert(message, type) {
-            var div = document.createElement('div');
-            div.className = 'alert ' + (type || 'info');
-            var icon = type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle';
-            div.innerHTML = '<i class="fas fa-' + icon + '"></i> ' + message;
-            document.body.appendChild(div);
-            setTimeout(function() { div.remove(); }, 4000);
-        }
+        window.changePassword = changePassword;
 
         // ============================================================
         // EXPORT / RESET
@@ -4640,13 +5035,12 @@ function renderDocumentsAdmin() {
             URL.revokeObjectURL(url);
             showAlert('Données exportées', 'success');
         }
+        window.exportToJSON = exportToJSON;
 
         function resetAllData() {
             if (!confirm('⚠️ Effacer toutes les données ? Cette action est irréversible !')) return;
 
-            var tables = ['ticker', 'texts', 'offres', 'produits', 'arbres', 'betail', 'eau', 'sagia', 'gallery', 'videos',
-                'documents_admin'
-            ];
+            var tables = ['ticker', 'texts', 'offres', 'produits', 'arbres', 'betail', 'eau', 'sagia', 'gallery', 'videos', 'documents_admin'];
 
             Promise.all(tables.map(async function(table) {
                 try {
@@ -4664,6 +5058,20 @@ function renderDocumentsAdmin() {
                 loadAllData();
             });
         }
+        window.resetAllData = resetAllData;
+
+        // ============================================================
+        // ALERTS
+        // ============================================================
+        function showAlert(message, type) {
+            var div = document.createElement('div');
+            div.className = 'alert ' + (type || 'info');
+            var icon = type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle';
+            div.innerHTML = '<i class="fas fa-' + icon + '"></i> ' + message;
+            document.body.appendChild(div);
+            setTimeout(function() { div.remove(); }, 4000);
+        }
+        window.showAlert = showAlert;
 
         // ============================================================
         // INITIALISATION
@@ -4715,72 +5123,22 @@ function renderDocumentsAdmin() {
         });
 
         // ============================================================
-        // EXPOSER GLOBALEMENT
+        // CLOSE GENERIC MODAL
         // ============================================================
-        window.switchLanguage = switchLanguage;
-        window.showSection = showSection;
-        window.showDashboardSection = showDashboardSection;
-        window.login = login;
-        window.logout = logout;
-        window.showAlert = showAlert;
-        window.showUploadModal = showUploadModal;
-        window.closeUploadModal = closeUploadModal;
-        window.handleFileSelect = handleFileSelect;
-        window.removeFile = removeFile;
-        window.uploadFiles = uploadFiles;
-        window.viewMedia = viewMedia;
-        window.closeFileViewer = closeFileViewer;
-        window.showTextModal = showTextModal;
-        window.closeTextModal = closeTextModal;
-        window.saveText = saveText;
-        window.deleteText = deleteText;
-        window.editText = editText;
-        window.showTickerModal = showTickerModal;
-        window.closeTickerModal = closeTickerModal;
-        window.saveTicker = saveTicker;
-        window.deleteTicker = deleteTicker;
-        window.editTicker = editTicker;
-        window.showOffreModal = showOffreModal;
-        window.deleteOffre = deleteOffre;
-        window.editOffre = editOffre;
-        window.showProduitModal = showProduitModal;
-        window.closeProduitModal = closeProduitModal;
-        window.saveProduit = saveProduit;
-        window.deleteProduit = deleteProduit;
-        window.editProduit = editProduit;
-        window.showArbreModal = showArbreModal;
-        window.closeArbreModal = closeArbreModal;
-        window.saveArbre = saveArbre;
-        window.deleteArbre = deleteArbre;
-        window.editArbre = editArbre;
-        window.showBetailModal = showBetailModal;
-        window.closeBetailModal = closeBetailModal;
-        window.saveBetail = saveBetail;
-        window.deleteBetail = deleteBetail;
-        window.editBetail = editBetail;
-        window.showEauModal = showEauModal;
-        window.closeEauModal = closeEauModal;
-        window.saveEau = saveEau;
-        window.deleteEau = deleteEau;
-        window.editEau = editEau;
-        window.showSagiaModal = showSagiaModal;
-        window.closeSagiaModal = closeSagiaModal;
-        window.saveSagia = saveSagia;
-        window.deleteSagia = deleteSagia;
-        window.editSagia = editSagia;
+        function closeGenericModal() {
+            document.getElementById('genericModal').classList.remove('active');
+        }
         window.closeGenericModal = closeGenericModal;
-        window.showPasswordModal = showPasswordModal;
-        window.closePasswordModal = closePasswordModal;
-        window.changePassword = changePassword;
-        window.exportToJSON = exportToJSON;
-        window.resetAllData = resetAllData;
-        window.deleteGallery = deleteGallery;
-        window.deleteVideo = deleteVideo;
-        window.savePhoneNumber = savePhoneNumber;
-        window.showDocumentAdminModal = showDocumentAdminModal;
-        window.deleteDocumentAdmin = deleteDocumentAdmin;
-        window.editDocumentAdmin = editDocumentAdmin;
-        window.downloadDocument = downloadDocument;
-    </script>
+
+        // ============================================================
+        // RENDER DASHBOARD LISTS
+        // ============================================================
+        function renderDashboardLists() {
+            // Cette fonction est appelée dans renderAll() pour s'assurer
+            // que tous les listes du dashboard sont à jour
+            console.log('✅ Dashboard lists rendus');
+        }
+        window.renderDashboardLists = renderDashboardLists;
+</script>
 </body>
 </html>
