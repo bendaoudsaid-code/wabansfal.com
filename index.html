@@ -1888,6 +1888,7 @@
                     <li><a href="#" data-section="eau" onclick="showDashboardSection('eau')"><i class="fas fa-tint"></i> <span id="sidebarEauText">Eau</span></a></li>
                     <li><a href="#" data-section="sagia" onclick="showDashboardSection('sagia')"><i class="fas fa-list"></i> <span id="sidebarSagiaText">SAGIA</span></a></li>
                     <li><a href="#" data-section="documents-admin" onclick="showDashboardSection('documents-admin')"><i class="fas fa-file-pdf"></i> <span id="sidebarDocumentsAdminText">📄 Docs Admin</span></a></li>
+<li><a href="#" data-section="admins" onclick="showDashboardSection('admins')"><i class="fas fa-user-shield"></i> <span id="sidebarAdminsText">👥 Gestion des Admins</span></a></li>
                 </ul>
             </div>
             <div class="dashboard-content">
@@ -2071,6 +2072,30 @@
     </div>
 </div>
     </section>
+<!-- Gestion Admins -->
+<div id="adminsDashboard" class="dashboard-section-content">
+    <h2><i class="fas fa-user-shield"></i> <span id="adminsTitle">Gestion des administrateurs et webmasters</span></h2>
+    <div class="section-actions">
+        <button class="btn-import" onclick="showAdminModal()"><i class="fas fa-plus"></i> <span id="addAdminBtn">Ajouter un administrateur</span></button>
+    </div>
+    <div class="table-container">
+        <table class="data-table" id="adminsTable">
+            <thead>
+                <tr>
+                    <th><span id="adminUsernameHeader">Nom d'utilisateur</span></th>
+                    <th><span id="adminFullNameHeader">Nom complet</span></th>
+                    <th><span id="adminEmailHeader">Email</span></th>
+                    <th><span id="adminRoleHeader">Rôle</span></th>
+                    <th><span id="adminActionsHeader">Actions</span></th>
+                </tr>
+            </thead>
+            <tbody id="adminsBody">
+                <tr><td colspan="5" class="loading"><i class="fas fa-spinner"></i> Chargement...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
 
     <!-- ============================================ -->
     <!-- FOOTER                                      -->
@@ -2511,6 +2536,44 @@
             </div>
         </div>
     </div>
+<!-- MODALE ADMIN -->
+<div class="modal-overlay" id="adminModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title"><i class="fas fa-user-shield"></i> <span id="adminModalTitle">Ajouter un administrateur</span></h3>
+            <button class="close-modal" onclick="closeAdminModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label id="adminUsernameLabel">Nom d'utilisateur *</label>
+                <input type="text" id="adminUsernameInput" placeholder="Nom d'utilisateur" />
+            </div>
+            <div class="form-group">
+                <label id="adminEmailLabel">Email *</label>
+                <input type="email" id="adminEmailInput" placeholder="email@exemple.com" />
+            </div>
+            <div class="form-group">
+                <label id="adminFullNameLabel">Nom complet</label>
+                <input type="text" id="adminFullNameInput" placeholder="Nom et prénom" />
+            </div>
+            <div class="form-group">
+                <label id="adminPasswordLabel">Mot de passe</label>
+                <input type="password" id="adminPasswordInput" placeholder="Mot de passe" />
+            </div>
+            <div class="form-group">
+                <label id="adminRoleLabel">Rôle</label>
+                <select id="adminRoleSelect">
+                    <option value="admin">Administrateur</option>
+                    <option value="webmaster">Webmaster</option>
+                </select>
+            </div>
+            <div class="upload-actions">
+                <button class="btn-browse danger" onclick="closeAdminModal()"><i class="fas fa-times"></i> Annuler</button>
+                <button class="btn-browse success" onclick="saveAdmin()"><i class="fas fa-save"></i> Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- VISIONNEUSE -->
     <div class="file-viewer" id="fileViewer">
@@ -2572,6 +2635,22 @@
             fr: {
                 menuHomeText: 'Accueil',
                 menuAboutText: 'À propos',
+                sidebarAdminsText: '👥 Gestion des Admins',
+                adminsTitle: 'Gestion des administrateurs et webmasters',
+                addAdminBtn: 'Ajouter un administrateur',
+                adminUsernameHeader: 'Nom d\'utilisateur',
+                adminFullNameHeader: 'Nom complet',
+                adminEmailHeader: 'Email',
+                adminRoleHeader: 'Rôle',
+                adminActionsHeader: 'Actions',
+                adminModalTitle: 'Ajouter un administrateur',
+                adminUsernameLabel: 'Nom d\'utilisateur *',
+                adminEmailLabel: 'Email *',
+                adminFullNameLabel: 'Nom complet',
+                adminPasswordLabel: 'Mot de passe',
+                adminRoleLabel: 'Rôle',
+                adminSaveBtn: 'Enregistrer',
+                adminCancelBtn: 'Annuler',
                 menuAssociationText: 'Association',
                 menuConseilText: 'Conseil de l\'association',
                 menuAdherentsText: 'Habitants adhérents',
@@ -2646,6 +2725,22 @@
             ar: {
                 menuHomeText: 'الرئيسية',
                 menuAboutText: 'من نحن',
+                sidebarAdminsText: '👥 إدارة المشرفين',
+                adminsTitle: 'إدارة المشرفين ومسؤولي الموقع',
+                addAdminBtn: 'إضافة مشرف',
+                adminUsernameHeader: 'اسم المستخدم',
+                adminFullNameHeader: 'الاسم الكامل',
+                adminEmailHeader: 'البريد الإلكتروني',
+                adminRoleHeader: 'الدور',
+                adminActionsHeader: 'إجراءات',
+                adminModalTitle: 'إضافة مشرف',
+                adminUsernameLabel: 'اسم المستخدم *',
+                adminEmailLabel: 'البريد الإلكتروني *',
+                adminFullNameLabel: 'الاسم الكامل',
+                adminPasswordLabel: 'كلمة المرور',
+                adminRoleLabel: 'الدور',
+                adminSaveBtn: 'حفظ',
+                adminCancelBtn: 'إلغاء',
                 menuAssociationText: 'الجمعية',
                 menuConseilText: 'مجلس الجمعية',
                 menuAdherentsText: 'السكان المنخرطون',
@@ -2782,7 +2877,8 @@
                     { key: 'sagia', table: 'sagia' },
                     { key: 'gallery', table: 'gallery' },
                     { key: 'videos', table: 'videos' },
-                    { key: 'documentsAdmin', table: 'documents_admin' }
+                    { key: 'documentsAdmin', table: 'documents_admin' },
+                    { key: 'admins', table: 'admins' }
                 ];
 
                 for (const { key, table } of tables) {
@@ -2792,15 +2888,16 @@
                         .order('id', { ascending: true });
 
                     if (error) {
-                        console.warn('⚠️ Erreur chargement ${table}:', error);
+                        console.warn('⚠️ Erreur chargement ' + table + ':', error);
                         continue;
                     }
 
                     DATA[key] = data && data.length > 0 ? data : [];
-                    console.log('✅ ${table}: ${DATA[key].length} éléments');
+                    console.log('✅ ' + table + ': ' + DATA[key].length + ' éléments');
                 }
 
                 await loadMeteo();
+                await loadAdmins();
                 renderAll();
                 showLoading(false);
 
@@ -2877,99 +2974,88 @@
         // UPLOAD FILES
         // ============================================================
         async function uploadFiles() {
-    if (selectedFiles.length === 0) {
-        showAlert('Veuillez sélectionner des fichiers', 'error');
-        return;
-    }
-
-    try {
-        showLoading(true);
-        let uploadedCount = 0;
-
-        for (const file of selectedFiles) {
-            // Déterminer le type de fichier
-            const isVideo = file.type.startsWith('video/');
-            const isImage = file.type.startsWith('image/');
-            const isPdf = file.type === 'application/pdf';
-            
-            // Vérifier le type
-            if (!isVideo && !isImage && !isPdf) {
-                showAlert(`❌ ${file.name} n'est pas supporté (image, vidéo ou PDF uniquement)`, 'error');
-                continue;
+            if (selectedFiles.length === 0) {
+                showAlert('Veuillez sélectionner des fichiers', 'error');
+                return;
             }
 
-            // Générer un nom de fichier unique
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
-            
-            console.log(`📤 Upload de ${fileName} (${file.type}) - ${(file.size / 1024 / 1024).toFixed(2)} Mo`);
+            try {
+                showLoading(true);
+                let uploadedCount = 0;
 
-            // Upload vers Supabase Storage
-            const { data: uploadData, error: uploadError } = await supabaseClient.storage
-                .from('medias')
-                .upload(fileName, file, {
-                    cacheControl: '3600',
-                    upsert: false
-                });
+                for (const file of selectedFiles) {
+                    const isVideo = file.type.startsWith('video/');
+                    const isImage = file.type.startsWith('image/');
+                    const isPdf = file.type === 'application/pdf';
+                    
+                    if (!isVideo && !isImage && !isPdf) {
+                        showAlert('❌ ' + file.name + ' n\'est pas supporté', 'error');
+                        continue;
+                    }
 
-            if (uploadError) {
-                console.error('❌ Erreur upload storage:', uploadError);
-                showAlert(`❌ Erreur upload de ${file.name}: ${uploadError.message}`, 'error');
-                continue;
+                    const fileName = Date.now() + '_' + file.name.replace(/\s/g, '_');
+                    
+                    const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                        .from('medias')
+                        .upload(fileName, file, {
+                            cacheControl: '3600',
+                            upsert: false
+                        });
+
+                    if (uploadError) {
+                        console.error('❌ Erreur upload storage:', uploadError);
+                        showAlert('❌ Erreur upload de ' + file.name + ': ' + uploadError.message, 'error');
+                        continue;
+                    }
+
+                    const { data: urlData } = supabaseClient.storage
+                        .from('medias')
+                        .getPublicUrl(fileName);
+
+                    const publicUrl = urlData.publicUrl;
+
+                    const table = isVideo ? 'videos' : 'gallery';
+                    const itemData = {
+                        url: publicUrl,
+                        file_name: fileName,
+                        title: file.name.split('.')[0].replace(/[_-]/g, ' '),
+                        date: new Date().toISOString().split('T')[0],
+                        type: isVideo ? 'video' : isPdf ? 'pdf' : 'image'
+                    };
+
+                    const { error: dbError } = await supabaseClient
+                        .from(table)
+                        .insert([itemData]);
+
+                    if (dbError) {
+                        console.error('❌ Erreur insertion base:', dbError);
+                        await supabaseClient.storage.from('medias').remove([fileName]);
+                        showAlert('❌ Erreur sauvegarde de ' + file.name + ': ' + dbError.message, 'error');
+                        continue;
+                    }
+
+                    uploadedCount++;
+                }
+
+                if (uploadedCount > 0) {
+                    showAlert('✅ ' + uploadedCount + ' fichier(s) uploadé(s) avec succès', 'success');
+                    closeUploadModal();
+                    await loadAllData();
+                } else {
+                    showAlert('❌ Aucun fichier n\'a été uploadé', 'error');
+                }
+
+            } catch (error) {
+                console.error('❌ Erreur générale upload:', error);
+                showAlert('❌ Erreur lors de l\'upload: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+                selectedFiles = [];
+                document.getElementById('filePreview').innerHTML = '';
             }
-
-            // Récupérer l'URL publique
-            const { data: urlData } = supabaseClient.storage
-                .from('medias')
-                .getPublicUrl(fileName);
-
-            const publicUrl = urlData.publicUrl;
-            console.log(`✅ URL publique: ${publicUrl}`);
-
-            // Sauvegarder dans la base selon le type
-            const table = isVideo ? 'videos' : 'gallery';
-            const itemData = {
-                url: publicUrl,
-                file_name: fileName,
-                title: file.name.split('.')[0].replace(/[_-]/g, ' '),
-                date: new Date().toISOString().split('T')[0],
-                type: isVideo ? 'video' : isPdf ? 'pdf' : 'image'
-            };
-
-            const { error: dbError } = await supabaseClient
-                .from(table)
-                .insert([itemData]);
-
-            if (dbError) {
-                console.error('❌ Erreur insertion base:', dbError);
-                // Tenter de supprimer le fichier storage si erreur base
-                await supabaseClient.storage.from('medias').remove([fileName]);
-                showAlert(`❌ Erreur sauvegarde de ${file.name}: ${dbError.message}`, 'error');
-                continue;
-            }
-
-            uploadedCount++;
-            console.log(`✅ ${file.name} uploadé avec succès dans ${table}`);
         }
+        window.uploadFiles = uploadFiles;
 
-        if (uploadedCount > 0) {
-            showAlert(`✅ ${uploadedCount} fichier(s) uploadé(s) avec succès`, 'success');
-            closeUploadModal();
-            await loadAllData();
-        } else {
-            showAlert('❌ Aucun fichier n\'a été uploadé', 'error');
-        }
-
-    } catch (error) {
-        console.error('❌ Erreur générale upload:', error);
-        showAlert('❌ Erreur lors de l\'upload: ' + error.message, 'error');
-    } finally {
-        showLoading(false);
-        selectedFiles = [];
-        document.getElementById('filePreview').innerHTML = '';
-    }
-}
-window.uploadFiles = uploadFiles;
         // ============================================================
         // MÉTÉO
         // ============================================================
@@ -3117,7 +3203,6 @@ window.uploadFiles = uploadFiles;
         // RENDER PRODUITS
         // ============================================================
         function renderProduits() {
-            // Dashboard
             var dashboardContainer = document.getElementById('produitsList');
             if (dashboardContainer) {
                 var items = DATA.produits || [];
@@ -3137,7 +3222,6 @@ window.uploadFiles = uploadFiles;
                 }
             }
 
-            // Tableau public
             var tableBody = document.getElementById('produitsBody');
             if (tableBody) {
                 var items = DATA.produits || [];
@@ -3162,7 +3246,6 @@ window.uploadFiles = uploadFiles;
                 }
             }
 
-            // Admin table
             var adminBody = document.getElementById('produitsAdminBody');
             if (adminBody) {
                 var items = DATA.produits || [];
@@ -3193,7 +3276,6 @@ window.uploadFiles = uploadFiles;
         // RENDER ARBRES
         // ============================================================
         function renderArbres() {
-            // Dashboard
             var dashboardContainer = document.getElementById('arbresList');
             if (dashboardContainer) {
                 var items = DATA.arbres || [];
@@ -3213,7 +3295,6 @@ window.uploadFiles = uploadFiles;
                 }
             }
 
-            // Tableau public
             var tableBody = document.getElementById('arbresBody');
             if (tableBody) {
                 var items = DATA.arbres || [];
@@ -3239,7 +3320,6 @@ window.uploadFiles = uploadFiles;
                 }
             }
 
-            // Admin table
             var adminBody = document.getElementById('arbresAdminBody');
             if (adminBody) {
                 var items = DATA.arbres || [];
@@ -3275,7 +3355,6 @@ window.uploadFiles = uploadFiles;
         // RENDER BETAIL
         // ============================================================
         function renderBetail() {
-            // Dashboard
             var dashboardContainer = document.getElementById('betailList');
             if (dashboardContainer) {
                 var items = DATA.betail || [];
@@ -3295,7 +3374,6 @@ window.uploadFiles = uploadFiles;
                 }
             }
 
-            // Tableau public
             var tableBody = document.getElementById('betailBody');
             if (tableBody) {
                 var items = DATA.betail || [];
@@ -3320,7 +3398,6 @@ window.uploadFiles = uploadFiles;
                 }
             }
 
-            // Admin table
             var adminBody = document.getElementById('betailAdminBody');
             if (adminBody) {
                 var items = DATA.betail || [];
@@ -3355,7 +3432,6 @@ window.uploadFiles = uploadFiles;
         // RENDER EAU
         // ============================================================
         function renderEau() {
-            // Dashboard
             var dashboardContainer = document.getElementById('eauList');
             if (dashboardContainer) {
                 var items = DATA.eau || [];
@@ -3374,7 +3450,6 @@ window.uploadFiles = uploadFiles;
                 }
             }
 
-            // Tableau public
             var tableBody = document.getElementById('eauBody');
             if (tableBody) {
                 var items = DATA.eau || [];
@@ -3398,7 +3473,6 @@ window.uploadFiles = uploadFiles;
                 }
             }
 
-            // Admin table
             var adminBody = document.getElementById('eauAdminBody');
             if (adminBody) {
                 var items = DATA.eau || [];
@@ -3428,7 +3502,6 @@ window.uploadFiles = uploadFiles;
         // RENDER SAGIA
         // ============================================================
         function renderSagia() {
-            // Dashboard
             var dashboardContainer = document.getElementById('sagiaList');
             if (dashboardContainer) {
                 var items = DATA.sagia || [];
@@ -3447,7 +3520,6 @@ window.uploadFiles = uploadFiles;
                 }
             }
 
-            // Tableau public
             var tableBody = document.getElementById('sagiaBody');
             if (tableBody) {
                 var items = DATA.sagia || [];
@@ -3473,7 +3545,6 @@ window.uploadFiles = uploadFiles;
                 }
             }
 
-            // Admin table
             var adminBody = document.getElementById('sagiaAdminBody');
             if (adminBody) {
                 var items = DATA.sagia || [];
@@ -3505,7 +3576,6 @@ window.uploadFiles = uploadFiles;
         // RENDER VIDEOS
         // ============================================================
         function renderVideos() {
-            // Dashboard
             var dashboardContainer = document.getElementById('videosList');
             if (dashboardContainer) {
                 var items = DATA.videos || [];
@@ -3526,7 +3596,6 @@ window.uploadFiles = uploadFiles;
                 }
             }
 
-            // Public
             var publicContainer = document.getElementById('videosContainer');
             if (publicContainer) {
                 var items = DATA.videos || [];
@@ -3540,7 +3609,7 @@ window.uploadFiles = uploadFiles;
                         var title = item.title || 'Vidéo ' + (i + 1);
                         html += '<div style="border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.15);background:#000;cursor:pointer;" onclick="viewMedia(\'' + url + '\', \'video\')">';
                         html += '<div style="position:relative;padding-bottom:56.25%;height:0;">';
-                        html += '<video controls style="position:absolute;top:0;left:0;width:100%;height:100%;" poster="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Crect width=\'100\' height=\'100\' fill=\'%231a6d2c\'/%3E%3Ctext x=\'50\' y=\'55\' font-size=\'40\' text-anchor=\'middle\' fill=\'white\'%3E▶%3C/text%3E%3C/svg%3E">';
+                        html += '<video controls style="position:absolute;top:0;left:0;width:100%;height:100%;">';
                         html += '<source src="' + url + '" type="video/mp4">';
                         html += 'Votre navigateur ne supporte pas la lecture vidéo.';
                         html += '</video>';
@@ -3559,7 +3628,6 @@ window.uploadFiles = uploadFiles;
         // RENDER GALLERY
         // ============================================================
         function renderGallery() {
-            // Dashboard
             var dashboardContainer = document.getElementById('galleryList');
             if (dashboardContainer) {
                 var items = DATA.gallery || [];
@@ -3586,7 +3654,6 @@ window.uploadFiles = uploadFiles;
                 }
             }
             
-            // Galerie publique
             var publicContainer = document.getElementById('galleryContainer');
             if (publicContainer) {
                 var items = DATA.gallery || [];
@@ -3619,7 +3686,7 @@ window.uploadFiles = uploadFiles;
                         html += '</div>';
                     } else {
                         html += '<div style="border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.15);background:white;cursor:pointer;transition:transform 0.2s;" onclick="viewMedia(\'' + imageUrl + '\', \'image\')" onmouseover="this.style.transform=\'scale(1.02)\';" onmouseout="this.style.transform=\'scale(1)\';">';
-                        html += '<img src="' + imageUrl + '" alt="' + title + '" style="width:100%;height:200px;object-fit:cover;display:block;" onerror="this.style.display=\'none\';this.parentElement.style.background=\'#f5f5f5\';this.parentElement.innerHTML=\'<div style=\\\'height:200px;display:flex;align-items:center;justify-content:center;color:#ccc;\\\'><i class=\\\'fas fa-image\\\' style=\\\'font-size:3rem;\\\'></i></div>\';">';
+                        html += '<img src="' + imageUrl + '" alt="' + title + '" style="width:100%;height:200px;object-fit:cover;display:block;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'<div style=\\\'height:200px;display:flex;align-items:center;justify-content:center;color:#ccc;\\\'><i class=\\\'fas fa-image\\\' style=\\\'font-size:3rem;\\\'></i></div>\';">';
                         html += '<div style="padding:10px;text-align:center;font-size:0.85rem;font-weight:500;">' + title + '</div>';
                         html += '<div style="padding:0 10px 10px;text-align:center;font-size:0.7rem;color:#888;">' + date + '</div>';
                         html += '</div>';
@@ -3930,6 +3997,7 @@ window.uploadFiles = uploadFiles;
             renderDocumentsAdmin();
             renderPublicDocuments();
             renderAdherents();
+            renderAdmins();
             updateStats();
             updatePhoneDisplay();
             updateAdminVisibility();
@@ -4012,27 +4080,81 @@ window.uploadFiles = uploadFiles;
         window.updateAdminVisibility = updateAdminVisibility;
 
         // ============================================================
-        // AUTHENTIFICATION
+        // AUTHENTIFICATION - VERSION AVEC TABLE ADMINS
         // ============================================================
-        function login() {
+        async function login() {
             var user = document.getElementById('username').value.trim();
             var pass = document.getElementById('password').value.trim();
+
             if (!user || !pass) {
                 showAlert('Veuillez remplir tous les champs', 'error');
                 return;
             }
 
-            if (user === 'admin' && pass === 'admin') {
-                DATA.isAdmin = true;
-                showAlert('✅ Connexion réussie - Mode Admin activé', 'success');
-                document.getElementById('loginForm').classList.add('hidden');
-                document.getElementById('userInfo').classList.remove('hidden');
-                document.getElementById('userName').textContent = user;
-                updateAdminVisibility();
-                renderAll();
-                showSection('dashboard');
-            } else {
+            try {
+                showLoading(true);
+
+                const { data, error } = await supabaseClient
+                    .from('admins')
+                    .select('*')
+                    .eq('username', user);
+
+                if (error) {
+                    console.warn('⚠️ Erreur requête admins:', error);
+                    showAlert('❌ Erreur de connexion', 'error');
+                    showLoading(false);
+                    return;
+                }
+
+                if (data && data.length > 0) {
+                    var admin = data[0];
+                    var hashedPass = btoa(pass);
+
+                    if (admin.password_hash === hashedPass) {
+                        DATA.isAdmin = true;
+                        DATA.adminRole = admin.role || 'admin';
+                        DATA.adminEmail = admin.email || '';
+                        DATA.adminFullName = admin.full_name || admin.username;
+                        
+                        await supabaseClient
+                            .from('admins')
+                            .update({ last_login: new Date().toISOString() })
+                            .eq('id', admin.id);
+                        
+                        showAlert('✅ Connexion réussie - Mode Admin activé', 'success');
+                        document.getElementById('loginForm').classList.add('hidden');
+                        document.getElementById('userInfo').classList.remove('hidden');
+                        document.getElementById('userName').textContent = DATA.adminFullName;
+                        document.getElementById('userRole').textContent = admin.role === 'webmaster' ? 'Webmaster' : 'Admin';
+                        updateAdminVisibility();
+                        renderAll();
+                        showSection('dashboard');
+                        showLoading(false);
+                        return;
+                    }
+                }
+
+                if (user === 'admin' && pass === 'admin') {
+                    DATA.isAdmin = true;
+                    DATA.adminRole = 'admin';
+                    showAlert('✅ Connexion réussie - Mode Admin activé', 'success');
+                    document.getElementById('loginForm').classList.add('hidden');
+                    document.getElementById('userInfo').classList.remove('hidden');
+                    document.getElementById('userName').textContent = 'Administrateur';
+                    document.getElementById('userRole').textContent = 'Admin';
+                    updateAdminVisibility();
+                    renderAll();
+                    showSection('dashboard');
+                    showLoading(false);
+                    return;
+                }
+
                 showAlert('❌ Identifiants incorrects', 'error');
+                showLoading(false);
+            } catch (error) {
+                console.error('Erreur login:', error);
+                showAlert('❌ Erreur de connexion: ' + error.message, 'error');
+                showLoading(false);
             }
         }
         window.login = login;
@@ -4557,68 +4679,50 @@ window.uploadFiles = uploadFiles;
         // CRUD - TEXTES
         // ============================================================
         function showTextModal(data) {
-    currentEditType = 'text';
-    currentEditId = data ? data.id : null;
-    
-    document.getElementById('genericModalTitle').textContent = data ? 'Modifier le texte' : 'Ajouter un texte';
-    
-    var body = document.getElementById('genericModalBody');
-    body.innerHTML = `
-        <div class="form-group">
-            <label>Titre</label>
-            <input type="text" id="textTitleInput" class="form-control" value="${data ? getLocalized(data.title) || '' : ''}" placeholder="Titre du texte" />
-        </div>
-        <div class="form-group">
-            <label>Contenu</label>
-            <textarea id="textContentInput" class="form-control" rows="5" placeholder="Écrivez votre contenu ici...">${data ? getLocalized(data.content) || '' : ''}</textarea>
-        </div>
-        <div class="upload-actions">
-            <button class="btn-browse danger" onclick="closeGenericModal()"><i class="fas fa-times"></i> Annuler</button>
-            <button class="btn-browse success" onclick="saveTextFromGeneric()"><i class="fas fa-save"></i> Enregistrer</button>
-        </div>
-    `;
-    
-    document.getElementById('genericModal').classList.add('active');
-}
-window.showTextModal = showTextModal;
+            currentEditType = 'text';
+            currentEditId = data ? data.id : null;
+            
+            document.getElementById('genericModalTitle').textContent = data ? 'Modifier le texte' : 'Ajouter un texte';
+            
+            var body = document.getElementById('genericModalBody');
+            body.innerHTML = `
+                <div class="form-group">
+                    <label>Titre</label>
+                    <input type="text" id="textTitleInput" class="form-control" value="${data ? getLocalized(data.title) || '' : ''}" placeholder="Titre du texte" />
+                </div>
+                <div class="form-group">
+                    <label>Contenu</label>
+                    <textarea id="textContentInput" class="form-control" rows="5" placeholder="Écrivez votre contenu ici...">${data ? getLocalized(data.content) || '' : ''}</textarea>
+                </div>
+                <div class="upload-actions">
+                    <button class="btn-browse danger" onclick="closeGenericModal()"><i class="fas fa-times"></i> Annuler</button>
+                    <button class="btn-browse success" onclick="saveTextFromGeneric()"><i class="fas fa-save"></i> Enregistrer</button>
+                </div>
+            `;
+            
+            document.getElementById('genericModal').classList.add('active');
+        }
+        window.showTextModal = showTextModal;
 
-async function saveTextFromGeneric() {
-    var title = document.getElementById('textTitleInput').value.trim();
-    var content = document.getElementById('textContentInput').value.trim();
-    
-    if (!title || !content) {
-        showAlert('Veuillez remplir tous les champs', 'error');
-        return;
-    }
-    
-    const data = {
-        title: { fr: title, ar: title },
-        content: { fr: content, ar: content }
-    };
-    
-    await saveToSupabase('texts', data, currentEditId);
-    closeGenericModal();
-    currentEditId = null;
-}
-window.saveTextFromGeneric = saveTextFromGeneric;
-        async function saveText() {
+        async function saveTextFromGeneric() {
             var title = document.getElementById('textTitleInput').value.trim();
             var content = document.getElementById('textContentInput').value.trim();
+            
             if (!title || !content) {
                 showAlert('Veuillez remplir tous les champs', 'error');
                 return;
             }
-
+            
             const data = {
                 title: { fr: title, ar: title },
                 content: { fr: content, ar: content }
             };
-
+            
             await saveToSupabase('texts', data, currentEditId);
-            closeTextModal();
+            closeGenericModal();
             currentEditId = null;
         }
-        window.saveText = saveText;
+        window.saveTextFromGeneric = saveTextFromGeneric;
 
         function deleteText(id) {
             if (!confirm('Supprimer ce texte ?')) return;
@@ -4956,17 +5060,17 @@ window.saveTextFromGeneric = saveTextFromGeneric;
         // UPLOAD MODAL
         // ============================================================
         function showUploadModal(type) {
-    uploadType = type || 'image';
-    if (type === 'video') {
-        document.getElementById('uploadModalTitle').textContent = '📹 Uploader une vidéo';
-    } else {
-        document.getElementById('uploadModalTitle').textContent = '🖼️ Uploader une image';
-    }
-    document.getElementById('uploadModal').classList.add('active');
-    selectedFiles = [];
-    document.getElementById('filePreview').innerHTML = '';
-}
-window.showUploadModal = showUploadModal;
+            uploadType = type || 'image';
+            if (type === 'video') {
+                document.getElementById('uploadModalTitle').textContent = '📹 Uploader une vidéo';
+            } else {
+                document.getElementById('uploadModalTitle').textContent = '🖼️ Uploader une image';
+            }
+            document.getElementById('uploadModal').classList.add('active');
+            selectedFiles = [];
+            document.getElementById('filePreview').innerHTML = '';
+        }
+        window.showUploadModal = showUploadModal;
 
         function closeUploadModal() {
             document.getElementById('uploadModal').classList.remove('active');
@@ -5116,6 +5220,261 @@ window.showUploadModal = showUploadModal;
         window.showAlert = showAlert;
 
         // ============================================================
+        // CRUD - ADMINISTRATEURS
+        // ============================================================
+        var adminsData = [];
+        var currentAdminEditId = null;
+
+        async function loadAdmins() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('admins')
+                    .select('*')
+                    .order('id', { ascending: true });
+
+                if (error) {
+                    console.warn('⚠️ Erreur chargement admins:', error);
+                    adminsData = [];
+                    return;
+                }
+
+                adminsData = data || [];
+                
+                if (adminsData.length === 0) {
+                    await createDefaultAdmin();
+                }
+                
+                renderAdmins();
+            } catch (error) {
+                console.error('Erreur chargement admins:', error);
+                adminsData = [];
+            }
+        }
+
+        async function createDefaultAdmin() {
+            try {
+                const defaultAdmin = {
+                    username: 'admin',
+                    password_hash: btoa('admin'),
+                    email: 'admin@ansfal.org',
+                    full_name: 'Administrateur',
+                    role: 'admin',
+                    created_at: new Date().toISOString()
+                };
+                
+                const { error } = await supabaseClient
+                    .from('admins')
+                    .insert([defaultAdmin]);
+                    
+                if (error) {
+                    console.warn('⚠️ Erreur création admin par défaut:', error);
+                } else {
+                    console.log('✅ Admin par défaut créé');
+                    await loadAdmins();
+                }
+            } catch (e) {
+                console.warn('⚠️ Erreur création admin par défaut:', e);
+            }
+        }
+
+        function renderAdmins() {
+            var body = document.getElementById('adminsBody');
+            if (!body) return;
+
+            if (!adminsData || adminsData.length === 0) {
+                body.innerHTML = '<tr><td colspan="5" class="loading">Aucun administrateur</td></tr>';
+                return;
+            }
+
+            body.innerHTML = adminsData.map(function(item) {
+                var roleLabel = item.role === 'webmaster' ? 'Webmaster' : 'Administrateur';
+                var roleBadge = item.role === 'webmaster' ? 'badge-purple' : 'badge-gold';
+                var userName = item.full_name || item.username || '';
+                var userEmail = item.email || '';
+                
+                return '<tr>' +
+                    '<td><strong>' + item.username + '</strong></td>' +
+                    '<td>' + userName + '</td>' +
+                    '<td>' + userEmail + '</td>' +
+                    '<td><span class="badge ' + roleBadge + '">' + roleLabel + '</span></td>' +
+                    '<td>' +
+                    '<button class="btn-action edit" onclick="editAdmin(' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+                    '<button class="btn-action delete" onclick="deleteAdmin(' + item.id + ')"><i class="fas fa-trash"></i></button>' +
+                    '</td>' +
+                    '</tr>';
+            }).join('');
+        }
+
+        function showAdminModal(data) {
+            currentAdminEditId = data ? data.id : null;
+
+            var titleEl = document.getElementById('adminModalTitle');
+            if (titleEl) {
+                titleEl.textContent = data ? 'Modifier un administrateur' : 'Ajouter un administrateur';
+            }
+            
+            var usernameInput = document.getElementById('adminUsernameInput');
+            if (usernameInput) usernameInput.value = data ? (data.username || '') : '';
+            
+            var emailInput = document.getElementById('adminEmailInput');
+            if (emailInput) emailInput.value = data ? (data.email || '') : '';
+            
+            var fullNameInput = document.getElementById('adminFullNameInput');
+            if (fullNameInput) fullNameInput.value = data ? (data.full_name || '') : '';
+            
+            var passwordInput = document.getElementById('adminPasswordInput');
+            if (passwordInput) {
+                passwordInput.value = '';
+                passwordInput.placeholder = data ? 'Laisser vide pour ne pas changer' : 'Mot de passe';
+            }
+            
+            var roleSelect = document.getElementById('adminRoleSelect');
+            if (roleSelect) roleSelect.value = data ? (data.role || 'admin') : 'admin';
+
+            var modal = document.getElementById('adminModal');
+            if (modal) modal.classList.add('active');
+        }
+
+        function closeAdminModal() {
+            var modal = document.getElementById('adminModal');
+            if (modal) modal.classList.remove('active');
+            currentAdminEditId = null;
+            var passwordInput = document.getElementById('adminPasswordInput');
+            if (passwordInput) passwordInput.value = '';
+        }
+
+        async function saveAdmin() {
+            var usernameInput = document.getElementById('adminUsernameInput');
+            var emailInput = document.getElementById('adminEmailInput');
+            var fullNameInput = document.getElementById('adminFullNameInput');
+            var passwordInput = document.getElementById('adminPasswordInput');
+            var roleSelect = document.getElementById('adminRoleSelect');
+            
+            if (!usernameInput || !emailInput || !roleSelect) return;
+            
+            var username = usernameInput.value.trim();
+            var email = emailInput.value.trim();
+            var fullName = fullNameInput ? fullNameInput.value.trim() : '';
+            var password = passwordInput ? passwordInput.value.trim() : '';
+            var role = roleSelect.value;
+
+            if (!username) {
+                showAlert('Veuillez entrer un nom d\'utilisateur', 'error');
+                return;
+            }
+
+            if (!email) {
+                showAlert('Veuillez entrer un email', 'error');
+                return;
+            }
+
+            var existing = adminsData.find(a => a.username === username && a.id !== currentAdminEditId);
+            if (existing) {
+                showAlert('Cet utilisateur existe déjà', 'error');
+                return;
+            }
+
+            var existingEmail = adminsData.find(a => a.email === email && a.id !== currentAdminEditId);
+            if (existingEmail) {
+                showAlert('Cet email est déjà utilisé', 'error');
+                return;
+            }
+
+            try {
+                showLoading(true);
+
+                var data = {
+                    username: username,
+                    email: email,
+                    full_name: fullName || null,
+                    role: role,
+                    updated_at: new Date().toISOString()
+                };
+
+                if (password) {
+                    data.password_hash = btoa(password);
+                }
+
+                if (currentAdminEditId) {
+                    const { error } = await supabaseClient
+                        .from('admins')
+                        .update(data)
+                        .eq('id', currentAdminEditId);
+
+                    if (error) throw error;
+                    showAlert('✅ Administrateur mis à jour avec succès', 'success');
+                } else {
+                    if (!password) {
+                        showAlert('Veuillez entrer un mot de passe', 'error');
+                        showLoading(false);
+                        return;
+                    }
+                    data.created_at = new Date().toISOString();
+                    if (!data.password_hash) {
+                        data.password_hash = btoa(password);
+                    }
+
+                    const { error } = await supabaseClient
+                        .from('admins')
+                        .insert([data]);
+
+                    if (error) throw error;
+                    showAlert('✅ Administrateur ajouté avec succès', 'success');
+                }
+
+                closeAdminModal();
+                await loadAdmins();
+                showLoading(false);
+            } catch (error) {
+                console.error('Erreur sauvegarde admin:', error);
+                showAlert('❌ Erreur: ' + error.message, 'error');
+                showLoading(false);
+            }
+        }
+
+        function editAdmin(id) {
+            var item = adminsData.find(a => a.id === id);
+            if (item) showAdminModal(item);
+        }
+
+        async function deleteAdmin(id) {
+            if (adminsData.length <= 1) {
+                showAlert('❌ Impossible de supprimer le dernier administrateur', 'error');
+                return;
+            }
+            
+            if (!confirm('Supprimer cet administrateur ?')) return;
+
+            try {
+                showLoading(true);
+
+                const { error } = await supabaseClient
+                    .from('admins')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                showAlert('🗑️ Administrateur supprimé avec succès', 'success');
+                await loadAdmins();
+                showLoading(false);
+            } catch (error) {
+                console.error('Erreur suppression admin:', error);
+                showAlert('❌ Erreur: ' + error.message, 'error');
+                showLoading(false);
+            }
+        }
+
+        // Exposer les fonctions globalement
+        window.loadAdmins = loadAdmins;
+        window.renderAdmins = renderAdmins;
+        window.showAdminModal = showAdminModal;
+        window.closeAdminModal = closeAdminModal;
+        window.saveAdmin = saveAdmin;
+        window.editAdmin = editAdmin;
+        window.deleteAdmin = deleteAdmin;
+
+        // ============================================================
         // INITIALISATION
         // ============================================================
         document.addEventListener('DOMContentLoaded', async function() {
@@ -5176,8 +5535,6 @@ window.showUploadModal = showUploadModal;
         // RENDER DASHBOARD LISTS
         // ============================================================
         function renderDashboardLists() {
-            // Cette fonction est appelée dans renderAll() pour s'assurer
-            // que tous les listes du dashboard sont à jour
             console.log('✅ Dashboard lists rendus');
         }
         window.renderDashboardLists = renderDashboardLists;
