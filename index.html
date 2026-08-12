@@ -3932,51 +3932,140 @@
         }
 
         async function uploadFiles() {
-            var t = getLang();
-            if (selectedFiles.length === 0) { showAlert(t.alertNoFile, 'error'); return; }
-            document.getElementById('uploadProgress').style.display = 'block';
-            document.getElementById('actionButtons').style.display = 'none';
-            var total = selectedFiles.length;
-            var uploaded = 0;
-            for (var i = 0; i < selectedFiles.length; i++) {
-                var file = selectedFiles[i];
-                try {
-                    var table = currentUploadType === 'video' ? 'videos' : 'gallery';
-                    var data = {
-                        title: file.name || 'Fichier',
-                        url: file.url || '',
-                        image_url: file.url || '',
-                        video_url: file.url || '',
-                        publisher: document.getElementById('userName').textContent || 'admin',
-                        created_at: new Date().toISOString()
-                    };
-                    var resp = await fetch(supabaseUrl + '/rest/v1/' + table, {
-                        method: 'POST',
-                        headers: {
-                            'apikey': supabaseKey,
-                            'Authorization': 'Bearer ' + supabaseKey,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(data)
-                    });
-                    if (resp.ok) uploaded++;
-                } catch (e) { console.warn(e); }
-                var progress = Math.round(((i + 1) / total) * 100);
-                document.getElementById('progressFill').style.width = progress + '%';
-                document.getElementById('progressText').textContent = progress + '%';
+    var t = getLang();
+    if (selectedFiles.length === 0) {
+        showAlert(t.alertNoFile, 'error');
+        return;
+    }
+
+    document.getElementById('uploadProgress').style.display = 'block';
+    document.getElementById('actionButtons').style.display = 'none';
+    document.getElementById('uploadSuccess').style.display = 'none';
+
+    var total = selectedFiles.length;
+    var uploaded = 0;
+    var errors = [];
+
+    for (var i = 0; i < selectedFiles.length; i++) {
+        var file = selectedFiles[i];
+        try {
+            // Déterminer le type et le nom de la table
+            var isVideo = file.type && file.type.startsWith('video/');
+            var isImage = file.type && file.type.startsWith('image/');
+            var table = isVideo ? 'videos' : 'gallery';
+            var typeName = isVideo ? 'video' : 'image';
+
+            // S'il s'agit d'une URL (mode URL)
+            if (file.url) {
+                var data = {
+                    title: file.name || 'Média',
+                    url: file.url,
+                    image_url: file.url,
+                    video_url: file.url,
+                    publisher: document.getElementById('userName').textContent || 'admin',
+                    created_at: new Date().toISOString()
+                };
+                var resp = await fetch(supabaseUrl + '/rest/v1/' + table, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': 'Bearer ' + supabaseKey,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (!resp.ok) throw new Error('Erreur insertion URL');
+                uploaded++;
+                continue;
             }
-            document.getElementById('uploadProgress').style.display = 'none';
-            if (uploaded === total) {
-                document.getElementById('uploadSuccess').style.display = 'block';
-                showAlert('Upload réussi', 'success');
-                setTimeout(function() { hideUploadModal();
-                    loadAllTables(); }, 2000);
-            } else {
-                showAlert('Certains fichiers ont échoué', 'error');
-                document.getElementById('actionButtons').style.display = 'flex';
+
+            // === Upload d'un fichier local ===
+            var fileName = Date.now() + '_' + file.name.replace(/\s/g, '_');
+
+            // 1. Upload vers Supabase Storage
+            var { data: uploadData, error: uploadError } = await supabase.storage
+                .from('medias')
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (uploadError) {
+                errors.push(file.name + ': ' + uploadError.message);
+                continue;
             }
+
+            // 2. Récupérer l'URL publique
+            var { data: urlData } = supabase.storage
+                .from('medias')
+                .getPublicUrl(fileName);
+
+            var publicUrl = urlData.publicUrl;
+
+            // 3. Insérer dans la base
+            var itemData = {
+                title: file.name.split('.')[0].replace(/[_-]/g, ' '),
+                url: publicUrl,
+                image_url: publicUrl,
+                video_url: isVideo ? publicUrl : '',
+                file_name: fileName,
+                type: typeName,
+                publisher: document.getElementById('userName').textContent || 'admin',
+                date: new Date().toISOString().split('T')[0],
+                created_at: new Date().toISOString()
+            };
+
+            var resp = await fetch(supabaseUrl + '/rest/v1/' + table, {
+                method: 'POST',
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': 'Bearer ' + supabaseKey,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation'
+                },
+                body: JSON.stringify(itemData)
+            });
+
+            if (!resp.ok) {
+                var errorData = await resp.json();
+                // Si l'insertion échoue, supprimer le fichier du storage
+                await supabase.storage.from('medias').remove([fileName]);
+                throw new Error(errorData.message || 'Erreur insertion');
+            }
+
+            uploaded++;
+
+        } catch (e) {
+            errors.push(file.name + ': ' + e.message);
         }
 
+        // Mettre à jour la barre de progression
+        var progress = Math.round(((i + 1) / total) * 100);
+        document.getElementById('progressFill').style.width = progress + '%';
+        document.getElementById('progressText').textContent = progress + '% (' + (i + 1) + '/' + total + ')';
+    }
+
+    document.getElementById('uploadProgress').style.display = 'none';
+
+    if (errors.length === 0 && uploaded > 0) {
+        document.getElementById('uploadSuccess').style.display = 'block';
+        document.getElementById('successMessage').textContent = uploaded + ' fichier(s) téléversé(s) avec succès !';
+        showAlert(uploaded + ' fichier(s) téléversé(s) avec succès !', 'success');
+
+        setTimeout(function() {
+            hideUploadModal();
+            loadAllTables();
+        }, 2000);
+
+    } else if (uploaded === 0) {
+        showAlert('Aucun fichier n\'a pu être téléversé. Vérifiez les erreurs.', 'error');
+        document.getElementById('actionButtons').style.display = 'flex';
+    } else {
+        showAlert('Certains fichiers ont échoué : ' + errors.join(', '), 'error');
+        document.getElementById('actionButtons').style.display = 'flex';
+    }
+}
         async function saveTickerText() {
             var t = getLang();
             var fr = document.getElementById('tickerTextFr').value;
