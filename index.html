@@ -2664,18 +2664,31 @@
     <!-- JAVASCRIPT AVEC SUPABASE                     -->
     <!-- ============================================ -->
     <script>
-        // ============================================================
-        // CONFIGURATION SUPABASE
-        // ============================================================
-        const SUPABASE_CONFIG = {
-            url: https://ewgrkdlivxgogaysgxje.supabase.co,
-            key: sb_publishable_Cu364NmwnWvimRiZ1OMGKQ_r-EoVZOe
-        };
+		
+// ============================================================
+// CONFIGURATION SUPABASE - VERSION CORRECTE
+// ============================================================
+const SUPABASE_CONFIG = {
+    url: 'https://ewgrkdlivxgogaysgxje.supabase.co',
+    key: 'sb_publishable_Cu364NmwnWvimRiZ1OMGKQ_r-EoVZOe'
+};
 
-        const supabaseClient = supabase.createClient(
-            SUPABASE_CONFIG.url,
-            SUPABASE_CONFIG.key
-        );
+// Création du client avec les bons paramètres
+const supabaseClient = supabase.createClient(
+    SUPABASE_CONFIG.url,
+    SUPABASE_CONFIG.key,
+    {
+        auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+        },
+        // Ajout des en-têtes personnalisés pour la clé publishable
+        headers: {
+            'apikey': SUPABASE_CONFIG.key,
+            'Authorization': 'Bearer ' + SUPABASE_CONFIG.key
+        }
+    }
+);
 
         // ============================================================
         // DONNÉES
