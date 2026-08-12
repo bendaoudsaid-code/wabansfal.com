@@ -3949,14 +3949,9 @@
     for (var i = 0; i < selectedFiles.length; i++) {
         var file = selectedFiles[i];
         try {
-            // Déterminer le type et le nom de la table
-            var isVideo = file.type && file.type.startsWith('video/');
-            var isImage = file.type && file.type.startsWith('image/');
-            var table = isVideo ? 'videos' : 'gallery';
-            var typeName = isVideo ? 'video' : 'image';
-
-            // S'il s'agit d'une URL (mode URL)
+            // 1. Si c'est une URL (mode URL)
             if (file.url) {
+                var table = currentUploadType === 'video' ? 'videos' : 'gallery';
                 var data = {
                     title: file.name || 'Média',
                     url: file.url,
@@ -3980,37 +3975,39 @@
                 continue;
             }
 
-            // === Upload d'un fichier local ===
-            var fileName = Date.now() + '_' + file.name.replace(/\s/g, '_');
-
-            // 1. Upload vers Supabase Storage
-            var { data: uploadData, error: uploadError } = await supabase.storage
-                .from('medias')
-                .upload(fileName, file, {
-                    cacheControl: '3600',
-                    upsert: false
-                });
-
-            if (uploadError) {
-                errors.push(file.name + ': ' + uploadError.message);
+            // 2. Upload d'un fichier local
+            var isVideo = file.type && file.type.startsWith('video/');
+            var isImage = file.type && file.type.startsWith('image/');
+            if (!isVideo && !isImage) {
+                errors.push(file.name + ' : format non supporté');
                 continue;
             }
 
-            // 2. Récupérer l'URL publique
-            var { data: urlData } = supabase.storage
-                .from('medias')
-                .getPublicUrl(fileName);
+            var fileName = Date.now() + '_' + file.name.replace(/\s/g, '_');
+            var table = isVideo ? 'videos' : 'gallery';
 
+            // 2a. Upload vers Supabase Storage
+            var { data: uploadData, error: uploadError } = await supabase.storage
+                .from('medias')
+                .upload(fileName, file, { cacheControl: '3600', upsert: false });
+
+            if (uploadError) {
+                errors.push(file.name + ' : ' + uploadError.message);
+                continue;
+            }
+
+            // 2b. Récupérer l'URL publique
+            var { data: urlData } = supabase.storage.from('medias').getPublicUrl(fileName);
             var publicUrl = urlData.publicUrl;
 
-            // 3. Insérer dans la base
+            // 2c. Insérer dans la base
             var itemData = {
                 title: file.name.split('.')[0].replace(/[_-]/g, ' '),
                 url: publicUrl,
                 image_url: publicUrl,
                 video_url: isVideo ? publicUrl : '',
                 file_name: fileName,
-                type: typeName,
+                type: isVideo ? 'video' : 'image',
                 publisher: document.getElementById('userName').textContent || 'admin',
                 date: new Date().toISOString().split('T')[0],
                 created_at: new Date().toISOString()
@@ -4029,7 +4026,7 @@
 
             if (!resp.ok) {
                 var errorData = await resp.json();
-                // Si l'insertion échoue, supprimer le fichier du storage
+                // Supprimer le fichier du storage en cas d'échec d'insertion
                 await supabase.storage.from('medias').remove([fileName]);
                 throw new Error(errorData.message || 'Erreur insertion');
             }
@@ -4037,10 +4034,10 @@
             uploaded++;
 
         } catch (e) {
-            errors.push(file.name + ': ' + e.message);
+            errors.push(file.name + ' : ' + e.message);
         }
 
-        // Mettre à jour la barre de progression
+        // Mise à jour de la progression
         var progress = Math.round(((i + 1) / total) * 100);
         document.getElementById('progressFill').style.width = progress + '%';
         document.getElementById('progressText').textContent = progress + '% (' + (i + 1) + '/' + total + ')';
@@ -4048,21 +4045,19 @@
 
     document.getElementById('uploadProgress').style.display = 'none';
 
-    if (errors.length === 0 && uploaded > 0) {
+    if (uploaded > 0 && errors.length === 0) {
         document.getElementById('uploadSuccess').style.display = 'block';
         document.getElementById('successMessage').textContent = uploaded + ' fichier(s) téléversé(s) avec succès !';
         showAlert(uploaded + ' fichier(s) téléversé(s) avec succès !', 'success');
-
         setTimeout(function() {
             hideUploadModal();
             loadAllTables();
         }, 2000);
-
     } else if (uploaded === 0) {
-        showAlert('Aucun fichier n\'a pu être téléversé. Vérifiez les erreurs.', 'error');
+        showAlert('Aucun fichier n\'a pu être téléversé : ' + errors.join(', '), 'error');
         document.getElementById('actionButtons').style.display = 'flex';
     } else {
-        showAlert('Certains fichiers ont échoué : ' + errors.join(', '), 'error');
+        showAlert('Partiellement réussi (' + uploaded + '/' + total + '). Erreurs : ' + errors.join(', '), 'error');
         document.getElementById('actionButtons').style.display = 'flex';
     }
 }
