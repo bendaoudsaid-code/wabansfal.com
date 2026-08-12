@@ -2845,12 +2845,68 @@
         };
 
         var currentLang = 'fr';
-        var selectedCard = 'visa';
-        var currentEditType = null;
-        var currentEditId = null;
-        var selectedFiles = [];
-        var uploadMode = 'pc';
-        var currentUploadType = 'image';
+var selectedCard = 'visa';
+var currentEditType = null;
+var currentEditId = null;
+var selectedFiles = [];
+var uploadMode = 'pc';
+var currentUploadType = 'image';
+
+// ============================================================
+// GESTION DES FICHIERS UPLOAD
+// ============================================================
+function handleFileSelect(event) {
+    var files = event.target.files;
+    if (!files || files.length === 0) return;
+    
+    for (var i = 0; i < files.length; i++) {
+        selectedFiles.push(files[i]);
+    }
+    updateFilePreview();
+    event.target.value = '';
+}
+
+function updateFilePreview() {
+    var grid = document.getElementById('filesGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    if (selectedFiles.length === 0) {
+        document.getElementById('noFiles').style.display = 'block';
+        return;
+    }
+    document.getElementById('noFiles').style.display = 'none';
+    for (var i = 0; i < selectedFiles.length; i++) {
+        var f = selectedFiles[i];
+        var div = document.createElement('div');
+        div.className = 'file-item';
+        div.innerHTML = '<div class="file-icon"><i class="fas fa-file"></i></div>' +
+                        '<div class="file-name">' + f.name + '</div>' +
+                        '<div class="file-size">' + (f.size / 1024 / 1024).toFixed(2) + ' MB</div>' +
+                        '<button class="remove-file" onclick="removeFile(' + i + ')"><i class="fas fa-times"></i></button>';
+        grid.appendChild(div);
+    }
+}
+
+function removeFile(index) {
+    selectedFiles.splice(index, 1);
+    updateFilePreview();
+}
+
+// ============================================================
+// TRADUCTIONS – UN SEUL OBJET LANG (avec toutes les clés)
+// ============================================================
+var LANG = {
+    fr: {
+        // ... toutes les clés françaises
+    },
+    ar: {
+        // ... toutes les clés arabes
+    }
+};
+// ============================================================
+// FONCTIONS UTILITAIRES
+// ============================================================
+function getLang() { return LANG[currentLang]; }
 
         // ============================================================
         // TRADUCTIONS CORRIGÉES – clés identiques pour les deux langues
