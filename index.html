@@ -3206,51 +3206,79 @@ console.log('✅ Fonctions du conseil chargées');
         // ============================================================
         // FONCTIONS SUPABASE
         // ============================================================
-        async function loadAllData() {
-            try {
-                showLoading(true);
+       async function loadAllData() {
+    try {
+        showLoading(true);
+        console.log('🔄 Chargement des données avec fetch...');
 
-                const tables = [
-                    { key: 'ticker', table: 'ticker' },
-                    { key: 'texts', table: 'texts' },
-                    { key: 'offres', table: 'offres' },
-                    { key: 'produits', table: 'produits' },
-                    { key: 'arbres', table: 'arbres' },
-                    { key: 'betail', table: 'betail' },
-                    { key: 'eau', table: 'eau' },
-                    { key: 'sagia', table: 'sagia' },
-                    { key: 'gallery', table: 'gallery' },
-                    { key: 'videos', table: 'videos' },
-                    { key: 'documentsAdmin', table: 'documents_admin' },
-                    { key: 'admins', table: 'admins' }
-                ];
-
-                for (const { key, table } of tables) {
-                    const { data, error } = await supabaseClient
-                        .from(table)
-                        .select('*')
-                        .order('id', { ascending: true });
-
-                    if (error) {
-                        console.warn('⚠️ Erreur chargement ' + table + ':', error);
-                        continue;
-                    }
-
-                    DATA[key] = data && data.length > 0 ? data : [];
-                    console.log('✅ ' + table + ': ' + DATA[key].length + ' éléments');
+        // Fonction helper pour charger une table
+        async function fetchTable(table) {
+            const url = `${SUPABASE_CONFIG.url}/rest/v1/${table}?select=*&order=id.asc`;
+            const response = await fetch(url, {
+                headers: {
+                    'apikey': SUPABASE_CONFIG.key,
+                    'Authorization': 'Bearer ' + SUPABASE_CONFIG.key
                 }
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(`Erreur ${response.status}: ${error.message || 'Inconnue'}`);
+            }
+            
+            return await response.json();
+        }
 
-                await loadMeteo();
-                await loadAdmins();
-                renderAll();
-                showLoading(false);
+        const tables = [
+            { key: 'ticker', table: 'ticker' },
+            { key: 'texts', table: 'texts' },
+            { key: 'offres', table: 'offres' },
+            { key: 'produits', table: 'produits' },
+            { key: 'arbres', table: 'arbres' },
+            { key: 'betail', table: 'betail' },
+            { key: 'eau', table: 'eau' },
+            { key: 'sagia', table: 'sagia' },
+            { key: 'gallery', table: 'gallery' },
+            { key: 'videos', table: 'videos' },
+            { key: 'documentsAdmin', table: 'documents_admin' }
+        ];
 
+        for (const { key, table } of tables) {
+            try {
+                console.log(`📥 Chargement de ${table}...`);
+                const data = await fetchTable(table);
+                DATA[key] = data || [];
+                console.log(`✅ ${table}: ${DATA[key].length} éléments chargés`);
             } catch (error) {
-                console.error('❌ Erreur chargement des données:', error);
-                showAlert('Erreur de chargement des données', 'error');
-                showLoading(false);
+                console.warn(`⚠️ Erreur chargement ${table}:`, error.message);
+                DATA[key] = [];
             }
         }
+
+        // Charger la météo
+        try {
+            const data = await fetchTable('meteo');
+            renderMeteo(data);
+        } catch (error) {
+            console.warn('⚠️ Erreur météo:', error);
+            renderMeteoDefault();
+        }
+
+        // Charger les admins
+        await loadAdmins();
+        
+        // Charger le conseil
+        await loadConseil();
+        
+        renderAll();
+        showLoading(false);
+
+    } catch (error) {
+        console.error('❌ Erreur fatale:', error);
+        showAlert('Erreur de chargement des données: ' + error.message, 'error');
+        showLoading(false);
+    }
+}
 
         async function saveToSupabase(table, data, id = null) {
             try {
