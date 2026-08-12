@@ -3211,7 +3211,6 @@ console.log('✅ Fonctions du conseil chargées');
         showLoading(true);
         console.log('🔄 Chargement des données...');
 
-        // Liste des tables à charger (sauf gallery et videos)
         const tables = [
             { key: 'ticker', table: 'ticker' },
             { key: 'texts', table: 'texts' },
@@ -3224,7 +3223,7 @@ console.log('✅ Fonctions du conseil chargées');
             { key: 'documentsAdmin', table: 'documents_admin' }
         ];
 
-        // Charger les autres tables
+        // Charger les tables avec fetch (chaque échec est géré individuellement)
         for (const { key, table } of tables) {
             try {
                 const response = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${table}?select=*`, {
@@ -3247,33 +3246,47 @@ console.log('✅ Fonctions du conseil chargées');
         }
 
         // Charger gallery
-        const respGallery = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/gallery?select=*`, {
-            headers: {
-                'apikey': SUPABASE_CONFIG.key,
-                'Authorization': 'Bearer ' + SUPABASE_CONFIG.key
-            }
-        });
-        DATA.gallery = respGallery.ok ? await respGallery.json() : [];
-        console.log(`📸 gallery : ${DATA.gallery.length} éléments`);
+        try {
+            const respGallery = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/gallery?select=*`, {
+                headers: {
+                    'apikey': SUPABASE_CONFIG.key,
+                    'Authorization': 'Bearer ' + SUPABASE_CONFIG.key
+                }
+            });
+            DATA.gallery = respGallery.ok ? await respGallery.json() : [];
+            console.log(`📸 gallery : ${DATA.gallery.length} éléments`);
+        } catch (e) {
+            DATA.gallery = [];
+            console.warn('⚠️ Erreur gallery :', e);
+        }
 
         // Charger videos
-        const respVideos = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/videos?select=*`, {
-            headers: {
-                'apikey': SUPABASE_CONFIG.key,
-                'Authorization': 'Bearer ' + SUPABASE_CONFIG.key
-            }
-        });
-        DATA.videos = respVideos.ok ? await respVideos.json() : [];
-        console.log(`🎬 videos : ${DATA.videos.length} éléments`);
+        try {
+            const respVideos = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/videos?select=*`, {
+                headers: {
+                    'apikey': SUPABASE_CONFIG.key,
+                    'Authorization': 'Bearer ' + SUPABASE_CONFIG.key
+                }
+            });
+            DATA.videos = respVideos.ok ? await respVideos.json() : [];
+            console.log(`🎬 videos : ${DATA.videos.length} éléments`);
+        } catch (e) {
+            DATA.videos = [];
+            console.warn('⚠️ Erreur videos :', e);
+        }
 
-        // Charger météo
-        await loadMeteo();
-        
-        // Charger admins et conseil
-        await loadAdmins();
-        await loadConseil();
-        
-        // Rendre tout
+        // Charger météo, admins, conseil (avec gestion d'erreur)
+        try {
+            await loadMeteo();
+        } catch (e) { console.warn('⚠️ Erreur météo:', e); }
+        try {
+            await loadAdmins();
+        } catch (e) { console.warn('⚠️ Erreur admins:', e); }
+        try {
+            await loadConseil();
+        } catch (e) { console.warn('⚠️ Erreur conseil:', e); }
+
+        // TOUJOURS appeler renderAll, même si certaines données manquent
         renderAll();
         showLoading(false);
 
@@ -3281,6 +3294,8 @@ console.log('✅ Fonctions du conseil chargées');
         console.error('❌ Erreur fatale :', error);
         showAlert('Erreur de chargement des données : ' + error.message, 'error');
         showLoading(false);
+        // Même en cas d'erreur fatale, essayez d'afficher ce qui est chargé
+        renderAll();
     }
 }
         async function saveToSupabase(table, data, id = null) {
