@@ -3043,171 +3043,208 @@
         // Fonction getLang
         function getLang() { return LANG[currentLang]; }
 
-        // ============================================================
-        // FONCTIONS DE LANGUE
-        // ============================================================
         function switchLanguage(lang) {
     currentLang = lang;
     document.body.classList.toggle('rtl', lang === 'ar');
 
     // Mettre à jour les boutons de langue
-    document.querySelectorAll('.lang-btn').forEach(function(b) {
-        b.classList.remove('active');
-    });
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
     document.querySelector('.lang-btn[onclick*="' + lang + '"]').classList.add('active');
 
-    // Obtenir les traductions
     var t = LANG[lang];
     if (!t) return;
 
-    // Mettre à jour les éléments fixes du HTML
-    var elements = {
-        'logoTitle': t.logoTitle,
-        'logoSubtitle': t.logoSubtitle,
-        'menuHome': '<i class="fas fa-home"></i> ' + t.menuHome,
-        'menuAbout': '<i class="fas fa-info-circle"></i> ' + t.menuAbout,
-        'menuBetail': '<i class="fas fa-horse"></i> ' + t.menuBetail,
-        'menuProduits': '<i class="fas fa-apple-alt"></i> ' + t.menuProduits,
-        'menuArbres': '<i class="fas fa-tree"></i> ' + t.menuArbres,
-        'menuEau': '<i class="fas fa-tint"></i> ' + t.menuEau,
-        'menuSagia': '<i class="fas fa-list"></i> ' + t.menuSagia,
-        'menuConseil': '<i class="fas fa-users-cog"></i> ' + t.menuConseil,
-        'menuDocuments': '<i class="fas fa-file-pdf"></i> ' + t.menuDocuments,
-        'menuGallery': '<i class="fas fa-images"></i> ' + t.menuGallery,
-        'menuVideos': '<i class="fas fa-video"></i> ' + t.menuVideos,
-        'menuProjects': '<i class="fas fa-project-diagram"></i> ' + t.menuProjects,
-        'menuDons': '<i class="fas fa-hand-holding-heart"></i> ' + t.menuDons,
-        'menuActu': '<i class="fas fa-newspaper"></i> ' + t.menuActu,
-        'menuContact': '<i class="fas fa-envelope"></i> ' + t.menuContact,
-        'menuDashboard': '<i class="fas fa-tachometer-alt"></i> ' + t.menuDashboard,
-        'heroTitle': t.heroTitle,
-        'heroSubtitle': t.heroSubtitle,
-        'heroText': t.heroText,
-        'heroBtn1': '<i class="fas fa-rocket"></i> ' + t.heroBtn1,
-        'heroBtn2': '<i class="fas fa-images"></i> ' + t.heroBtn2,
-        'heroBtn3': '<i class="fas fa-hand-holding-heart"></i> ' + t.heroBtn3,
-        'aboutTitle': t.aboutTitle,
-        'aboutHistory': t.aboutHistory,
-        'aboutText1': t.aboutText1,
-        'aboutText2': t.aboutText2,
-        'betailTitle': '<i class="fas fa-horse"></i> ' + t.betailTitle,
-        'produitsTitle': '<i class="fas fa-apple-alt"></i> ' + t.produitsTitle,
-        'arbresTitle': '<i class="fas fa-tree"></i> ' + t.arbresTitle,
-        'eauTitle': '<i class="fas fa-tint"></i> ' + t.eauTitle,
-        'sagiaTitle': '<i class="fas fa-list"></i> ' + t.sagiaTitle,
-        'conseilTitle': '<i class="fas fa-users-cog"></i> ' + t.conseilTitle,
-        'documentsTitle': '<i class="fas fa-file-pdf"></i> ' + t.documentsTitle,
-        'galleryTitle': t.galleryTitle,
-        'videosTitle': t.videosTitle,
-        'projectsTitle': t.projectsTitle,
-        'donsTitle': '<i class="fas fa-hand-holding-heart"></i> ' + t.donsTitle,
-        'donsSubtitle': t.donsSubtitle,
-        'actuTitle': '<i class="fas fa-newspaper"></i> ' + t.actuTitle,
-        'actuSubtitle': t.actuSubtitle,
-        'actuFormTitle': '<i class="fas fa-pen"></i> ' + t.actuFormTitle,
-        'actuSubmitText': t.actuSubmitText,
-        'contactTitle': t.contactTitle,
-        'contactAddress': t.contactAddress,
-        'contactLocation': t.contactLocation,
-        'contactPhone': t.contactPhone,
-        'contactEmail': t.contactEmail,
-        'footerLogoTitle': t.footerLogoTitle,
-        'footerLogoSubtitle': t.footerLogoSubtitle,
-        'footerFollow': t.footerFollow,
-        'footerCopyright': t.footerCopyright,
+    // ============================================================
+    // MAPPING : ID HTML -> clé dans LANG
+    // ============================================================
+    var map = {
+        // Header
+        'logoTitle': 'logoTitle',
+        'logoSubtitle': 'logoSubtitle',
+        // Menu (les IDs sont sans "Text" dans votre HTML)
+        'menuHome': 'menuHome',
+        'menuAbout': 'menuAbout',
+        'menuBetail': 'menuBetail',
+        'menuProduits': 'menuProduits',
+        'menuArbres': 'menuArbres',
+        'menuEau': 'menuEau',
+        'menuSagia': 'menuSagia',
+        'menuConseil': 'menuConseil',
+        'menuDocuments': 'menuDocuments',
+        'menuGallery': 'menuGallery',
+        'menuVideos': 'menuVideos',
+        'menuProjects': 'menuProjects',
+        'menuDons': 'menuDons',
+        'menuActu': 'menuActu',
+        'menuContact': 'menuContact',
+        'menuDashboard': 'menuDashboard',
+        // Hero
+        'heroTitle': 'heroTitle',
+        'heroSubtitle': 'heroSubtitle',
+        'heroText': 'heroText',
+        'heroBtn1': 'heroBtn1',
+        'heroBtn2': 'heroBtn2',
+        'heroBtn3': 'heroBtn3',
+        // About
+        'aboutTitle': 'aboutTitle',
+        'aboutHistory': 'aboutHistory',
+        'aboutText1': 'aboutText1',
+        'aboutText2': 'aboutText2',
+        // Sections
+        'betailTitle': 'betailTitle',
+        'produitsTitle': 'produitsTitle',
+        'arbresTitle': 'arbresTitle',
+        'eauTitle': 'eauTitle',
+        'sagiaTitle': 'sagiaTitle',
+        'conseilTitle': 'conseilTitle',
+        'documentsTitle': 'documentsTitle',
+        'galleryTitle': 'galleryTitle',
+        'videosTitle': 'videosTitle',
+        'projectsTitle': 'projectsTitle',
+        // Dons
+        'donsTitle': 'donsTitle',
+        'donsSubtitle': 'donsSubtitle',
+        // Actu
+        'actuTitle': 'actuTitle',
+        'actuSubtitle': 'actuSubtitle',
+        'actuFormTitle': 'actuFormTitle',
+        'actuSubmitText': 'actuSubmitText',
+        // Contact
+        'contactTitle': 'contactTitle',
+        'contactAddress': 'contactAddress',
+        'contactLocation': 'contactLocation',
+        'contactPhone': 'contactPhone',
+        'contactEmail': 'contactEmail',
+        // Footer
+        'footerLogoTitle': 'footerLogoTitle',
+        'footerLogoSubtitle': 'footerLogoSubtitle',
+        'footerFollow': 'footerFollow',
+        'footerCopyright': 'footerCopyright',
         // Dashboard sidebar
-        'sidebarDashboardText': t.sidebarDashboardText,
-        'sidebarGalleryText': t.sidebarGalleryText,
-        'sidebarVideosText': t.sidebarVideosText,
-        'sidebarPublicationsText': t.sidebarPublicationsText,
-        'sidebarTextText': t.sidebarTextText,
-        'sidebarBetailText': t.sidebarBetailText,
-        'sidebarProduitsText': t.sidebarProduitsText,
-        'sidebarArbresText': t.sidebarArbresText,
-        'sidebarEauText': t.sidebarEauText,
-        'sidebarSagiaText': t.sidebarSagiaText,
-        'sidebarConseilText': t.sidebarConseilText,
-        'sidebarDocumentsText': t.sidebarDocumentsText,
-        'sidebarSettingsText': t.sidebarSettingsText,
+        'sidebarDashboardText': 'sidebarDashboardText',
+        'sidebarGalleryText': 'sidebarGalleryText',
+        'sidebarVideosText': 'sidebarVideosText',
+        'sidebarPublicationsText': 'sidebarPublicationsText',
+        'sidebarTextText': 'sidebarTextText',
+        'sidebarBetailText': 'sidebarBetailText',
+        'sidebarProduitsText': 'sidebarProduitsText',
+        'sidebarArbresText': 'sidebarArbresText',
+        'sidebarEauText': 'sidebarEauText',
+        'sidebarSagiaText': 'sidebarSagiaText',
+        'sidebarConseilText': 'sidebarConseilText',
+        'sidebarDocumentsText': 'sidebarDocumentsText',
+        'sidebarSettingsText': 'sidebarSettingsText',
         // Dashboard titles
-        'dashboardTitle': '<i class="fas fa-tachometer-alt"></i> ' + t.dashboardTitle,
-        'galleryDashboardTitle': '<i class="fas fa-images"></i> ' + t.galleryDashboardTitle,
-        'videosDashboardTitle': '<i class="fas fa-video"></i> ' + t.videosDashboardTitle,
-        'publicationsDashboardTitle': '<i class="fas fa-newspaper"></i> ' + t.publicationsDashboardTitle,
-        'textDashboardTitle': '<i class="fas fa-file-alt"></i> ' + t.textDashboardTitle,
-        'betailDashboardTitle': '<i class="fas fa-horse"></i> ' + t.betailDashboardTitle,
-        'produitsDashboardTitle': '<i class="fas fa-apple-alt"></i> ' + t.produitsDashboardTitle,
-        'arbresDashboardTitle': '<i class="fas fa-tree"></i> ' + t.arbresDashboardTitle,
-        'eauDashboardTitle': '<i class="fas fa-tint"></i> ' + t.eauDashboardTitle,
-        'sagiaDashboardTitle': '<i class="fas fa-list"></i> ' + t.sagiaDashboardTitle,
-        'conseilDashboardTitle': '<i class="fas fa-users-cog"></i> ' + t.conseilDashboardTitle,
-        'documentsDashboardTitle': '<i class="fas fa-file-pdf"></i> ' + t.documentsDashboardTitle,
-        'settingsTitle': '<i class="fas fa-cog"></i> ' + t.settingsTitle,
-        // Stat cards
-        'statVisitors': '<i class="fas fa-users"></i> ' + t.statVisitors,
-        'statMedia': '<i class="fas fa-photo-video"></i> ' + t.statMedia,
-        'statPublications': '<i class="fas fa-newspaper"></i> ' + t.statPublications,
-        'statActu': '<i class="fas fa-comment"></i> ' + t.statActu,
+        'dashboardTitle': 'dashboardTitle',
+        'galleryDashboardTitle': 'galleryDashboardTitle',
+        'videosDashboardTitle': 'videosDashboardTitle',
+        'publicationsDashboardTitle': 'publicationsDashboardTitle',
+        'textDashboardTitle': 'textDashboardTitle',
+        'betailDashboardTitle': 'betailDashboardTitle',
+        'produitsDashboardTitle': 'produitsDashboardTitle',
+        'arbresDashboardTitle': 'arbresDashboardTitle',
+        'eauDashboardTitle': 'eauDashboardTitle',
+        'sagiaDashboardTitle': 'sagiaDashboardTitle',
+        'conseilDashboardTitle': 'conseilDashboardTitle',
+        'documentsDashboardTitle': 'documentsDashboardTitle',
+        'settingsTitle': 'settingsTitle',
+        // Stats
+        'statVisitors': 'statVisitors',
+        'statMedia': 'statMedia',
+        'statPublications': 'statPublications',
+        'statActu': 'statActu',
         // Upload modal
-        'uploadModalText': t.uploadModalText,
-        'uploadPcTitle': t.uploadPcTitle,
-        'uploadPcDesc': t.uploadPcDesc,
-        'uploadUrlTitle': t.uploadUrlTitle,
-        'uploadUrlDesc': t.uploadUrlDesc,
-        'uploadAreaText': t.uploadAreaText,
-        'uploadAreaSubtext': t.uploadAreaSubtext,
-        'modalSizeWarning': t.modalSizeWarning,
-        'browseBtnText': t.browseBtnText,
-        'urlInputLabel': '<i class="fas fa-link"></i> ' + t.urlInputLabel,
-        'examplesTitle': t.examplesTitle,
-        'urlExamples': t.urlExamples,
-        'mediaTitleLabel': '<i class="fas fa-tag"></i> ' + t.mediaTitleLabel,
-        'addUrlBtnText': t.addUrlBtnText,
-        'previewTitle': t.previewTitle,
-        'noFilesText': t.noFilesText,
-        'uploadingText': t.uploadingText,
-        'successMessage': t.successMessage,
-        'okBtnText': t.okBtnText,
-        'cancelBtnText': t.cancelBtnText,
+        'uploadModalText': 'uploadModalText',
+        'uploadPcTitle': 'uploadPcTitle',
+        'uploadPcDesc': 'uploadPcDesc',
+        'uploadUrlTitle': 'uploadUrlTitle',
+        'uploadUrlDesc': 'uploadUrlDesc',
+        'uploadAreaText': 'uploadAreaText',
+        'uploadAreaSubtext': 'uploadAreaSubtext',
+        'modalSizeWarning': 'modalSizeWarning',
+        'browseBtnText': 'browseBtnText',
+        'urlInputLabel': 'urlInputLabel',
+        'examplesTitle': 'examplesTitle',
+        'urlExamples': 'urlExamples',
+        'mediaTitleLabel': 'mediaTitleLabel',
+        'addUrlBtnText': 'addUrlBtnText',
+        'previewTitle': 'previewTitle',
+        'noFilesText': 'noFilesText',
+        'uploadingText': 'uploadingText',
+        'successMessage': 'successMessage',
+        'okBtnText': 'okBtnText',
+        'cancelBtnText': 'cancelBtnText',
         // Text modal
-        'textModalHeaderText': t.textModalHeaderText,
-        'textTitleLabelText': t.textTitleLabelText,
-        'textContentLabelText': t.textContentLabelText,
-        'textCancelBtnText': t.textCancelBtnText,
-        'textSaveBtnText': t.textSaveBtnText,
+        'textModalHeaderText': 'textModalHeaderText',
+        'textTitleLabelText': 'textTitleLabelText',
+        'textContentLabelText': 'textContentLabelText',
+        'textCancelBtnText': 'textCancelBtnText',
+        'textSaveBtnText': 'textSaveBtnText',
         // Password modal
-        'passwordModalHeaderText': t.passwordModalHeaderText,
-        'currentPasswordLabelText': t.currentPasswordLabelText,
-        'newPasswordLabelText': t.newPasswordLabelText,
-        'confirmPasswordLabelText': t.confirmPasswordLabelText,
-        'passwordCancelBtnText': t.passwordCancelBtnText,
-        'passwordSaveBtnText': t.passwordSaveBtnText,
-        // Viewer
-        'viewerTitle': t.viewerTitle,
+        'passwordModalHeaderText': 'passwordModalHeaderText',
+        'currentPasswordLabelText': 'currentPasswordLabelText',
+        'newPasswordLabelText': 'newPasswordLabelText',
+        'confirmPasswordLabelText': 'confirmPasswordLabelText',
+        'passwordCancelBtnText': 'passwordCancelBtnText',
+        'passwordSaveBtnText': 'passwordSaveBtnText',
         // Payment
-        'labelCardNumber': '<i class="fas fa-credit-card"></i> ' + t.labelCardNumber,
-        'labelExpiryDate': '<i class="fas fa-calendar-alt"></i> ' + t.labelExpiryDate,
-        'labelCvv': '<i class="fas fa-lock"></i> ' + t.labelCvv,
-        'labelCardName': '<i class="fas fa-user"></i> ' + t.labelCardName,
-        'labelAmount': '<i class="fas fa-coins"></i> ' + t.labelAmount,
-        'btnPaymentText': t.btnPaymentText,
-        // Button texts
-        'galleryAddBtnText': t.galleryAddBtnText,
-        'videosAddBtnText': t.videosAddBtnText,
-        'publicationsAddBtnText': t.publicationsAddBtnText,
-        'textAddBtnText': t.textAddBtnText,
-        // No content messages
-        'noActuPublic': t.noActuPublic,
-        'noGalleryPublic': t.noGalleryPublic,
-        'noVideosPublic': t.noVideosPublic
+        'labelCardNumber': 'labelCardNumber',
+        'labelExpiryDate': 'labelExpiryDate',
+        'labelCvv': 'labelCvv',
+        'labelCardName': 'labelCardName',
+        'labelAmount': 'labelAmount',
+        'btnPaymentText': 'btnPaymentText',
+        // Buttons (dans dashboard)
+        'galleryAddBtnText': 'galleryAddBtnText',
+        'videosAddBtnText': 'videosAddBtnText',
+        'publicationsAddBtnText': 'publicationsAddBtnText',
+        'textAddBtnText': 'textAddBtnText',
+        // Viewer
+        'viewerTitle': 'viewerTitle'
     };
 
-    for (var id in elements) {
+    // Appliquer les traductions
+    for (var id in map) {
         var el = document.getElementById(id);
-        if (el) el.innerHTML = elements[id];
+        var key = map[id];
+        if (el && t[key] !== undefined) {
+            // Si la clé contient du HTML (comme des icônes), on utilise innerHTML, sinon textContent
+            if (key === 'logoTitle' || key === 'logoSubtitle' || 
+                key === 'heroTitle' || key === 'heroSubtitle' || key === 'heroText' ||
+                key === 'aboutTitle' || key === 'aboutHistory' || key === 'aboutText1' || key === 'aboutText2' ||
+                key === 'footerLogoTitle' || key === 'footerLogoSubtitle' || key === 'footerFollow' || key === 'footerCopyright' ||
+                key === 'donsSubtitle' || key === 'actuSubtitle' || key === 'actuFormTitle' ||
+                key === 'actuSubmitText' || key === 'uploadAreaText' || key === 'uploadAreaSubtext' ||
+                key === 'modalSizeWarning' || key === 'browseBtnText' || key === 'examplesTitle' ||
+                key === 'urlExamples' || key === 'mediaTitleLabel' || key === 'addUrlBtnText' ||
+                key === 'previewTitle' || key === 'noFilesText' || key === 'uploadingText' ||
+                key === 'successMessage' || key === 'okBtnText' || key === 'cancelBtnText' ||
+                key === 'textModalHeaderText' || key === 'textTitleLabelText' || key === 'textContentLabelText' ||
+                key === 'textCancelBtnText' || key === 'textSaveBtnText' ||
+                key === 'passwordModalHeaderText' || key === 'currentPasswordLabelText' ||
+                key === 'newPasswordLabelText' || key === 'confirmPasswordLabelText' ||
+                key === 'passwordCancelBtnText' || key === 'passwordSaveBtnText' ||
+                key === 'labelCardNumber' || key === 'labelExpiryDate' || key === 'labelCvv' ||
+                key === 'labelCardName' || key === 'labelAmount' || key === 'btnPaymentText' ||
+                key === 'uploadModalText' || key === 'uploadPcTitle' || key === 'uploadPcDesc' ||
+                key === 'uploadUrlTitle' || key === 'uploadUrlDesc' ||
+                key === 'galleryDashboardTitle' || key === 'videosDashboardTitle' ||
+                key === 'publicationsDashboardTitle' || key === 'textDashboardTitle' ||
+                key === 'betailDashboardTitle' || key === 'produitsDashboardTitle' ||
+                key === 'arbresDashboardTitle' || key === 'eauDashboardTitle' ||
+                key === 'sagiaDashboardTitle' || key === 'conseilDashboardTitle' ||
+                key === 'documentsDashboardTitle' || key === 'settingsTitle' ||
+                key === 'statVisitors' || key === 'statMedia' || key === 'statPublications' || key === 'statActu' ||
+                key === 'galleryAddBtnText' || key === 'videosAddBtnText' || key === 'publicationsAddBtnText' || key === 'textAddBtnText') {
+                el.textContent = t[key];
+            } else {
+                // Pour les menus et titres avec icônes, on utilise innerHTML
+                el.innerHTML = t[key];
+            }
+        }
     }
 
-    // Mettre à jour les placeholders et textes des inputs
+    // Mise à jour des placeholders et textes de boutons spécifiques
     var username = document.getElementById('username');
     if (username) username.placeholder = t.usernamePlaceholder;
     var password = document.getElementById('password');
@@ -3219,18 +3256,24 @@
     var userRole = document.getElementById('userRole');
     if (userRole) userRole.textContent = t.userRoleText;
 
+    // No content messages
+    var noActu = document.getElementById('noActuPublic');
+    if (noActu) noActu.textContent = t.noActuPublic;
+    var noGallery = document.getElementById('noGalleryPublic');
+    if (noGallery) noGallery.textContent = t.noGalleryPublic;
+    var noVideos = document.getElementById('noVideosPublic');
+    if (noVideos) noVideos.textContent = t.noVideosPublic;
+
     // Mettre à jour le ticker
     updateTickerText();
 
-    // Mettre à jour les libellés des tableaux (peut être fait lors du rendu)
-    // Recharger les données pour les afficher avec la nouvelle langue
-    renderAll();
+    // Recharger les données pour mettre à jour les tableaux dynamiques
+    loadAllTables().then(function() {
+        renderAll();
+    });
 
     // Sauvegarder la langue
     try { localStorage.setItem('ansfal_lang', lang); } catch (e) {}
-
-    // Afficher une notification
-    console.log('Langue changée en ' + lang);
 }
 
         // ============================================================
