@@ -3889,27 +3889,32 @@ function getLang() { return LANG[currentLang]; }
         // ============================================================
         // INITIALISATION
         // ============================================================
-        document.addEventListener('DOMContentLoaded', function() {
-            try {
-                var saved = localStorage.getItem('ansfal_lang');
-                if (saved) switchLanguage(saved);
-            } catch (e) {}
-            loadAllTables();
-            fetchWeather();
-            setInterval(fetchWeather, 600000);
-            loadTickerFromSupabase();
-            loadContactsFromSupabase();
-            loadActu();
-            updateStats();
-            showSection('home');
-            document.getElementById('addBtn').addEventListener('click', function() {
-                if (DATA.isAdmin) showUploadModal('image');
-                else showAlert('Connectez-vous', 'error');
-            });
-            document.getElementById('loginBtn').addEventListener('click', function() {
-                document.getElementById('username').focus();
-            });
-        });
+        ddocument.addEventListener('DOMContentLoaded', function() {
+    try {
+        var saved = localStorage.getItem('ansfal_lang');
+        if (saved) switchLanguage(saved);
+    } catch (e) {}
+    loadAllTables();
+    fetchWeather();
+    setInterval(fetchWeather, 600000);
+    loadTickerFromSupabase();
+    loadContactsFromSupabase();
+    loadActu();
+    updateStats();
+    showSection('home');
+
+    // ✅ AJOUT : écouteur manquant sur l'input file
+    document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+    document.getElementById('addBtn').addEventListener('click', function() {
+        if (DATA.isAdmin) showUploadModal('image');
+        else showAlert('Connectez-vous', 'error');
+    });
+    document.getElementById('loginBtn').addEventListener('click', function() {
+        document.getElementById('username').focus();
+    });
+});
+        
 
         // ============================================================
         // FONCTIONS SUPPLÉMENTAIRES (à garder)
