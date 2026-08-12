@@ -8,7 +8,7 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=PoppinsF:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js">
     </script>
@@ -6190,5 +6190,46 @@ window.changePassword = changePassword;dow.changePassword = changePassword;
         }
         window.renderDashboardLists = renderDashboardLists;
 </script>
+			// ============================================================
+// CORRECTION RAPIDE - CHARGEMENT DES BÉTAILS
+// ============================================================
+(function fixBetailLoading() {
+    console.log('🔧 Application de la correction pour betail...');
+    
+    // Sauvegarder la fonction renderBetail originale
+    const originalRenderBetail = window.renderBetail;
+    
+    // Surcharger la fonction pour qu'elle recharge les données si nécessaire
+    window.renderBetail = function() {
+        if (!DATA.betail || DATA.betail.length === 0) {
+            console.log('🔄 DATA.betail vide, tentative de chargement...');
+            fetch('https://ewgrkdlivxgogaysgxje.supabase.co/rest/v1/betail?select=*', {
+                headers: {
+                    'apikey': 'sb_publishable_Cu364NmwnWvimRiZ1OMGKQ_r-EoVZOe'
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                DATA.betail = data || [];
+                console.log('✅ DATA.betail chargé:', DATA.betail.length, 'lignes');
+                originalRenderBetail();
+            })
+            .catch(err => {
+                console.error('❌ Erreur chargement betail:', err);
+                document.getElementById('betailBody').innerHTML = 
+                    '<tr><td colspan="7" style="color:red;">❌ Erreur de chargement</td></tr>';
+            });
+        } else {
+            originalRenderBetail();
+        }
+    };
+    
+    // Forcer le chargement immédiat
+    setTimeout(() => {
+        window.renderBetail();
+    }, 500);
+    
+    console.log('✅ Correction appliquée !');
+})();	
 </body>
 </html>
