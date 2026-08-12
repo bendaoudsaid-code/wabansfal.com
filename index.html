@@ -6189,47 +6189,6 @@ window.changePassword = changePassword;dow.changePassword = changePassword;
             console.log('✅ Dashboard lists rendus');
         }
         window.renderDashboardLists = renderDashboardLists;
-</script>
-			// ============================================================
-// CORRECTION RAPIDE - CHARGEMENT DES BÉTAILS
-// ============================================================
-(function fixBetailLoading() {
-    console.log('🔧 Application de la correction pour betail...');
-    
-    // Sauvegarder la fonction renderBetail originale
-    const originalRenderBetail = window.renderBetail;
-    
-    // Surcharger la fonction pour qu'elle recharge les données si nécessaire
-    window.renderBetail = function() {
-        if (!DATA.betail || DATA.betail.length === 0) {
-            console.log('🔄 DATA.betail vide, tentative de chargement...');
-            fetch('https://ewgrkdlivxgogaysgxje.supabase.co/rest/v1/betail?select=*', {
-                headers: {
-                    'apikey': 'sb_publishable_Cu364NmwnWvimRiZ1OMGKQ_r-EoVZOe'
-                }
-            })
-            .then(r => r.json())
-            .then(data => {
-                DATA.betail = data || [];
-                console.log('✅ DATA.betail chargé:', DATA.betail.length, 'lignes');
-                originalRenderBetail();
-            })
-            .catch(err => {
-                console.error('❌ Erreur chargement betail:', err);
-                document.getElementById('betailBody').innerHTML = 
-                    '<tr><td colspan="7" style="color:red;">❌ Erreur de chargement</td></tr>';
-            });
-        } else {
-            originalRenderBetail();
-        }
-    };
-    
-    // Forcer le chargement immédiat
-    setTimeout(() => {
-        window.renderBetail();
-    }, 500);
-    
-    console.log('✅ Correction appliquée !');
-})();	
+</script>	
 </body>
 </html>
