@@ -4724,7 +4724,7 @@ async function uploadFiles() {
             var itemData = {
                 title: file.name.split('.')[0].replace(/[_-]/g, ' '),
                 url: publicUrl,
-                image_url: publicUrl,  // Ajouter aussi image_url pour la compatibilité
+                image_url: publicUrl,
                 file_name: fileName,
                 file_size: file.size,
                 type: isVideo ? 'video' : (isImage ? 'image' : 'document'),
@@ -4780,10 +4780,16 @@ async function uploadFiles() {
         document.getElementById('uploadSuccess').style.display = 'block';
         document.getElementById('successMessage').textContent = uploaded + ' fichier(s) téléversé(s) avec succès !';
         showAlert('✅ ' + uploaded + ' fichier(s) uploadé(s) !', 'success');
+        
+        // 🔥 IMPORTANT: Recharger les données après un court délai
         setTimeout(function() { 
             hideUploadModal();
-            loadAllTables(); 
-        }, 2000);
+            loadAllTables();  // Recharger toutes les données
+            // Forcer le rafraîchissement de la galerie
+            renderGallery();
+            renderGalleryAdmin();
+        }, 1500);
+        
     } else if (uploaded === 0) {
         showAlert('❌ Erreur: ' + errors.join(', '), 'error');
         document.getElementById('actionButtons').style.display = 'flex';
@@ -4792,6 +4798,7 @@ async function uploadFiles() {
         document.getElementById('actionButtons').style.display = 'flex';
     }
 }
+
 // ============================================================
 // CONSEIL CRUD
 // ============================================================
