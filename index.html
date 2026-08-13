@@ -2855,8 +2855,15 @@ var currentUploadType = 'image';
 // ============================================================
 // GESTION DES FICHIERS UPLOAD
 // ============================================================
+// ============================================================
+// GESTION DES FICHIERS - VERSION ULTRA CORRIGÉE
+// ============================================================
+
+// ✅ FONCTION PRINCIPALE - Gère la sélection des fichiers
 function handleFileSelect(event) {
-    console.log('📁 Fichier sélectionné !', event);
+    console.log('🔴🔴🔴 ÉVÉNEMENT CHANGE DÉCLENCHÉ ! 🔴🔴🔴');
+    console.log('Event:', event);
+    console.log('Target files:', event.target.files);
     
     var files = event.target.files;
     if (!files || files.length === 0) {
@@ -2864,44 +2871,70 @@ function handleFileSelect(event) {
         return;
     }
     
-    console.log('📊 Nombre de fichiers :', files.length);
+    console.log('📊 Nombre de fichiers sélectionnés :', files.length);
+    
+    // Réinitialiser l'input pour permettre de sélectionner à nouveau
+    event.target.value = '';
+    
+    var addedCount = 0;
     
     for (var i = 0; i < files.length; i++) {
         var file = files[i];
-        console.log('📄 Fichier ' + (i+1) + ' :', file.name, file.type, (file.size/1024/1024).toFixed(2) + 'MB');
+        console.log('📄 Fichier ' + (i+1) + ' :', file.name);
+        console.log('   Type:', file.type);
+        console.log('   Taille:', (file.size / 1024 / 1024).toFixed(2), 'MB');
         
-        // Vérifier le type de fichier
+        // Vérifier le type
         var isValid = false;
         if (currentUploadType === 'image' && file.type.startsWith('image/')) {
             isValid = true;
         } else if (currentUploadType === 'video' && file.type.startsWith('video/')) {
             isValid = true;
+        } else if (currentUploadType === 'all') {
+            isValid = true;
         } else {
-            showAlert('Format non supporté pour : ' + file.name, 'error');
+            console.log('❌ Type non supporté pour :', file.name);
+            showAlert('⚠️ Format non supporté : ' + file.name, 'error');
             continue;
+        }
+        
+        // Vérifier la taille (40MB max)
+        if (isValid && file.size > 40 * 1024 * 1024) {
+            console.log('❌ Fichier trop volumineux :', file.name);
+            showAlert('⚠️ ' + file.name + ' dépasse 40MB', 'error');
+            isValid = false;
         }
         
         if (isValid) {
             selectedFiles.push(file);
+            addedCount++;
+            console.log('✅ Ajouté :', file.name);
         }
     }
     
-    console.log('✅ Total fichiers sélectionnés :', selectedFiles.length);
-    updateFilePreview();
+    console.log('📊 Total fichiers dans selectedFiles :', selectedFiles.length);
     
-    // Réinitialiser l'input
-    event.target.value = '';
+    if (addedCount > 0) {
+        showAlert('✅ ' + addedCount + ' fichier(s) ajouté(s) !', 'success');
+        updateFilePreview();
+    } else {
+        showAlert('⚠️ Aucun fichier valide sélectionné', 'error');
+    }
 }
 
+// ✅ MET À JOUR L'APERÇU DES FICHIERS
 function updateFilePreview() {
-    console.log('🔄 Mise à jour de l\'aperçu, fichiers :', selectedFiles.length);
+    console.log('🔄 Mise à jour de l\'aperçu...');
+    console.log('selectedFiles:', selectedFiles);
     
     var grid = document.getElementById('filesGrid');
     var noFiles = document.getElementById('noFiles');
     var uploadBtn = document.getElementById('uploadBtn');
+    var progress = document.getElementById('uploadProgress');
+    var success = document.getElementById('uploadSuccess');
     
     if (!grid) {
-        console.log('❌ Élément filesGrid non trouvé');
+        console.log('❌ Élément filesGrid non trouvé !');
         return;
     }
     
@@ -2909,8 +2942,11 @@ function updateFilePreview() {
     grid.innerHTML = '';
     
     if (selectedFiles.length === 0) {
-        console.log('📭 Aucun fichier');
-        if (noFiles) noFiles.style.display = 'block';
+        console.log('📭 Aucun fichier sélectionné');
+        if (noFiles) {
+            noFiles.style.display = 'block';
+            noFiles.innerHTML = '<i class="fas fa-inbox"></i> Aucun fichier sélectionné';
+        }
         if (uploadBtn) uploadBtn.disabled = true;
         return;
     }
@@ -2923,17 +2959,38 @@ function updateFilePreview() {
         var f = selectedFiles[i];
         var div = document.createElement('div');
         div.className = 'file-item';
+        div.style.cssText = 'background:white;border-radius:8px;padding:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);position:relative;border:2px solid #e0e0e0;margin-bottom:10px;';
         
-        // Déterminer l'icône selon le type
+        // Déterminer l'icône
         var icon = 'fa-file';
-        if (f.type && f.type.startsWith('image/')) icon = 'fa-image';
-        else if (f.type && f.type.startsWith('video/')) icon = 'fa-video';
+        var color = '#4CAF50';
+        var preview = '';
+        
+        if (f.type && f.type.startsWith('image/')) {
+            icon = 'fa-image';
+            color = '#4CAF50';
+            // Aperçu miniature
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var img = document.getElementById('preview_' + i);
+                if (img) img.src = e.target.result;
+            };
+            reader.readAsDataURL(f);
+            preview = '<img id="preview_' + i + '" style="width:100%;height:60px;object-fit:cover;border-radius:4px;margin-bottom:5px;background:#f0f0f0;" />';
+        } else if (f.type && f.type.startsWith('video/')) {
+            icon = 'fa-video';
+            color = '#f44336';
+            preview = '<div style="width:100%;height:60px;background:#1a1a2e;border-radius:4px;display:flex;align-items:center;justify-content:center;margin-bottom:5px;color:white;"><i class="fas fa-play-circle" style="font-size:2rem;color:#4CAF50;"></i></div>';
+        }
         
         div.innerHTML = 
-            '<div class="file-icon"><i class="fas ' + icon + '" style="font-size:2rem;color:var(--primary);"></i></div>' +
-            '<div class="file-name">' + f.name + '</div>' +
-            '<div class="file-size">' + (f.size / 1024 / 1024).toFixed(2) + ' MB</div>' +
-            '<button class="remove-file" onclick="removeFile(' + i + ')"><i class="fas fa-times"></i></button>';
+            preview +
+            '<div style="text-align:center;margin:5px 0;">' +
+                '<i class="fas ' + icon + '" style="font-size:1.8rem;color:' + color + ';"></i>' +
+            '</div>' +
+            '<div class="file-name" style="font-size:0.8rem;font-weight:500;text-align:center;word-break:break-word;color:#333;">' + f.name + '</div>' +
+            '<div class="file-size" style="font-size:0.7rem;color:#888;text-align:center;">' + (f.size / 1024 / 1024).toFixed(2) + ' MB</div>' +
+            '<button class="remove-file" onclick="removeFile(' + i + ')" style="position:absolute;top:-8px;right:-8px;background:#f44336;color:white;border:none;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:0.8rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px rgba(0,0,0,0.2);">×</button>';
         
         grid.appendChild(div);
     }
@@ -2941,6 +2998,7 @@ function updateFilePreview() {
     console.log('✅ Aperçu mis à jour avec ' + selectedFiles.length + ' fichiers');
 }
 
+// ✅ SUPPRIME UN FICHIER DE LA LISTE
 function removeFile(index) {
     console.log('🗑️ Suppression du fichier index :', index);
     
@@ -2950,10 +3008,139 @@ function removeFile(index) {
         console.log('✅ Fichier supprimé :', fileName);
         updateFilePreview();
         
-        // Si plus de fichiers, réinitialiser l'input
+        // Réinitialiser l'input si plus de fichiers
         if (selectedFiles.length === 0) {
-            document.getElementById('fileInput').value = '';
+            var fileInput = document.getElementById('fileInput');
+            if (fileInput) fileInput.value = '';
         }
+    }
+}
+
+// ✅ OUVRE LA MODALE D'UPLOAD
+function showUploadModal(type) {
+    console.log('📂 Ouverture de la modale d\'upload, type:', type);
+    
+    currentUploadType = type || 'image';
+    selectedFiles = [];
+    
+    var modal = document.getElementById('uploadModal');
+    var title = document.getElementById('uploadModalText');
+    var accept = document.getElementById('fileInput');
+    
+    if (modal) modal.classList.add('active');
+    if (title) title.textContent = 'Uploader des ' + (type === 'video' ? 'vidéos' : 'images');
+    if (accept) {
+        accept.accept = type === 'video' ? 'video/*' : 'image/*';
+    }
+    
+    // Réinitialiser l'input
+    var fileInput = document.getElementById('fileInput');
+    if (fileInput) fileInput.value = '';
+    
+    // Réinitialiser les états
+    document.getElementById('uploadProgress').style.display = 'none';
+    document.getElementById('uploadSuccess').style.display = 'none';
+    document.getElementById('actionButtons').style.display = 'flex';
+    document.getElementById('uploadBtn').disabled = true;
+    
+    updateFilePreview();
+}
+
+// ✅ FERME LA MODALE D'UPLOAD
+function hideUploadModal() {
+    console.log('❌ Fermeture de la modale d\'upload');
+    document.getElementById('uploadModal').classList.remove('active');
+    selectedFiles = [];
+    updateFilePreview();
+    
+    var fileInput = document.getElementById('fileInput');
+    if (fileInput) fileInput.value = '';
+}
+
+// ✅ INITIALISATION DES ÉCOUTEURS
+function initFileUpload() {
+    console.log('🔧 Initialisation des écouteurs d\'upload...');
+    
+    // 1. Input file - MÉTHODE 1: via addEventListener
+    var fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+        // Supprimer les anciens écouteurs
+        fileInput.removeEventListener('change', handleFileSelect);
+        // Ajouter le nouvel écouteur
+        fileInput.addEventListener('change', handleFileSelect);
+        console.log('✅ Écouteur fileInput ajouté via addEventListener');
+    } else {
+        console.log('❌ fileInput non trouvé');
+    }
+    
+    // 2. Input file - MÉTHODE 2: via onchange (fallback)
+    if (fileInput) {
+        fileInput.onchange = function(event) {
+            console.log('🔴🔴🔴 onchange déclenché ! 🔴🔴🔴');
+            handleFileSelect(event);
+        };
+        console.log('✅ Écouteur fileInput ajouté via onchange');
+    }
+    
+    // 3. Zone de drag & drop
+    var uploadArea = document.getElementById('pcUploadArea');
+    if (uploadArea) {
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.style.borderColor = '#4CAF50';
+            this.style.background = 'rgba(76, 175, 80, 0.1)';
+        });
+        
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.style.borderColor = '#ddd';
+            this.style.background = 'var(--light)';
+        });
+        
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.style.borderColor = '#ddd';
+            this.style.background = 'var(--light)';
+            
+            var files = e.dataTransfer.files;
+            console.log('📁 Drop détecté, fichiers :', files.length);
+            
+            if (files && files.length > 0) {
+                // Simuler un événement change
+                var input = document.getElementById('fileInput');
+                if (input) {
+                    // Créer un DataTransfer pour mettre les fichiers
+                    var dt = new DataTransfer();
+                    for (var i = 0; i < files.length; i++) {
+                        dt.items.add(files[i]);
+                    }
+                    input.files = dt.files;
+                    // Déclencher l'événement change
+                    var event = new Event('change', { bubbles: true });
+                    input.dispatchEvent(event);
+                }
+            }
+        });
+        console.log('✅ Écouteur drag & drop ajouté');
+    } else {
+        console.log('❌ uploadArea non trouvé');
+    }
+    
+    // 4. Bouton Parcourir
+    var browseBtn = document.getElementById('browseBtn');
+    if (browseBtn) {
+        browseBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var input = document.getElementById('fileInput');
+            if (input) {
+                console.log('🖱️ Clic sur Parcourir - ouverture du sélecteur');
+                input.click();
+            }
+        });
+        console.log('✅ Écouteur browseBtn ajouté');
     }
 }
 
