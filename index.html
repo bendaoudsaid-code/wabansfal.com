@@ -2856,13 +2856,40 @@ var currentUploadType = 'image';
 // GESTION DES FICHIERS UPLOAD
 // ============================================================
 function handleFileSelect(event) {
+    console.log('📁 Fichier sélectionné !', event);
+    
     var files = event.target.files;
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0) {
+        console.log('⚠️ Aucun fichier sélectionné');
+        return;
+    }
+    
+    console.log('📊 Nombre de fichiers :', files.length);
     
     for (var i = 0; i < files.length; i++) {
-        selectedFiles.push(files[i]);
+        var file = files[i];
+        console.log('📄 Fichier ' + (i+1) + ' :', file.name, file.type, (file.size/1024/1024).toFixed(2) + 'MB');
+        
+        // Vérifier le type de fichier
+        var isValid = false;
+        if (currentUploadType === 'image' && file.type.startsWith('image/')) {
+            isValid = true;
+        } else if (currentUploadType === 'video' && file.type.startsWith('video/')) {
+            isValid = true;
+        } else {
+            showAlert('Format non supporté pour : ' + file.name, 'error');
+            continue;
+        }
+        
+        if (isValid) {
+            selectedFiles.push(file);
+        }
     }
+    
+    console.log('✅ Total fichiers sélectionnés :', selectedFiles.length);
     updateFilePreview();
+    
+    // Réinitialiser l'input
     event.target.value = '';
 }
 
