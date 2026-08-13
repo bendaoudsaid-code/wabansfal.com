@@ -3349,16 +3349,23 @@ async function loadTickerFromSupabase() {
             }
         });
         var data = await resp.json();
-        if (data && data.length > 0) {
-            document.getElementById('tickerTextFr').value = data[0].text_fr || 'Bienvenue sur le site officiel d\'ANSFAL';
-            document.getElementById('tickerTextAr').value = data[0].text_ar || 'مرحباً بكم في موقع أنسفال';
+        if (data && data.length > 0 && data[0].text) {
+            var textData = data[0].text;
+            // Si text est un objet JSON avec fr et ar
+            if (typeof textData === 'object') {
+                document.getElementById('tickerTextFr').value = textData.fr || 'Bienvenue sur le site officiel d\'ANSFAL';
+                document.getElementById('tickerTextAr').value = textData.ar || 'مرحباً بكم في موقع أنسفال';
+            } else {
+                // Fallback si text est une chaîne
+                document.getElementById('tickerTextFr').value = textData || 'Bienvenue sur le site officiel d\'ANSFAL';
+                document.getElementById('tickerTextAr').value = textData || 'مرحباً بكم في موقع أنسفال';
+            }
             updateTickerText();
         }
     } catch (e) { 
         console.error('Erreur chargement ticker', e); 
     }
 }
-
 // ============================================================
 // ALERTES
 // ============================================================
