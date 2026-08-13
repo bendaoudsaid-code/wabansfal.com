@@ -2942,8 +2942,19 @@ function updateFilePreview() {
 }
 
 function removeFile(index) {
-    selectedFiles.splice(index, 1);
-    updateFilePreview();
+    console.log('🗑️ Suppression du fichier index :', index);
+    
+    if (index >= 0 && index < selectedFiles.length) {
+        var fileName = selectedFiles[index].name;
+        selectedFiles.splice(index, 1);
+        console.log('✅ Fichier supprimé :', fileName);
+        updateFilePreview();
+        
+        // Si plus de fichiers, réinitialiser l'input
+        if (selectedFiles.length === 0) {
+            document.getElementById('fileInput').value = '';
+        }
+    }
 }
 
 // ============================================================
