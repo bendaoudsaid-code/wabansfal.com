@@ -4250,6 +4250,43 @@ function getLang() { return LANG[currentLang]; }
         document.getElementById('actionButtons').style.display = 'flex';
     }
 }
+
+        async function deleteFromSupabase(table, id) {
+    try {
+        // Récupérer l'URL du fichier avant de supprimer
+        var resp = await fetch(supabaseUrl + '/rest/v1/' + table + '?id=eq.' + id, {
+            headers: { 'apikey': supabaseKey, 'Authorization': 'Bearer ' + supabaseKey }
+        });
+        var data = await resp.json();
+        
+        if (data && data.length > 0) {
+            var item = data[0];
+            var fileName = item.file_name;
+            
+            // Supprimer du storage si présent
+            if (fileName) {
+                await supabase.storage.from('medias').remove([fileName]);
+                console.log('🗑️ Fichier supprimé du storage:', fileName);
+            }
+        }
+        
+        // Supprimer de la base de données
+        var deleteResp = await fetch(supabaseUrl + '/rest/v1/' + table + '?id=eq.' + id, {
+            method: 'DELETE',
+            headers: { 'apikey': supabaseKey, 'Authorization': 'Bearer ' + supabaseKey }
+        });
+        
+        if (deleteResp.ok) {
+            showAlert('✅ Élément supprimé avec succès', 'success');
+            loadAllTables();
+        } else {
+            throw new Error('Erreur suppression');
+        }
+    } catch (e) {
+        showAlert('❌ Erreur: ' + e.message, 'error');
+    }
+}
+     
         async function saveTickerText() {
             var t = getLang();
             var fr = document.getElementById('tickerTextFr').value;
