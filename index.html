@@ -4143,87 +4143,66 @@ function getLang() { return LANG[currentLang]; }
         }
 
         async function uploadFiles() {
-    var t = getLang();
+    console.log('🚀 Upload de', selectedFiles.length, 'fichiers');
+    
     if (selectedFiles.length === 0) {
-        showAlert(t.alertNoFile, 'error');
+        showAlert('Aucun fichier à uploader', 'error');
         return;
     }
-
+    
+    // Afficher la progression
     document.getElementById('uploadProgress').style.display = 'block';
     document.getElementById('actionButtons').style.display = 'none';
     document.getElementById('uploadSuccess').style.display = 'none';
-
+    
     var total = selectedFiles.length;
     var uploaded = 0;
     var errors = [];
-
+    
     for (var i = 0; i < selectedFiles.length; i++) {
         var file = selectedFiles[i];
+        console.log('📤 Upload:', file.name);
+        
         try {
-            // 1. Si c'est une URL (mode URL)
-            if (file.url) {
-                var table = currentUploadType === 'video' ? 'videos' : 'gallery';
-                var data = {
-                    title: file.name || 'Média',
-                    url: file.url,
-                    image_url: file.url,
-                    video_url: file.url,
-                    publisher: document.getElementById('userName').textContent || 'admin',
-                    created_at: new Date().toISOString()
-                };
-                var resp = await fetch(supabaseUrl + '/rest/v1/' + table, {
-                    method: 'POST',
-                    headers: {
-                        'apikey': supabaseKey,
-                        'Authorization': 'Bearer ' + supabaseKey,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=representation'
-                    },
-                    body: JSON.stringify(data)
-                });
-                if (!resp.ok) throw new Error('Erreur insertion URL');
-                uploaded++;
-                continue;
-            }
-
-            // 2. Upload d'un fichier local
+            // Vérifier le type
             var isVideo = file.type && file.type.startsWith('video/');
             var isImage = file.type && file.type.startsWith('image/');
+            
             if (!isVideo && !isImage) {
-                errors.push(file.name + ' : format non supporté');
+                errors.push(file.name + ': format non supporté');
                 continue;
             }
-
+            
             var fileName = Date.now() + '_' + file.name.replace(/\s/g, '_');
             var table = isVideo ? 'videos' : 'gallery';
-
-            // 2a. Upload vers Supabase Storage
+            
+            // Upload vers Supabase Storage
             var { data: uploadData, error: uploadError } = await supabase.storage
                 .from('medias')
                 .upload(fileName, file, { cacheControl: '3600', upsert: false });
-
+            
             if (uploadError) {
-                errors.push(file.name + ' : ' + uploadError.message);
+                errors.push(file.name + ': ' + uploadError.message);
                 continue;
             }
-
-            // 2b. Récupérer l'URL publique
+            
+            // Récupérer l'URL publique
             var { data: urlData } = supabase.storage.from('medias').getPublicUrl(fileName);
             var publicUrl = urlData.publicUrl;
-
-            // 2c. Insérer dans la base
+            
+            // Insérer dans la base de données
             var itemData = {
                 title: file.name.split('.')[0].replace(/[_-]/g, ' '),
                 url: publicUrl,
-                image_url: publicUrl,
+                image_url: isImage ? publicUrl : '',
                 video_url: isVideo ? publicUrl : '',
                 file_name: fileName,
                 type: isVideo ? 'video' : 'image',
-                publisher: document.getElementById('userName').textContent || 'admin',
+                publisher: document.getElementById('userName')?.textContent || 'admin',
                 date: new Date().toISOString().split('T')[0],
                 created_at: new Date().toISOString()
             };
-
+            
             var resp = await fetch(supabaseUrl + '/rest/v1/' + table, {
                 method: 'POST',
                 headers: {
@@ -4234,41 +4213,40 @@ function getLang() { return LANG[currentLang]; }
                 },
                 body: JSON.stringify(itemData)
             });
-
+            
             if (!resp.ok) {
                 var errorData = await resp.json();
-                // Supprimer le fichier du storage en cas d'échec d'insertion
                 await supabase.storage.from('medias').remove([fileName]);
                 throw new Error(errorData.message || 'Erreur insertion');
             }
-
+            
             uploaded++;
-
+            
         } catch (e) {
-            errors.push(file.name + ' : ' + e.message);
+            errors.push(file.name + ': ' + e.message);
         }
-
-        // Mise à jour de la progression
+        
+        // Progression
         var progress = Math.round(((i + 1) / total) * 100);
         document.getElementById('progressFill').style.width = progress + '%';
         document.getElementById('progressText').textContent = progress + '% (' + (i + 1) + '/' + total + ')';
     }
-
+    
     document.getElementById('uploadProgress').style.display = 'none';
-
+    
     if (uploaded > 0 && errors.length === 0) {
         document.getElementById('uploadSuccess').style.display = 'block';
         document.getElementById('successMessage').textContent = uploaded + ' fichier(s) téléversé(s) avec succès !';
-        showAlert(uploaded + ' fichier(s) téléversé(s) avec succès !', 'success');
+        showAlert('✅ ' + uploaded + ' fichier(s) uploadé(s) !', 'success');
         setTimeout(function() {
             hideUploadModal();
             loadAllTables();
         }, 2000);
     } else if (uploaded === 0) {
-        showAlert('Aucun fichier n\'a pu être téléversé : ' + errors.join(', '), 'error');
+        showAlert('❌ Erreur: ' + errors.join(', '), 'error');
         document.getElementById('actionButtons').style.display = 'flex';
     } else {
-        showAlert('Partiellement réussi (' + uploaded + '/' + total + '). Erreurs : ' + errors.join(', '), 'error');
+        showAlert('⚠️ Partiel: ' + uploaded + '/' + total + ' réussi', 'error');
         document.getElementById('actionButtons').style.display = 'flex';
     }
 }
