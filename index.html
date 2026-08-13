@@ -4025,10 +4025,60 @@ function getLang() { return LANG[currentLang]; }
         }
 
         function renderDashboardTables() {
-            // (votre version existante – je laisse pour ne pas alourdir)
-            // ...
-        }
+    // Bétails Admin
+    renderAdminTable('betail', 'betailAdminBody', [
+        'localite', 'bovins', 'ovins', 'caprins', 'habitants'
+    ]);
+    
+    // Produits Admin
+    renderAdminTable('produits', 'produitsAdminBody', [
+        'nom', 'localite', 'quantite', 'periode', 'statut'
+    ]);
+    
+    // Arbres Admin
+    renderAdminTable('arbres', 'arbresAdminBody', [
+        'localite', 'oliviers', 'amandiers', 'figuiers', 'noyers', 'habitants'
+    ]);
+    
+    // Eau Admin
+    renderAdminTable('eau', 'eauAdminBody', [
+        'localite', 'foyers', 'forages', 'capacite', 'statut'
+    ]);
+    
+    // SAGIA Admin
+    renderAdminTable('sagia', 'sagiaAdminBody', [
+        'code', 'nom', 'zone', 'superficie', 'debit', 'statut'
+    ]);
+}
 
+function renderAdminTable(table, bodyId, fields) {
+    var items = DATA[table] || [];
+    var body = document.getElementById(bodyId);
+    if (!body) return;
+    
+    if (items.length === 0) {
+        body.innerHTML = '<tr><td colspan="' + (fields.length + 1) + '" class="no-content">Aucune donnée</td></tr>';
+        return;
+    }
+    
+    body.innerHTML = items.map(function(item) {
+        var cells = fields.map(function(f) {
+            var val = item[f];
+            if (typeof val === 'object' && val !== null) {
+                val = val.fr || val.ar || JSON.stringify(val);
+            }
+            return '<td>' + (val || '') + '</td>';
+        }).join('');
+        
+        return '<tr>' +
+            cells +
+            '<td style="white-space:nowrap;">' +
+                '<button class="btn-action edit" onclick="editItem(\'' + table + '\', ' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+                '<button class="btn-action delete" onclick="deleteItem(\'' + table + '\', ' + item.id + ')"><i class="fas fa-trash"></i></button>' +
+            '</td>' +
+            '</tr>';
+    }).join('');
+}
         // ============================================================
         // FONCTIONS D'UPLOAD, TICKER, CONTACT, ETC. (reprises sans modification)
         // ============================================================
