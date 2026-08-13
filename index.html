@@ -4368,11 +4368,18 @@ function renderGallery() {
     var items = DATA.gallery || [];
     var container = document.getElementById('galleryContainer');
     if (!container) return;
-    if (items.length === 0) { container.innerHTML = '<div class="no-content">Aucune image</div>'; return; }
+    if (items.length === 0) { 
+        container.innerHTML = '<div class="no-content">Aucune image</div>'; 
+        return; 
+    }
     container.innerHTML = items.map(function(item) {
+        // Utiliser image_url ou url selon ce qui est disponible
         var url = item.image_url || item.url || '';
         var title = item.title || 'Image';
-        return '<div class="gallery-item" onclick="viewMedia(\'' + url + '\', \'image\')"><img src="' + url + '" alt="' + title + '" loading="lazy" />' + (title ? '<div class="gallery-title">' + title + '</div>' : '') + '</div>';
+        return '<div class="gallery-item" onclick="viewMedia(\'' + url + '\', \'image\')">' +
+            '<img src="' + url + '" alt="' + title + '" loading="lazy" />' + 
+            (title ? '<div class="gallery-title">' + title + '</div>' : '') + 
+            '</div>';
     }).join('');
 }
 
