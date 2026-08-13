@@ -4383,30 +4383,35 @@ function renderGallery() {
     }).join('');
 }
 
-function renderGalleryAdmin() {
+ffunction renderGalleryAdmin() {
     var user = getCurrentUser();
     var items = DATA.gallery || [];
     var grid = document.getElementById('galleryList');
     if (!grid) return;
-    if (items.length === 0) { grid.innerHTML = '<div class="no-content">Aucune image</div>'; return; }
+    if (items.length === 0) { 
+        grid.innerHTML = '<div class="no-content">Aucune image</div>'; 
+        return; 
+    }
 
     var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
 
     grid.innerHTML = items.map(function(item) {
+        // Utiliser image_url ou url selon ce qui est disponible
         var url = item.image_url || item.url || '';
         var title = item.title || 'Image';
+        var publisher = item.publisher || 'admin';
+        var date = item.date ? new Date(item.date).toLocaleDateString() : '';
         var actions = canEdit ?
             '<button class="btn-action view" onclick="viewMedia(\'' + url + '\', \'image\')"><i class="fas fa-eye"></i></button> ' +
             '<button class="btn-action delete" onclick="deleteGallery(' + item.id + ')"><i class="fas fa-trash"></i></button>' :
             '<button class="btn-action view" onclick="viewMedia(\'' + url + '\', \'image\')"><i class="fas fa-eye"></i></button>';
         return '<div class="dashboard-item">' +
             '<div class="item-icon"><img src="' + url + '" style="width:45px;height:45px;object-fit:cover;border-radius:8px;" /></div>' +
-            '<div class="item-info"><h4>' + title + '</h4><small>Image</small></div>' +
+            '<div class="item-info"><h4>' + title + '</h4><small>Par ' + publisher + (date ? ' - ' + date : '') + '</small></div>' +
             '<div class="item-actions">' + actions + '</div>' +
             '</div>';
     }).join('');
 }
-
 function renderVideos() {
     var items = DATA.videos || [];
     var container = document.getElementById('videosContainer');
