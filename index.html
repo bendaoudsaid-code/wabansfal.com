@@ -3334,10 +3334,15 @@ async function saveTickerText() {
 function updateTickerText() {
     var el = document.getElementById('tickerText');
     if (!el) return;
+    
     var fr = document.getElementById('tickerTextFr').value || 'Bienvenue sur le site officiel d\'ANSFAL';
     var ar = document.getElementById('tickerTextAr').value || 'مرحباً بكم في موقع أنسفال';
+    
+    // Sélectionner la langue appropriée
     var text = document.body.classList.contains('rtl') ? ar : fr;
-    el.innerHTML = '<i class="fas fa-arrow-right"></i> ' + text + ' <i class="fas fa-arrow-left"></i>';
+    
+    // Ajouter des icônes et du style
+    el.innerHTML = '<i class="fas fa-arrow-right" style="color: #3cb371;"></i> ' + text + ' <i class="fas fa-arrow-left" style="color: #3cb371;"></i>';
 }
 
 async function loadTickerFromSupabase() {
