@@ -3282,15 +3282,30 @@ async function saveTickerText() {
         var existing = await resp.json();
         
         var method, url, body;
+        var textData = {
+            fr: fr,
+            ar: ar
+        };
         
         if (existing && existing.length > 0) {
+            // Mise à jour
             method = 'PATCH';
             url = supabaseUrl + '/rest/v1/ticker?id=eq.' + existing[0].id;
-            body = { text_fr: fr, text_ar: ar };
+            body = { 
+                text: textData,
+                updated_at: new Date().toISOString()
+            };
         } else {
+            // Création
             method = 'POST';
             url = supabaseUrl + '/rest/v1/ticker';
-            body = { text_fr: fr, text_ar: ar };
+            body = { 
+                text: textData,
+                icon: 'fa-bullhorn',
+                couleur: '#3cb371',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            };
         }
         
         var resp2 = await fetch(url, {
@@ -3316,7 +3331,6 @@ async function saveTickerText() {
         console.error('Erreur détaillée:', e);
     }
 }
-
 function updateTickerText() {
     var el = document.getElementById('tickerText');
     if (!el) return;
