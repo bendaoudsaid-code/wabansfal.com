@@ -2894,24 +2894,51 @@ function handleFileSelect(event) {
 }
 
 function updateFilePreview() {
+    console.log('🔄 Mise à jour de l\'aperçu, fichiers :', selectedFiles.length);
+    
     var grid = document.getElementById('filesGrid');
-    if (!grid) return;
-    grid.innerHTML = '';
-    if (selectedFiles.length === 0) {
-        document.getElementById('noFiles').style.display = 'block';
+    var noFiles = document.getElementById('noFiles');
+    var uploadBtn = document.getElementById('uploadBtn');
+    
+    if (!grid) {
+        console.log('❌ Élément filesGrid non trouvé');
         return;
     }
-    document.getElementById('noFiles').style.display = 'none';
+    
+    // Vider la grille
+    grid.innerHTML = '';
+    
+    if (selectedFiles.length === 0) {
+        console.log('📭 Aucun fichier');
+        if (noFiles) noFiles.style.display = 'block';
+        if (uploadBtn) uploadBtn.disabled = true;
+        return;
+    }
+    
+    if (noFiles) noFiles.style.display = 'none';
+    if (uploadBtn) uploadBtn.disabled = false;
+    
+    // Afficher chaque fichier
     for (var i = 0; i < selectedFiles.length; i++) {
         var f = selectedFiles[i];
         var div = document.createElement('div');
         div.className = 'file-item';
-        div.innerHTML = '<div class="file-icon"><i class="fas fa-file"></i></div>' +
-                        '<div class="file-name">' + f.name + '</div>' +
-                        '<div class="file-size">' + (f.size / 1024 / 1024).toFixed(2) + ' MB</div>' +
-                        '<button class="remove-file" onclick="removeFile(' + i + ')"><i class="fas fa-times"></i></button>';
+        
+        // Déterminer l'icône selon le type
+        var icon = 'fa-file';
+        if (f.type && f.type.startsWith('image/')) icon = 'fa-image';
+        else if (f.type && f.type.startsWith('video/')) icon = 'fa-video';
+        
+        div.innerHTML = 
+            '<div class="file-icon"><i class="fas ' + icon + '" style="font-size:2rem;color:var(--primary);"></i></div>' +
+            '<div class="file-name">' + f.name + '</div>' +
+            '<div class="file-size">' + (f.size / 1024 / 1024).toFixed(2) + ' MB</div>' +
+            '<button class="remove-file" onclick="removeFile(' + i + ')"><i class="fas fa-times"></i></button>';
+        
         grid.appendChild(div);
     }
+    
+    console.log('✅ Aperçu mis à jour avec ' + selectedFiles.length + ' fichiers');
 }
 
 function removeFile(index) {
