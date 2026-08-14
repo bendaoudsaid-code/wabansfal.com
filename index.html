@@ -6395,29 +6395,69 @@
         }
 
         async function saveEditedItem() {
-            var inputs = document.querySelectorAll('#genericModalBody .form-group input, #genericModalBody .form-group select');
-            var data = {};
-            for (var inp of inputs) {
-                var name = inp.getAttribute('name');
-                var val = inp.value;
-                data[name] = val;
+    var inputs = document.querySelectorAll('#genericModalBody .form-group input, #genericModalBody .form-group select');
+    var data = {};
+    for (var inp of inputs) {
+        var name = inp.getAttribute('name');
+        var val = inp.value;
+        data[name] = val;
+    }
+    
+    var table = currentEditType;
+    
+    // Pour la table eau, s'assurer que les valeurs sont des nombres
+    if (table === 'eau') {
+        data.foyers = parseInt(data.foyers) || 0;
+        data.forages = parseInt(data.forages) || 0;
+        data.capacite = parseFloat(data.capacite) || 0;
+    }
+    
+    // Pour les autres tables, s'assurer que les valeurs numériques sont correctes
+    if (table === 'betail') {
+        data.bovins = parseInt(data.bovins) || 0;
+        data.ovins = parseInt(data.ovins) || 0;
+        data.caprins = parseInt(data.caprins) || 0;
+        data.habitants = parseInt(data.habitants) || 0;
+    }
+    
+    if (table === 'arbres') {
+        data.oliviers = parseInt(data.oliviers) || 0;
+        data.amandiers = parseInt(data.amandiers) || 0;
+        data.figuiers = parseInt(data.figuiers) || 0;
+        data.noyers = parseInt(data.noyers) || 0;
+        data.habitants = parseInt(data.habitants) || 0;
+    }
+    
+    if (table === 'sagia') {
+        data.superficie = parseFloat(data.superficie) || 0;
+        data.debit = parseFloat(data.debit) || 0;
+    }
+    
+    if (table === 'produits') {
+        data.quantite = parseFloat(data.quantite) || 0;
+    }
+    
+    try {
+        var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + table + '?id=eq.' + currentEditId, {
+            method: 'PATCH',
+            body: JSON.stringify(data),
+            headers: {
+                'Prefer': 'return=representation'
             }
-            try {
-                var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + currentEditType + '?id=eq.' +
-                    currentEditId, {
-                        method: 'PATCH',
-                        body: JSON.stringify(data),
-                        headers: {
-                            'Prefer': 'return=representation'
-                        }
-                    });
-                if (!resp.ok) throw new Error('Erreur mise à jour');
-                showAlert('Mise à jour réussie', 'success');
-                hideGenericModal();
-                loadAllTables();
-            } catch (e) { showAlert('Erreur: ' + e.message, 'error'); }
+        });
+        if (!resp.ok) {
+            var errorText = await resp.text();
+            console.error('❌ Erreur réponse:', errorText);
+            throw new Error('Erreur mise à jour: ' + errorText);
         }
-
+        showAlert('Mise à jour réussie', 'success');
+        hideGenericModal();
+        loadAllTables();
+    } catch (e) { 
+        showAlert('❌ Erreur: ' + e.message, 'error');
+        console.error('Erreur détaillée:', e);
+    }
+}
         async function deleteItem(table, id) {
             var user = getCurrentUser();
             if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) {
