@@ -2248,7 +2248,6 @@
                 <i class="fas fa-university" style="font-size:2rem;color:var(--primary);"></i>
                 <h3 style="color:var(--dark);">Compte Crédit Agricole</h3>
                 <p style="font-size:1.2rem;font-weight:bold;color:var(--primary);" id="bankAccount">RIB: 225070014712363651011109</p>
-                <!-- Bouton Modifier le compte : visible uniquement en mode admin -->
                 <button id="bankAccountEditBtn" class="btn-import" onclick="showBankAccountModal()" style="background:var(--info);margin-top:5px;">
                     <i class="fas fa-edit"></i> Modifier le compte
                 </button>
@@ -2378,6 +2377,7 @@
                     <li><a href="#" data-section="conseil" onclick="showDashboardSection('conseil')" id="sidebarConseil"><i class="fas fa-users-cog"></i> <span id="sidebarConseilText">Conseil</span></a></li>
                     <li><a href="#" data-section="documents" onclick="showDashboardSection('documents')" id="sidebarDocuments"><i class="fas fa-file-pdf"></i> <span id="sidebarDocumentsText">Documents</span></a></li>
                     <li><a href="#" data-section="users" onclick="showDashboardSection('users')" id="sidebarUsers"><i class="fas fa-users"></i> <span id="sidebarUsersText">Utilisateurs</span></a></li>
+                    <li><a href="#" data-section="localites" onclick="showDashboardSection('localites')" id="sidebarLocalites"><i class="fas fa-map-marker-alt"></i> <span id="sidebarLocalitesText">Localités</span></a></li>
                     <li><a href="#" data-page="settings" onclick="showDashboardSection('settings')" id="sidebarSettings"><i class="fas fa-cog"></i> <span id="sidebarSettingsText">Paramètres</span></a></li>
                 </ul>
             </div>
@@ -2542,6 +2542,37 @@
                         </thead>
                         <tbody id="usersBody"><tr><td colspan="5" class="no-content">Aucun utilisateur</td></tr></tbody>
                     </table>
+                </div>
+
+                <!-- Localités Dashboard -->
+                <div id="localitesDashboard" class="dashboard-section-content">
+                    <h2 id="localitesDashboardTitle"><i class="fas fa-map-marker-alt"></i> Gestion des localités</h2>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px;">
+                        <button class="btn-import admin-only" onclick="showLocaliteModal()" style="background:var(--success);">
+                            <i class="fas fa-plus"></i> <span id="localitesAddBtnText">Ajouter une localité</span>
+                        </button>
+                        <button class="btn-import admin-only" onclick="loadLocalites();renderLocalites();" style="background:var(--info);">
+                            <i class="fas fa-sync"></i> <span id="localitesRefreshBtnText">Rafraîchir</span>
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="localitesTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th><span id="thLocaliteFr">Nom (FR)</span></th>
+                                    <th><span id="thLocaliteAr">Nom (AR)</span></th>
+                                    <th>Code</th>
+                                    <th>Région</th>
+                                    <th>Province</th>
+                                    <th><span id="thLocaliteActions">Actions</span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="localitesBody">
+                                <tr><td colspan="7" class="no-content">Chargement...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Paramètres -->
@@ -2760,7 +2791,6 @@
                 <button class="close-modal" onclick="hideConseilModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <!-- Onglets -->
                 <div style="display:flex;gap:5px;margin-bottom:20px;border-bottom:2px solid #eee;">
                     <button class="tab-btn active" onclick="switchConseilTab('info')" style="padding:10px 20px;border:none;background:transparent;cursor:pointer;font-weight:600;border-bottom:3px solid var(--primary);">
                         <i class="fas fa-user"></i> Informations
@@ -2773,7 +2803,6 @@
                     </button>
                 </div>
 
-                <!-- Onglet Informations -->
                 <div id="conseilTabInfo" class="conseil-tab">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
                         <div>
@@ -2817,7 +2846,6 @@
                     </div>
                 </div>
 
-                <!-- Onglet Photo -->
                 <div id="conseilTabPhoto" class="conseil-tab" style="display:none;">
                     <div style="text-align:center;padding:20px;">
                         <div class="photo-circle">
@@ -2834,7 +2862,6 @@
                     </div>
                 </div>
 
-                <!-- Onglet Signature -->
                 <div id="conseilTabSignature" class="conseil-tab" style="display:none;">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
                         <div>
@@ -2957,6 +2984,52 @@
         </div>
     </div>
 
+    <!-- MODALE LOCALITÉ -->
+    <div class="modal-overlay" id="localiteModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-map-marker-alt"></i> <span id="localiteModalTitle">Ajouter une localité</span></h3>
+                <button class="close-modal" onclick="hideLocaliteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                    <div style="margin-bottom:10px;">
+                        <label>Nom en français <span style="color:red;">*</span></label>
+                        <input type="text" id="localiteNomFr" placeholder="Ex: Azilal" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" />
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label>Nom en arabe</label>
+                        <input type="text" id="localiteNomAr" placeholder="Ex: أزيلال" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" />
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label>Code</label>
+                        <input type="text" id="localiteCode" placeholder="Ex: 22000" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" />
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label>Région</label>
+                        <input type="text" id="localiteRegion" placeholder="Ex: Béni Mellal-Khénifra" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" />
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label>Province</label>
+                        <input type="text" id="localiteProvince" placeholder="Ex: Azilal" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" />
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label>Commune</label>
+                        <input type="text" id="localiteCommune" placeholder="Ex: Ansfal" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" />
+                    </div>
+                </div>
+                <div class="upload-actions" style="margin-top:15px;">
+                    <button class="btn-browse" onclick="hideLocaliteModal()" style="background:var(--danger);">
+                        <i class="fas fa-times"></i> Annuler
+                    </button>
+                    <button class="btn-browse" onclick="saveLocalite()" style="background:var(--success);">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODALE MOT DE PASSE -->
     <div class="modal-overlay" id="passwordModal">
         <div class="modal">
@@ -3063,7 +3136,6 @@
             { id: 3, username: 'membre', password: 'membre', role: 'membre' }
         ];
 
-        // AJOUTER - Récupère les utilisateurs depuis Supabase
         async function getUsers() {
             try {
                 var token = await getSupabaseToken();
@@ -3087,7 +3159,6 @@
                 console.warn('⚠️ Erreur chargement utilisateurs Supabase:', e);
             }
             
-            // Fallback: localStorage
             try {
                 var saved = localStorage.getItem('ansfal_users');
                 if (saved) {
@@ -3099,7 +3170,6 @@
             return USERS;
         }
 
-        // AJOUTER - Sauvegarde les utilisateurs dans Supabase
         async function saveUsers(users) {
             try {
                 localStorage.setItem('ansfal_users', JSON.stringify(users));
@@ -3844,6 +3914,9 @@
             if (type === 'users') {
                 renderUsers();
             }
+            if (type === 'localites') {
+                renderLocalites();
+            }
         }
 
         // ============================================================
@@ -3924,6 +3997,7 @@
                 sidebarConseilText: 'Conseil',
                 sidebarDocumentsText: 'Documents',
                 sidebarUsersText: 'Utilisateurs',
+                sidebarLocalitesText: 'Localités',
                 sidebarSettingsText: 'Paramètres',
                 dashboardTitle: 'Tableau de Bord ANSFAL',
                 galleryDashboardTitle: 'Gestion des images',
@@ -3938,6 +4012,12 @@
                 conseilDashboardTitle: 'Gestion du conseil',
                 documentsDashboardTitle: 'Gestion des documents',
                 usersDashboardTitle: 'Gestion des utilisateurs',
+                localitesDashboardTitle: 'Gestion des localités',
+                localitesAddBtnText: 'Ajouter une localité',
+                localitesRefreshBtnText: 'Rafraîchir',
+                thLocaliteFr: 'Nom (FR)',
+                thLocaliteAr: 'Nom (AR)',
+                thLocaliteActions: 'Actions',
                 settingsTitle: 'Paramètres',
                 statVisitors: 'Visiteurs',
                 statMedia: 'Médias',
@@ -4159,6 +4239,7 @@
                 sidebarConseilText: 'المجلس',
                 sidebarDocumentsText: 'الوثائق',
                 sidebarUsersText: 'المستخدمين',
+                sidebarLocalitesText: 'المناطق',
                 sidebarSettingsText: 'الإعدادات',
                 dashboardTitle: 'لوحة التحكم',
                 galleryDashboardTitle: 'إدارة الصور',
@@ -4173,6 +4254,12 @@
                 conseilDashboardTitle: 'إدارة المجلس',
                 documentsDashboardTitle: 'إدارة الوثائق',
                 usersDashboardTitle: 'إدارة المستخدمين',
+                localitesDashboardTitle: 'إدارة المناطق',
+                localitesAddBtnText: 'إضافة منطقة',
+                localitesRefreshBtnText: 'تحديث',
+                thLocaliteFr: 'الاسم (فرنسي)',
+                thLocaliteAr: 'الاسم (عربي)',
+                thLocaliteActions: 'الإجراءات',
                 settingsTitle: 'الإعدادات',
                 statVisitors: 'الزوار',
                 statMedia: 'الوسائط',
@@ -4406,6 +4493,7 @@
                 'sidebarConseilText': 'sidebarConseilText',
                 'sidebarDocumentsText': 'sidebarDocumentsText',
                 'sidebarUsersText': 'sidebarUsersText',
+                'sidebarLocalitesText': 'sidebarLocalitesText',
                 'sidebarSettingsText': 'sidebarSettingsText',
                 'dashboardTitle': 'dashboardTitle',
                 'galleryDashboardTitle': 'galleryDashboardTitle',
@@ -4420,6 +4508,12 @@
                 'conseilDashboardTitle': 'conseilDashboardTitle',
                 'documentsDashboardTitle': 'documentsDashboardTitle',
                 'usersDashboardTitle': 'usersDashboardTitle',
+                'localitesDashboardTitle': 'localitesDashboardTitle',
+                'localitesAddBtnText': 'localitesAddBtnText',
+                'localitesRefreshBtnText': 'localitesRefreshBtnText',
+                'thLocaliteFr': 'thLocaliteFr',
+                'thLocaliteAr': 'thLocaliteAr',
+                'thLocaliteActions': 'thLocaliteActions',
                 'settingsTitle': 'settingsTitle',
                 'statVisitors': 'statVisitors',
                 'statMedia': 'statMedia',
@@ -4463,7 +4557,6 @@
             var noVideos = document.getElementById('noVideosPublic');
             if (noVideos) noVideos.textContent = t.noVideosPublic;
 
-            // Mettre à jour les en-têtes de tableaux
             updateTableHeaders(t);
 
             updateTickerText();
@@ -4520,60 +4613,21 @@
         // ============================================================
         async function loadLocalites() {
             try {
-                var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/localites?select=*&order=nom');
+                console.log('🔄 Chargement des localités...');
+                var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/localites?select=*&order=nom_fr');
+                
                 if (resp.ok) {
                     var data = await resp.json();
-                    // Ajouter des noms en arabe si manquants
-                    data = data.map(function(loc) {
-                        if (!loc.nom_ar) {
-                            var arabicNames = {
-                                'Azilal': 'أزيلال',
-                                'Zaouiat Ahansal': 'زاوية أحنصال',
-                                'Ansfal': 'أنسفال',
-                                'Azourki': 'أزوركي',
-                                'Ait Mhmed': 'آيت محمد',
-                                'Ait Bouguemaz': 'آيت بوكماز',
-                                'Ait Taguella': 'آيت تكلا',
-                                'Ait Youssef': 'آيت يوسف',
-                                'Ait Ouallal': 'آيت والال',
-                                'Tabant': 'تابانت',
-                                'Tilougguite': 'تيلوگيت',
-                                'Ait Hani': 'آيت هاني',
-                                'Ait Chahboune': 'آيت الشهبون',
-                                'Ait Issi': 'آيت إيسي',
-                                'Ait Mhamed': 'آيت أمحمد',
-                                'Ait Ouchane': 'آيت أوشان',
-                                'Ait Sidi Ali': 'آيت سيدي علي',
-                                'Ait Wazza': 'آيت وزا',
-                                'Ait Zeggagh': 'آيت زكاغ',
-                                'Imlil': 'إمليل',
-                                'Tizi n\'Oucheg': 'تيزي ن ووشك',
-                                'Ait Bouzid': 'آيت بوزيد',
-                                'Ait El Hadi': 'آيت الهادي',
-                                'Ait Lahcen': 'آيت لحسن',
-                                'Ait Oumghar': 'آيت أومغار'
-                            };
-                            var nomFr = loc.nom_fr || loc.nom || '';
-                            for (var key in arabicNames) {
-                                if (nomFr.includes(key) || key.includes(nomFr)) {
-                                    loc.nom_ar = arabicNames[key];
-                                    break;
-                                }
-                            }
-                            if (!loc.nom_ar) {
-                                loc.nom_ar = loc.nom_fr || loc.nom || '';
-                            }
-                        }
-                        return loc;
-                    });
+                    console.log('📊 Données reçues:', data);
                     DATA.localites = data || [];
                     console.log('✅ Localités chargées:', DATA.localites.length);
                 } else {
+                    var errorText = await resp.text();
+                    console.error('❌ Erreur chargement:', errorText);
                     DATA.localites = [];
-                    console.warn('⚠️ Erreur chargement localités');
                 }
             } catch (e) {
-                console.error('Erreur loadLocalites', e);
+                console.error('❌ Erreur loadLocalites:', e);
                 DATA.localites = [];
             }
         }
@@ -4582,19 +4636,204 @@
             var loc = DATA.localites.find(function(l) { return l.id == id; });
             if (!loc) return 'N/A';
             if (document.body.classList.contains('rtl')) {
-                return loc.nom_ar || loc.nom_fr || loc.nom || 'N/A';
+                return loc.nom_ar || loc.nom_fr || 'N/A';
             }
-            return loc.nom_fr || loc.nom || 'N/A';
+            return loc.nom_fr || 'N/A';
         }
 
         function getLocaliteOptions(selectedId) {
             var options = '<option value="">-- ' + (document.body.classList.contains('rtl') ? 'اختر منطقة' : 'Sélectionner une localité') + ' --</option>';
             DATA.localites.forEach(function(loc) {
-                var name = document.body.classList.contains('rtl') ? (loc.nom_ar || loc.nom_fr || loc.nom) : (loc.nom_fr || loc.nom);
+                var name = document.body.classList.contains('rtl') ? (loc.nom_ar || loc.nom_fr) : (loc.nom_fr || '');
                 var selected = (loc.id == selectedId) ? 'selected' : '';
                 options += '<option value="' + loc.id + '" ' + selected + '>' + name + '</option>';
             });
             return options;
+        }
+
+        // ============================================================
+        // GESTION DES LOCALITÉS - CRUD
+        // ============================================================
+        function showLocaliteModal() {
+            var user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) {
+                showAlert('Vous n\'avez pas les permissions', 'error');
+                return;
+            }
+
+            document.getElementById('localiteModalTitle').textContent = 'Ajouter une localité';
+            document.getElementById('localiteNomFr').value = '';
+            document.getElementById('localiteNomAr').value = '';
+            document.getElementById('localiteCode').value = '';
+            document.getElementById('localiteRegion').value = '';
+            document.getElementById('localiteProvince').value = '';
+            document.getElementById('localiteCommune').value = '';
+            currentEditId = null;
+            document.getElementById('localiteModal').classList.add('active');
+        }
+
+        function hideLocaliteModal() {
+            document.getElementById('localiteModal').classList.remove('active');
+        }
+
+        function editLocalite(id) {
+            var user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) {
+                showAlert('Vous n\'avez pas les permissions', 'error');
+                return;
+            }
+
+            var loc = DATA.localites.find(function(l) { return l.id === id; });
+            if (!loc) {
+                showAlert('Localité non trouvée', 'error');
+                return;
+            }
+
+            document.getElementById('localiteModalTitle').textContent = 'Modifier une localité';
+            document.getElementById('localiteNomFr').value = loc.nom_fr || '';
+            document.getElementById('localiteNomAr').value = loc.nom_ar || '';
+            document.getElementById('localiteCode').value = loc.code || '';
+            document.getElementById('localiteRegion').value = loc.region || '';
+            document.getElementById('localiteProvince').value = loc.province || '';
+            document.getElementById('localiteCommune').value = loc.commune || '';
+            currentEditId = id;
+            document.getElementById('localiteModal').classList.add('active');
+        }
+
+        async function saveLocalite() {
+            var nomFr = document.getElementById('localiteNomFr').value.trim();
+            var nomAr = document.getElementById('localiteNomAr').value.trim();
+            var code = document.getElementById('localiteCode').value.trim();
+            var region = document.getElementById('localiteRegion').value.trim();
+            var province = document.getElementById('localiteProvince').value.trim();
+            var commune = document.getElementById('localiteCommune').value.trim();
+
+            if (!nomFr) {
+                showAlert('Veuillez entrer un nom en français', 'error');
+                return;
+            }
+
+            var data = {
+                nom_fr: nomFr,
+                nom_ar: nomAr || null,
+                code: code || null,
+                region: region || null,
+                province: province || null,
+                commune: commune || null,
+                updated_at: new Date().toISOString()
+            };
+
+            try {
+                var url = supabaseUrl + '/rest/v1/localites';
+                var method = 'POST';
+                if (currentEditId) {
+                    url += '?id=eq.' + currentEditId;
+                    method = 'PATCH';
+                } else {
+                    data.created_at = new Date().toISOString();
+                }
+
+                console.log('📤 Envoi des données:', data);
+
+                var resp = await fetchWithSupabaseAuth(url, {
+                    method: method,
+                    body: JSON.stringify(data),
+                    headers: {
+                        'Prefer': 'return=representation'
+                    }
+                });
+
+                if (!resp.ok) {
+                    var errorText = await resp.text();
+                    console.error('❌ Erreur réponse:', errorText);
+                    throw new Error('Erreur sauvegarde: ' + errorText);
+                }
+
+                showAlert('✅ Localité enregistrée avec succès', 'success');
+                hideLocaliteModal();
+                await loadLocalites();
+                renderLocalites();
+                renderAll();
+            } catch (e) {
+                showAlert('❌ Erreur: ' + e.message, 'error');
+                console.error('Erreur détaillée:', e);
+            }
+        }
+
+        async function deleteLocalite(id) {
+            var user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) {
+                showAlert('Vous n\'avez pas les permissions', 'error');
+                return;
+            }
+
+            var loc = DATA.localites.find(function(l) { return l.id === id; });
+            if (!loc) return;
+
+            // Vérifier si la localité est utilisée dans d'autres tables
+            var used = false;
+            var tables = ['betail', 'produits', 'arbres', 'eau'];
+            for (var t of tables) {
+                var items = DATA[t] || [];
+                var found = items.some(function(item) { return item.localite_id === id; });
+                if (found) {
+                    used = true;
+                    break;
+                }
+            }
+
+            if (used) {
+                showAlert('⚠️ Cette localité est utilisée dans des données. Supprimez d\'abord les données associées.', 'error');
+                return;
+            }
+
+            if (!confirm('Supprimer la localité "' + (loc.nom_fr || '') + '" ?')) return;
+
+            try {
+                var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/localites?id=eq.' + id, {
+                    method: 'DELETE'
+                });
+                if (!resp.ok) {
+                    var errorText = await resp.text();
+                    throw new Error('Erreur suppression: ' + errorText);
+                }
+                showAlert('✅ Localité supprimée', 'success');
+                await loadLocalites();
+                renderLocalites();
+                renderAll();
+            } catch (e) {
+                showAlert('❌ Erreur: ' + e.message, 'error');
+            }
+        }
+
+        function renderLocalites() {
+            var body = document.getElementById('localitesBody');
+            if (!body) return;
+
+            var items = DATA.localites || [];
+            if (items.length === 0) {
+                body.innerHTML = '<tr><td colspan="7" class="no-content">Aucune localité. Cliquez sur "Ajouter" pour en créer une.</td></tr>';
+                return;
+            }
+
+            var user = getCurrentUser();
+            var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
+
+            body.innerHTML = items.map(function(item) {
+                var actions = canEdit ?
+                    '<button class="btn-action edit" onclick="editLocalite(' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+                    '<button class="btn-action delete" onclick="deleteLocalite(' + item.id + ')"><i class="fas fa-trash"></i></button>' :
+                    '';
+                return '<tr>' +
+                    '<td>' + item.id + '</td>' +
+                    '<td><strong>' + (item.nom_fr || '') + '</strong></td>' +
+                    '<td><span style="font-family:\'Cairo\',sans-serif;">' + (item.nom_ar || '') + '</span></td>' +
+                    '<td>' + (item.code || '') + '</td>' +
+                    '<td>' + (item.region || '') + '</td>' +
+                    '<td>' + (item.province || '') + '</td>' +
+                    '<td style="white-space:nowrap;">' + actions + '</td>' +
+                    '</tr>';
+            }).join('');
         }
 
         // ============================================================
@@ -4635,6 +4874,7 @@
                 renderVideos();
                 renderArticles();
                 renderActu();
+                renderLocalites();
                 updateStats();
 
                 var user = getCurrentUser();
@@ -6565,10 +6805,20 @@
         window.hideUserModal = hideUserModal;
         window.getUsers = getUsers;
         window.getCurrentUser = getCurrentUser;
+        window.showLocaliteModal = showLocaliteModal;
+        window.hideLocaliteModal = hideLocaliteModal;
+        window.saveLocalite = saveLocalite;
+        window.editLocalite = editLocalite;
+        window.deleteLocalite = deleteLocalite;
+        window.renderLocalites = renderLocalites;
+        window.loadLocalites = loadLocalites;
+        window.getLocaliteName = getLocaliteName;
+        window.getLocaliteOptions = getLocaliteOptions;
 
         console.log('✅ Code chargé – Toutes les fonctionnalités sont actives !');
         console.log('📋 RIB: 225070014712363651011109');
         console.log('👤 Utilisateurs: admin/admin, webmaster/webmaster, membre/membre');
+        console.log('📍 Gestion des localités disponible dans le Dashboard');
     </script>
 </body>
 </html>
