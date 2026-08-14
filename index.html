@@ -6230,18 +6230,23 @@
                     '</label><input type="number" name="noyers" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;margin-bottom:10px;" /></div>' +
                     '<div class="form-group"><label>' + getLang().habitants +
                     '</label><input type="number" name="habitants" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;margin-bottom:10px;" /></div>';
-            } else if (type === 'eau') {
-                fields = '<div class="form-group"><label>' + getLang().localite +
-                    '</label><select name="localite_id" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;margin-bottom:10px;">' +
-                    localiteOptions + '</select></div>' +
-                    '<div class="form-group"><label>' + getLang().foyers +
-                    '</label><input type="number" name="foyers" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;margin-bottom:10px;" /></div>' +
-                    '<div class="form-group"><label>' + getLang().forages +
-                    '</label><input type="number" name="forages" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;margin-bottom:10px;" /></div>' +
-                    '<div class="form-group"><label>' + getLang().capacite +
-                    '</label><input type="number" name="capacite" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;margin-bottom:10px;" /></div>' +
-                    '<div class="form-group"><label>' + getLang().statut +
-                    '</label><select name="statut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;margin-bottom:10px;"><option>Opérationnel</option><option>En maintenance</option></select></div>';
+           } else if (type === 'eau') {
+    fields = '<div class="form-group"><label>' + getLang().localite +
+        '</label><select name="localite_id" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;margin-bottom:10px;">' +
+        localiteOptions + '</select></div>' +
+        '<div class="form-group"><label>' + getLang().foyers +
+        '</label><input type="number" name="foyers" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;margin-bottom:10px;" /></div>' +
+        '<div class="form-group"><label>' + getLang().forages +
+        '</label><input type="number" name="forages" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;margin-bottom:10px;" /></div>' +
+        '<div class="form-group"><label>' + getLang().capacite +
+        '</label><input type="number" name="capacite" value="0" step="0.1" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;margin-bottom:10px;" /></div>' +
+        '<div class="form-group"><label>' + getLang().statut +
+        '</label><select name="statut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;margin-bottom:10px;">' +
+        '<option value="Opérationnel">Opérationnel</option>' +
+        '<option value="En maintenance">En maintenance</option>' +
+        '<option value="Hors service">Hors service</option>' +
+        '</select></div>';
+}
             } else if (type === 'sagia') {
                 fields = '<div class="form-group"><label>' + getLang().code +
                     '</label><input type="text" name="code" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;margin-bottom:10px;" /></div>' +
