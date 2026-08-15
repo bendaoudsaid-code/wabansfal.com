@@ -4615,35 +4615,52 @@ function renderDocuments() {
         data.habitants = parseInt(document.getElementById('genericHabitants').value) || 0;
         
     } else if (type === 'produit') {
-        var localiteId = parseInt(document.getElementById('genericLocalite').value);
-        if (!localiteId) { 
-            showAlert('Veuillez sélectionner une localité', 'error'); 
-            return; 
-        }
-        
-        var localiteObj = DATA.localites.find(function(l) { return l.id === localiteId; });
-        if (!localiteObj) {
-            showAlert('Localité non trouvée', 'error');
-            return;
-        }
-        
-        data.localite = {
-            id: localiteObj.id,
-            nom_fr: localiteObj.nom_fr || '',
-            nom_ar: localiteObj.nom_ar || '',
-            code: localiteObj.code || '',
-            region: localiteObj.region || '',
-            province: localiteObj.province || '',
-            commune: localiteObj.commune || ''
-        };
-        
-        data.localite_id = localiteId;
-        data.nom_fr = document.getElementById('genericNom').value.trim();
-        data.nom_ar = data.nom_fr;
-        data.quantite = parseFloat(document.getElementById('genericQuantite').value) || 0;
-        data.periode = document.getElementById('genericPeriode').value.trim();
-        data.statut = document.getElementById('genericStatut').value;
-        if (!data.nom_fr) { showAlert('Veuillez entrer un nom', 'error'); return; }
+    var localiteId = parseInt(document.getElementById('genericLocalite').value);
+    if (!localiteId) { 
+        showAlert('Veuillez sélectionner une localité', 'error'); 
+        return; 
+    }
+    
+    var localiteObj = DATA.localites.find(function(l) { return l.id === localiteId; });
+    if (!localiteObj) {
+        showAlert('Localité non trouvée', 'error');
+        return;
+    }
+    
+    var nomValue = document.getElementById('genericNom').value.trim();
+    if (!nomValue) { 
+        showAlert('Veuillez entrer un nom', 'error'); 
+        return; 
+    }
+    
+    // JSONB pour la colonne localite
+    data.localite = {
+        id: localiteObj.id,
+        nom_fr: localiteObj.nom_fr || '',
+        nom_ar: localiteObj.nom_ar || '',
+        code: localiteObj.code || '',
+        region: localiteObj.region || '',
+        province: localiteObj.province || '',
+        commune: localiteObj.commune || ''
+    };
+    
+    // ✅ JSONB pour la colonne nom (obligatoire)
+    data.nom = {
+        fr: nomValue,
+        ar: nomValue
+    };
+    
+    data.localite_id = localiteId;
+    data.nom_fr = nomValue;
+    data.nom_ar = nomValue;
+    data.quantite = parseFloat(document.getElementById('genericQuantite').value) || 0;
+    data.periode = document.getElementById('genericPeriode').value.trim();
+    data.statut = document.getElementById('genericStatut').value;
+    
+    // Ajouter statut_ar si besoin
+    var statutValue = document.getElementById('genericStatut').value;
+    data.statut_ar = statutValue === 'Disponible' ? 'متوفر' : 'نفد';
+}
         
     } else if (type === 'arbre') {
         var localiteId = parseInt(document.getElementById('genericLocalite').value);
