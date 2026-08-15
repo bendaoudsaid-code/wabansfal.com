@@ -3175,29 +3175,99 @@
         // RENDER FUNCTIONS (Betail, Produits, Arbres, Eau, Sagia)
         // ============================================================
         function renderBetail() {
-            var items = DATA.betail || [], body = document.getElementById('betailBody');
-            if (!body) return;
-            if (items.length === 0) { body.innerHTML = '<tr><td colspan="7" class="no-content">' + getLang().noData + '</td></tr>'; return; }
-            body.innerHTML = items.map(function(item) {
-                var localite = getLocaliteName(item.localite_id);
-                var total = (item.bovins || 0) + (item.ovins || 0) + (item.caprins || 0);
-                var ratio = item.habitants ? (total / item.habitants).toFixed(2) : '0';
-                return '<tr><td><strong>' + localite + '</strong></td><td>' + (item.bovins || 0) + '</td><td>' + (item.ovins || 0) + '</td><td>' + (item.caprins || 0) + '</td><td><strong>' + total + '</strong></td><td>' + (item.habitants || 0) + '</td><td>' + ratio + '</td></tr>';
-            }).join('');
+    var items = DATA.betail || [], body = document.getElementById('betailBody');
+    if (!body) return;
+    if (items.length === 0) { body.innerHTML = '<tr><td colspan="7" class="no-content">' + getLang().noData + '</td></tr>'; return; }
+    
+    var isRTL = document.body.classList.contains('rtl');
+    
+    body.innerHTML = items.map(function(item) {
+        // Récupérer le nom de la localité depuis l'objet JSONB
+        var localiteName = '';
+        if (item.localite && typeof item.localite === 'object') {
+            localiteName = isRTL ? (item.localite.nom_ar || item.localite.nom_fr || '') : (item.localite.nom_fr || item.localite.nom_ar || '');
+        } else if (item.localite) {
+            localiteName = item.localite;
+        } else {
+            localiteName = getLocaliteName(item.localite_id);
         }
+        
+        var total = (item.bovins || 0) + (item.ovins || 0) + (item.caprins || 0);
+        var ratio = item.habitants ? (total / item.habitants).toFixed(2) : '0';
+        return '<tr><td><strong>' + localiteName + '</strong></td><td>' + (item.bovins || 0) + '</td><td>' + (item.ovins || 0) + '</td><td>' + (item.caprins || 0) + '</td><td><strong>' + total + '</strong></td><td>' + (item.habitants || 0) + '</td><td>' + ratio + '</td></tr>';
+    }).join('');
+}
 
-        function renderProduits() {
-            var items = DATA.produits || [], body = document.getElementById('produitsBody');
-            if (!body) return;
-            if (items.length === 0) { body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>'; return; }
-            body.innerHTML = items.map(function(item) {
-                var nom = document.body.classList.contains('rtl') ? (item.nom_ar || item.nom_fr || item.nom) : (item.nom_fr || item.nom);
-                var localite = getLocaliteName(item.localite_id);
-                var statut = document.body.classList.contains('rtl') ? (item.statut_ar || item.statut || 'متوفر') : (item.statut || 'Disponible');
-                var periode = document.body.classList.contains('rtl') ? (item.periode_ar || item.periode || '') : (item.periode || '');
-                return '<tr><td><strong>' + nom + '</strong></td><td>' + localite + '</td><td>' + (item.quantite || 0) + '</td><td>' + periode + '</td><td>' + statut + '</td></tr>';
-            }).join('');
+function renderProduits() {
+    var items = DATA.produits || [], body = document.getElementById('produitsBody');
+    if (!body) return;
+    if (items.length === 0) { body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>'; return; }
+    
+    var isRTL = document.body.classList.contains('rtl');
+    
+    body.innerHTML = items.map(function(item) {
+        var nom = isRTL ? (item.nom_ar || item.nom_fr || item.nom) : (item.nom_fr || item.nom);
+        
+        // Récupérer le nom de la localité depuis l'objet JSONB
+        var localiteName = '';
+        if (item.localite && typeof item.localite === 'object') {
+            localiteName = isRTL ? (item.localite.nom_ar || item.localite.nom_fr || '') : (item.localite.nom_fr || item.localite.nom_ar || '');
+        } else if (item.localite) {
+            localiteName = item.localite;
+        } else {
+            localiteName = getLocaliteName(item.localite_id);
         }
+        
+        var statut = isRTL ? (item.statut_ar || item.statut || 'متوفر') : (item.statut || 'Disponible');
+        var periode = isRTL ? (item.periode_ar || item.periode || '') : (item.periode || '');
+        return '<tr><td><strong>' + nom + '</strong></td><td>' + localiteName + '</td><td>' + (item.quantite || 0) + '</td><td>' + periode + '</td><td>' + statut + '</td></tr>';
+    }).join('');
+}
+
+function renderArbres() {
+    var items = DATA.arbres || [], body = document.getElementById('arbresBody');
+    if (!body) return;
+    if (items.length === 0) { body.innerHTML = '<tr><td colspan="8" class="no-content">' + getLang().noData + '</td></tr>'; return; }
+    
+    var isRTL = document.body.classList.contains('rtl');
+    
+    body.innerHTML = items.map(function(item) {
+        var localiteName = '';
+        if (item.localite && typeof item.localite === 'object') {
+            localiteName = isRTL ? (item.localite.nom_ar || item.localite.nom_fr || '') : (item.localite.nom_fr || item.localite.nom_ar || '');
+        } else if (item.localite) {
+            localiteName = item.localite;
+        } else {
+            localiteName = getLocaliteName(item.localite_id);
+        }
+        
+        var total = (item.oliviers || 0) + (item.amandiers || 0) + (item.figuiers || 0) + (item.noyers || 0);
+        var ratio = item.habitants ? (total / item.habitants).toFixed(2) : '0';
+        return '<tr><td><strong>' + localiteName + '</strong></td><td>' + (item.oliviers || 0) + '</td><td>' + (item.amandiers || 0) + '</td><td>' + (item.figuiers || 0) + '</td><td>' + (item.noyers || 0) + '</td><td><strong>' + total + '</strong></td><td>' + (item.habitants || 0) + '</td><td>' + ratio + '</td></tr>';
+    }).join('');
+}
+
+function renderEau() {
+    var items = DATA.eau || [], body = document.getElementById('eauBody');
+    if (!body) return;
+    if (items.length === 0) { body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>'; return; }
+    
+    var isRTL = document.body.classList.contains('rtl');
+    
+    body.innerHTML = items.map(function(item) {
+        var localiteName = '';
+        if (item.localite && typeof item.localite === 'object') {
+            localiteName = isRTL ? (item.localite.nom_ar || item.localite.nom_fr || '') : (item.localite.nom_fr || item.localite.nom_ar || '');
+        } else if (item.localite) {
+            localiteName = item.localite;
+        } else {
+            localiteName = getLocaliteName(item.localite_id);
+        }
+        
+        var statut = isRTL ? (item.statut_ar || item.statut || 'قيد التشغيل') : (item.statut || 'Opérationnel');
+        return '<tr><td><strong>' + localiteName + '</strong></td><td>' + (item.foyers || 0) + '</td><td>' + (item.forages || 0) + '</td><td>' + (item.capacite || 0) + '</td><td>' + statut + '</td></tr>';
+    }).join('');
+}
 
         function renderArbres() {
             var items = DATA.arbres || [], body = document.getElementById('arbresBody');
