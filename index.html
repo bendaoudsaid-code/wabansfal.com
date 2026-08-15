@@ -4471,14 +4471,33 @@ function renderDocuments() {
                     <div><label>${t.habitants}</label><input type="number" id="genericHabitants" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
                 `;
             } else if (type === 'produit') {
-                title = 'Ajouter un produit';
-                fields = `
-                    <div><label>${t.produit}</label><input type="text" id="genericNom" placeholder="Ex: Huile d'olive" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.localite}</label><select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">${getLocaliteOptions()}</select></div>
-                    <div><label>${t.quantite}</label><input type="number" id="genericQuantite" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.periode}</label><input type="text" id="genericPeriode" placeholder="Ex: Été 2024" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.statut}</label><select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;"><option value="Disponible">Disponible</option><option value="Épuisé">Épuisé</option></select></div>
-                `;
+    title = 'Modifier le produit';
+    
+    // ✅ Récupérer le nom depuis JSONB
+    var nomValue = '';
+    if (item.nom && typeof item.nom === 'object') {
+        nomValue = item.nom.fr || item.nom.ar || '';
+    } else if (item.nom_fr) {
+        nomValue = item.nom_fr;
+    } else if (item.nom_ar) {
+        nomValue = item.nom_ar;
+    } else {
+        nomValue = item.nom || '';
+    }
+    
+    fields = `
+        <div><label>${t.produit}</label><input type="text" id="genericNom" value="${nomValue}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+        <div><label>${t.localite}</label><select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">${getLocaliteOptions(item.localite_id)}</select></div>
+        <div><label>${t.quantite}</label><input type="number" id="genericQuantite" value="${item.quantite || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+        <div><label>${t.periode}</label><input type="text" id="genericPeriode" value="${item.periode || ''}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+        <div><label>${t.statut}</label>
+            <select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">
+                <option value="Disponible" ${item.statut === 'Disponible' ? 'selected' : ''}>Disponible</option>
+                <option value="Épuisé" ${item.statut === 'Épuisé' ? 'selected' : ''}>Épuisé</option>
+            </select>
+        </div>
+    `;
+}
             } else if (type === 'arbre') {
                 title = 'Ajouter des données arbres';
                 fields = `
