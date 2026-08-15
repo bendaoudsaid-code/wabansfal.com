@@ -3201,14 +3201,27 @@
 function renderProduits() {
     var items = DATA.produits || [], body = document.getElementById('produitsBody');
     if (!body) return;
-    if (items.length === 0) { body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>'; return; }
+    if (items.length === 0) { 
+        body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>'; 
+        return; 
+    }
     
     var isRTL = document.body.classList.contains('rtl');
     
     body.innerHTML = items.map(function(item) {
-        var nom = isRTL ? (item.nom_ar || item.nom_fr || item.nom) : (item.nom_fr || item.nom);
+        // ✅ Récupérer le nom depuis JSONB
+        var nom = '';
+        if (item.nom && typeof item.nom === 'object') {
+            nom = isRTL ? (item.nom.ar || item.nom.fr || '') : (item.nom.fr || item.nom.ar || '');
+        } else if (item.nom_fr) {
+            nom = item.nom_fr;
+        } else if (item.nom_ar) {
+            nom = item.nom_ar;
+        } else {
+            nom = item.nom || '';
+        }
         
-        // Récupérer le nom de la localité depuis l'objet JSONB
+        // ✅ Récupérer la localité depuis JSONB
         var localiteName = '';
         if (item.localite && typeof item.localite === 'object') {
             localiteName = isRTL ? (item.localite.nom_ar || item.localite.nom_fr || '') : (item.localite.nom_fr || item.localite.nom_ar || '');
@@ -3220,6 +3233,7 @@ function renderProduits() {
         
         var statut = isRTL ? (item.statut_ar || item.statut || 'متوفر') : (item.statut || 'Disponible');
         var periode = isRTL ? (item.periode_ar || item.periode || '') : (item.periode || '');
+        
         return '<tr><td><strong>' + nom + '</strong></td><td>' + localiteName + '</td><td>' + (item.quantite || 0) + '</td><td>' + periode + '</td><td>' + statut + '</td></tr>';
     }).join('');
 }
