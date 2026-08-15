@@ -4224,29 +4224,63 @@ function renderDocuments() {
         }
 
         function addUrlMedia() {
-            var t = getLang();
-            var url = document.getElementById('mediaUrl').value.trim();
-            var title = document.getElementById('mediaTitle').value.trim() || 'Média';
-            if (!url) { showAlert(t.alertInvalidURL, 'error'); return; }
-            var isImage = url.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) || url.includes('imgur.com');
-            var isVideo = url.match(/\.(mp4|webm|ogg)$/i) || url.includes('youtu') || url.includes('vimeo');
-            if (!isImage && !isVideo) { showAlert('URL non reconnue comme image ou vidéo', 'error'); return; }
-            var table = isImage ? 'gallery' : 'videos';
-            var field = isImage ? 'image_url' : 'video_url';
-            var data = { title: title, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-            data[field] = url;
-            fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + table, { method: 'POST', body: JSON.stringify(data) })
-                .then(function(resp) {
-                    if (resp.ok) {
-                        showAlert(t.alertURLAdded, 'success');
-                        document.getElementById('mediaUrl').value = '';
-                        document.getElementById('mediaTitle').value = '';
-                        loadAllTables();
-                    } else {
-                        showAlert('❌ Erreur ajout URL', 'error');
-                    }
-                }).catch(function(e) { showAlert('❌ Erreur: ' + e.message, 'error'); });
+    var t = getLang();
+    var url = document.getElementById('mediaUrl').value.trim();
+    var title = document.getElementById('mediaTitle').value.trim() || 'Média';
+    
+    if (!url) { 
+        showAlert(t.alertInvalidURL, 'error'); 
+        return; 
+    }
+    
+    var isImage = url.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) || url.includes('imgur.com');
+    var isVideo = url.match(/\.(mp4|webm|ogg)$/i) || url.includes('youtu') || url.includes('vimeo');
+    
+    if (!isImage && !isVideo) { 
+        showAlert('URL non reconnue comme image ou vidéo', 'error'); 
+        return; 
+    }
+    
+    var table = isImage ? 'gallery' : 'videos';
+    var currentUser = getCurrentUser();
+    
+    var data = { 
+        title: title,
+        url: url,
+        image_url: url,                    // Pour la table gallery
+        publisher: currentUser ? currentUser.username : 'admin',
+        date: new Date().toISOString(),
+        created_at: new Date().toISOString(), 
+        updated_at: new Date().toISOString() 
+    };
+    
+    if (!isImage) {
+        data.video_url = url;
+    }
+    
+    console.log('📤 Ajout URL vers ' + table + ':', data);
+    
+    fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + table, { 
+        method: 'POST', 
+        body: JSON.stringify(data) 
+    })
+    .then(function(resp) {
+        if (resp.ok) {
+            showAlert(t.alertURLAdded, 'success');
+            document.getElementById('mediaUrl').value = '';
+            document.getElementById('mediaTitle').value = '';
+            loadAllTables();
+        } else {
+            return resp.text().then(function(text) {
+                console.error('❌ Erreur:', text);
+                showAlert('❌ Erreur ajout URL: ' + text, 'error');
+            });
         }
+    })
+    .catch(function(e) { 
+        showAlert('❌ Erreur: ' + e.message, 'error'); 
+    });
+}
 
        function uploadFiles() {
     if (selectedFiles.length === 0) { 
