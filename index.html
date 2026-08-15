@@ -4296,29 +4296,32 @@ function renderDocuments() {
 
     var total = selectedFiles.length;
     var uploaded = 0;
+    var currentUser = getCurrentUser();
 
     selectedFiles.forEach(function(file, index) {
         var fileName = 'img_' + Date.now() + '_' + index + '_' + file.name.replace(/\s/g, '_');
         var folder = 'medias';
         
-        // Upload vers Supabase Storage
+        // 1. Upload vers Supabase Storage
         supabase.storage.from(folder).upload(fileName, file, { cacheControl: '3600', upsert: false })
             .then(function(result) {
-                if (result.error) throw result.error;
+                if (result.error) {
+                    throw result.error;
+                }
                 return supabase.storage.from(folder).getPublicUrl(fileName);
             })
             .then(function(urlResult) {
                 var publicUrl = urlResult.data.publicUrl;
                 
-                // Structure adaptée à votre table gallery
+                // 2. Préparer les données pour la table gallery
                 var data = { 
-                    url: publicUrl,           // Champ url
-                    image_url: publicUrl,     // Champ image_url
+                    url: publicUrl,
+                    image_url: publicUrl,
                     title: file.name.split('.')[0],
                     file_name: file.name,
                     file_size: file.size,
                     type: file.type || 'image',
-                    publisher: getCurrentUser() ? getCurrentUser().username : 'admin',
+                    publisher: currentUser ? currentUser.username : 'admin',
                     date: new Date().toISOString(),
                     created_at: new Date().toISOString(),
                     updated_at: new Date().toISOString()
@@ -4326,6 +4329,7 @@ function renderDocuments() {
                 
                 console.log('📤 Envoi vers gallery:', data);
                 
+                // 3. Insérer dans la table gallery
                 return fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/gallery', { 
                     method: 'POST', 
                     body: JSON.stringify(data),
@@ -4343,6 +4347,7 @@ function renderDocuments() {
                 var pct = Math.round((uploaded / total) * 100);
                 fill.style.width = pct + '%';
                 text.textContent = pct + '%';
+                
                 if (uploaded === total) {
                     progress.style.display = 'none';
                     document.getElementById('uploadSuccess').style.display = 'block';
@@ -4353,7 +4358,7 @@ function renderDocuments() {
                 }
             })
             .catch(function(e) {
-                console.error('❌ Erreur upload:', e);
+                console.error('❌ Erreur upload pour ' + file.name + ':', e);
                 showAlert('❌ Erreur pour ' + file.name + ': ' + e.message, 'error');
                 progress.style.display = 'none';
                 document.getElementById('actionButtons').style.display = 'flex';
