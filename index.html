@@ -4223,7 +4223,7 @@ function renderDocuments() {
             document.getElementById('uploadBtn').disabled = selectedFiles.length === 0;
         }
 
-        function addUrlMedia() {
+       function addUrlMedia() {
     var t = getLang();
     var url = document.getElementById('mediaUrl').value.trim();
     var title = document.getElementById('mediaTitle').value.trim() || 'Média';
@@ -4247,7 +4247,7 @@ function renderDocuments() {
     var data = { 
         title: title,
         url: url,
-        image_url: url,                    // Pour la table gallery
+        image_url: url,
         publisher: currentUser ? currentUser.username : 'admin',
         date: new Date().toISOString(),
         created_at: new Date().toISOString(), 
