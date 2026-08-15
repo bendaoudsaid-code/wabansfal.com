@@ -4572,7 +4572,17 @@ function renderDocuments() {
         async function saveGenericItem() {
     var type = currentEditType;
     var data = {};
-    var table = type;
+    
+    // 🔥 MAPPING des noms de tables (singulier -> pluriel)
+    var tableMap = {
+        'betail': 'betail',
+        'produit': 'produits',    // ← Correction ici
+        'arbre': 'arbres',        // ← Correction ici
+        'eau': 'eau',
+        'sagia': 'sagia'
+    };
+    
+    var table = tableMap[type] || type;
     data.updated_at = new Date().toISOString();
     
     if (type === 'betail') {
@@ -4696,7 +4706,6 @@ function renderDocuments() {
         data.date = new Date().toISOString();
         
     } else if (type === 'sagia') {
-        // SAGIA n'a pas de localite_id, c'est un champ texte
         data.code = document.getElementById('genericCode').value.trim();
         data.nom_fr = document.getElementById('genericNom').value.trim();
         data.nom_ar = data.nom_fr;
