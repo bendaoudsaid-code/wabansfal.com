@@ -4404,7 +4404,7 @@ async function deleteMedia(id, table) {
                 }).catch(function(e) { showAlert('❌ Erreur: ' + e.message, 'error'); });
         }
 
-        function uploadFiles() {
+    function uploadFiles() {
     if (selectedFiles.length === 0) { 
         showAlert(getLang().alertNoFile, 'error'); 
         return; 
@@ -4421,9 +4421,10 @@ async function deleteMedia(id, table) {
     var errors = [];
 
     selectedFiles.forEach(function(file, index) {
-        // Vérifier la taille du fichier (max 10MB)
-        if (file.size > 10 * 1024 * 1024) {
-            errors.push(file.name + ' dépasse 10MB');
+        // Vérifier la taille du fichier (max 50MB pour les vidéos)
+        var maxSize = currentUploadType === 'video' ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            errors.push(file.name + ' dépasse la taille maximale');
             uploaded++;
             updateProgress(uploaded, total, fill, text);
             if (uploaded === total) {
@@ -4432,7 +4433,19 @@ async function deleteMedia(id, table) {
             return;
         }
 
-        var fileName = 'gallery_' + Date.now() + '_' + index + '_' + file.name.replace(/\s/g, '_');
+        // Déterminer le type de fichier
+        var fileType = 'image';
+        if (file.type.startsWith('video/')) {
+            fileType = 'video';
+        } else if (file.type === 'application/pdf') {
+            fileType = 'pdf';
+        }
+        
+        // Déterminer la table selon le type d'upload
+        var table = currentUploadType === 'video' ? 'videos' : 'gallery';
+        var prefix = currentUploadType === 'video' ? 'video_' : 'gallery_';
+        
+        var fileName = prefix + Date.now() + '_' + index + '_' + file.name.replace(/\s/g, '_');
         var folder = 'medias';
         
         console.log('📤 Upload du fichier:', fileName, 'Taille:', (file.size / 1024).toFixed(1), 'KB');
@@ -4454,19 +4467,22 @@ async function deleteMedia(id, table) {
             var publicUrl = urlResult.data.publicUrl;
             console.log('📎 URL publique:', publicUrl);
             
-            // Déterminer le type de fichier
-            var fileType = 'image';
-            if (file.type.startsWith('video/')) {
-                fileType = 'video';
-            } else if (file.type === 'application/pdf') {
-                fileType = 'pdf';
-            }
+            // Nettoyer le titre
+            var cleanTitle = file.name
+                .replace(/\.[^/.]+$/, '')
+                .replace(/[_-]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
             
-            // === STRUCTURE CORRECTE POUR VOTRE TABLE ===
-            // Utiliser la colonne 'url' (NOT NULL) au lieu de 'image_url'
+            if (!cleanTitle || cleanTitle.length < 2) {
+                cleanTitle = (fileType === 'video' ? 'Vidéo ' : 'Image ') + (index + 1);
+            }
+            cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
+            
+            // === STRUCTURE CORRECTE POUR LES DEUX TABLES ===
             var data = { 
-                url: publicUrl,                    // ← colonne principale (NOT NULL)
-                title: file.name.split('.')[0] || 'Image',
+                url: publicUrl,                    // colonne principale (NOT NULL)
+                title: cleanTitle,
                 file_name: file.name,
                 file_size: file.size,
                 date: new Date().toISOString(),
@@ -4474,15 +4490,13 @@ async function deleteMedia(id, table) {
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
                 publisher: 'admin'
-                // Note: 'image_url' est optionnel, vous pouvez l'ajouter si besoin
-                // image_url: publicUrl
             };
             
-            console.log('💾 Sauvegarde dans la table gallery:', data);
+            console.log('💾 Sauvegarde dans la table:', table, data);
             
             // Utiliser le client Supabase directement
             return supabase
-                .from('gallery')
+                .from(table)
                 .insert(data)
                 .select();
         })
