@@ -3187,17 +3187,71 @@
         }
 
         function renderProduits() {
-            var items = DATA.produits || [], body = document.getElementById('produitsBody');
-            if (!body) return;
-            if (items.length === 0) { body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>'; return; }
-            body.innerHTML = items.map(function(item) {
-                var nom = document.body.classList.contains('rtl') ? (item.nom_ar || item.nom_fr || item.nom) : (item.nom_fr || item.nom);
-                var localite = getLocaliteName(item.localite_id);
-                var statut = document.body.classList.contains('rtl') ? (item.statut_ar || item.statut || 'متوفر') : (item.statut || 'Disponible');
-                var periode = document.body.classList.contains('rtl') ? (item.periode_ar || item.periode || '') : (item.periode || '');
-                return '<tr><td><strong>' + nom + '</strong></td><td>' + localite + '</td><td>' + (item.quantite || 0) + '</td><td>' + periode + '</td><td>' + statut + '</td></tr>';
-            }).join('');
+    var items = DATA.produits || [];
+    var body = document.getElementById('produitsBody');
+    if (!body) return;
+    
+    if (items.length === 0) { 
+        body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>'; 
+        return; 
+    }
+    
+    var isRTL = document.body.classList.contains('rtl');
+    
+    body.innerHTML = items.map(function(item) {
+        // === CORRECTION : Extraction correcte du nom selon la langue ===
+        var nom = '';
+        if (item.nom_fr && typeof item.nom_fr === 'object') {
+            // Si nom_fr est un objet JSONB {fr: "...", ar: "..."}
+            nom = isRTL ? (item.nom_fr.ar || item.nom_fr.fr || '') : (item.nom_fr.fr || item.nom_fr.ar || '');
+        } else if (item.nom && typeof item.nom === 'object') {
+            // Si nom est un objet JSONB
+            nom = isRTL ? (item.nom.ar || item.nom.fr || '') : (item.nom.fr || item.nom.ar || '');
+        } else if (item.nom_fr && typeof item.nom_fr === 'string') {
+            // Si nom_fr est une chaîne simple
+            nom = isRTL ? (item.nom_ar || item.nom_fr) : (item.nom_fr || item.nom_ar);
+        } else {
+            // Fallback
+            nom = item.nom_fr || item.nom || item.nom_ar || 'Produit';
         }
+        
+        // === CORRECTION : Localité ===
+        var localite = getLocaliteName(item.localite_id);
+        
+        // === CORRECTION : Période (si JSONB) ===
+        var periode = '';
+        if (item.periode && typeof item.periode === 'object') {
+            periode = isRTL ? (item.periode.ar || item.periode.fr || '') : (item.periode.fr || item.periode.ar || '');
+        } else {
+            periode = item.periode || '';
+        }
+        
+        // === CORRECTION : Statut (si JSONB) ===
+        var statut = '';
+        if (item.statut && typeof item.statut === 'object') {
+            statut = isRTL ? (item.statut.ar || item.statut.fr || 'Disponible') : (item.statut.fr || item.statut.ar || 'Disponible');
+        } else {
+            statut = item.statut || 'Disponible';
+        }
+        
+        // Traduire les statuts si nécessaire
+        var statutMap = {
+            'Disponible': isRTL ? 'متوفر' : 'Disponible',
+            'Épuisé': isRTL ? 'نفد' : 'Épuisé',
+            'En rupture': isRTL ? 'نفد' : 'En rupture',
+            'Saisonnier': isRTL ? 'موسمي' : 'Saisonnier'
+        };
+        statut = statutMap[statut] || statut;
+        
+        return '<tr>' +
+            '<td><strong>' + nom + '</strong></td>' +
+            '<td>' + localite + '</td>' +
+            '<td>' + (item.quantite || 0) + '</td>' +
+            '<td>' + periode + '</td>' +
+            '<td>' + statut + '</td>' +
+            '</tr>';
+    }).join('');
+}
 
         function renderArbres() {
             var items = DATA.arbres || [], body = document.getElementById('arbresBody');
