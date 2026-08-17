@@ -4300,23 +4300,25 @@ function renderDocuments() {
 
     var total = selectedFiles.length;
     var uploaded = 0;
-    var table = currentUploadType === 'image' ? 'gallery' : currentUploadType === 'video' ? 'videos' : 'articles';
-    var field = currentUploadType === 'image' ? 'image_url' : currentUploadType === 'video' ? 'video_url' : 'content';
+    var errors = [];
 
     selectedFiles.forEach(function(file, index) {
-        // Vérifier la taille du fichier (max 5MB pour les images)
-        if (file.size > 5 * 1024 * 1024) {
-            showAlert('❌ Le fichier ' + file.name + ' dépasse 5MB', 'error');
+        // Vérifier la taille du fichier (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            errors.push(file.name + ' dépasse 10MB');
             uploaded++;
             if (uploaded === total) {
                 progress.style.display = 'none';
                 document.getElementById('actionButtons').style.display = 'flex';
+                if (errors.length > 0) {
+                    showAlert('⚠️ ' + errors.length + ' erreur(s): ' + errors.join('; '), 'error');
+                }
             }
             return;
         }
 
-        var fileName = currentUploadType + '_' + Date.now() + '_' + index + '_' + file.name.replace(/\s/g, '_');
-        var folder = 'medias'; // Utiliser le bucket medias
+        var fileName = 'gallery_' + Date.now() + '_' + index + '_' + file.name.replace(/\s/g, '_');
+        var folder = 'medias';
         
         console.log('📤 Upload du fichier:', fileName, 'Taille:', (file.size / 1024).toFixed(1), 'KB');
         
@@ -4336,36 +4338,42 @@ function renderDocuments() {
         .then(function(urlResult) {
             console.log('📎 URL publique:', urlResult.data.publicUrl);
             
-            // Étape 2: Enregistrer dans la base de données
-            var data = { 
-                title: file.name.split('.')[0] || 'Image',
-                created_at: new Date().toISOString(), 
-                updated_at: new Date().toISOString()
-            };
-            data[field] = urlResult.data.publicUrl;
-            
-            console.log('💾 Sauvegarde dans la table:', table, data);
-            
-            return fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + table, { 
-                method: 'POST', 
-                body: JSON.stringify(data),
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Prefer': 'return=representation'
-                }
-            });
-        })
-        .then(function(resp) {
-            if (!resp.ok) {
-                return resp.text().then(function(text) {
-                    console.error('❌ Erreur réponse DB:', text);
-                    throw new Error('Erreur enregistrement: ' + text);
-                });
+            // === CORRECTION : Structure adaptée à votre table ===
+            var fileType = 'image';
+            if (file.type.startsWith('video/')) {
+                fileType = 'video';
+            } else if (file.type === 'application/pdf') {
+                fileType = 'pdf';
+            } else if (file.type.startsWith('image/')) {
+                fileType = 'image';
             }
-            return resp.json();
+            
+            var data = { 
+                url: urlResult.data.publicUrl,        // colonne url (NOT NULL)
+                title: file.name.split('.')[0] || 'Image', // colonne title
+                file_name: file.name,                  // colonne file_name
+                file_size: file.size,                  // colonne file_size
+                date: new Date().toISOString(),        // colonne date
+                type: fileType,                        // colonne type
+                created_at: new Date().toISOString(),  // colonne created_at
+                updated_at: new Date().toISOString(),  // colonne updated_at
+                publisher: 'admin'                     // colonne publisher
+            };
+            
+            console.log('💾 Sauvegarde dans la table gallery:', data);
+            
+            // Utiliser le client Supabase directement
+            return supabase
+                .from('gallery')
+                .insert(data)
+                .select();
         })
-        .then(function(data) {
-            console.log('✅ Enregistré en base:', data);
+        .then(function(result) {
+            if (result.error) {
+                console.error('❌ Erreur insertion DB:', result.error);
+                throw new Error('Erreur DB: ' + result.error.message);
+            }
+            console.log('✅ Enregistré en base:', result.data);
             uploaded++;
             var pct = Math.round((uploaded / total) * 100);
             fill.style.width = pct + '%';
@@ -4374,7 +4382,11 @@ function renderDocuments() {
             if (uploaded === total) {
                 progress.style.display = 'none';
                 document.getElementById('uploadSuccess').style.display = 'block';
-                showAlert('✅ ' + getLang().successMessage, 'success');
+                if (errors.length > 0) {
+                    showAlert('⚠️ ' + errors.length + ' erreur(s): ' + errors.join('; '), 'error');
+                } else {
+                    showAlert('✅ ' + total + ' fichier(s) uploadé(s) avec succès', 'success');
+                }
                 selectedFiles = [];
                 loadAllTables();
                 setTimeout(function() { hideUploadModal(); }, 2000);
@@ -4382,9 +4394,17 @@ function renderDocuments() {
         })
         .catch(function(e) {
             console.error('❌ Erreur complète:', e);
-            showAlert('❌ Erreur: ' + e.message, 'error');
-            progress.style.display = 'none';
-            document.getElementById('actionButtons').style.display = 'flex';
+            errors.push(file.name + ': ' + e.message);
+            uploaded++;
+            var pct = Math.round((uploaded / total) * 100);
+            fill.style.width = pct + '%';
+            text.textContent = pct + '%';
+            
+            if (uploaded === total) {
+                progress.style.display = 'none';
+                document.getElementById('actionButtons').style.display = 'flex';
+                showAlert('⚠️ ' + errors.length + ' erreur(s): ' + errors.join('; '), 'error');
+            }
         });
     });
 }
