@@ -4583,22 +4583,70 @@ function renderDocuments() {
             }
 
             // Produits
-            var produitsBody = document.getElementById('produitsAdminBody');
-            if (produitsBody) {
-                var produitsItems = DATA.produits || [];
-                if (produitsItems.length === 0) { produitsBody.innerHTML = '<tr><td colspan="6" class="no-content">' + getLang().noData + '</td></tr>'; }
-                else {
-                    var user = getCurrentUser();
-                    var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
-                    produitsBody.innerHTML = produitsItems.map(function(item) {
-                        var localite = getLocaliteName(item.localite_id);
-                        var actions = canEdit ?
-                            '<button class="btn-action edit" onclick="editGenericItem(\'produit\',' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
-                            '<button class="btn-action delete" onclick="deleteGenericItem(\'produit\',' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
-                        return '<tr><td>' + (item.nom_fr || item.nom) + '</td><td>' + localite + '</td><td>' + item.quantite + '</td><td>' + (item.periode || '') + '</td><td>' + item.statut + '</td><td style="white-space:nowrap;">' + actions + '</td></tr>';
-                    }).join('');
-                }
+            // Produits
+var produitsBody = document.getElementById('produitsAdminBody');
+if (produitsBody) {
+    var produitsItems = DATA.produits || [];
+    if (produitsItems.length === 0) { 
+        produitsBody.innerHTML = '<tr><td colspan="6" class="no-content">' + getLang().noData + '</td></tr>'; 
+    }
+    else {
+        var user = getCurrentUser();
+        var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
+        var isRTL = document.body.classList.contains('rtl');
+        
+        produitsBody.innerHTML = produitsItems.map(function(item) {
+            var localite = getLocaliteName(item.localite_id);
+            
+            // === CORRECTION : Extraction correcte du nom ===
+            var nom = '';
+            // Si nom_fr est un objet JSONB {fr: "...", ar: "..."}
+            if (item.nom_fr && typeof item.nom_fr === 'object') {
+                nom = isRTL ? (item.nom_fr.ar || item.nom_fr.fr || '') : (item.nom_fr.fr || item.nom_fr.ar || '');
+            } 
+            // Si nom est un objet JSONB
+            else if (item.nom && typeof item.nom === 'object') {
+                nom = isRTL ? (item.nom.ar || item.nom.fr || '') : (item.nom.fr || item.nom.ar || '');
+            } 
+            // Si c'est une chaîne simple
+            else if (item.nom_fr && typeof item.nom_fr === 'string') {
+                nom = isRTL ? (item.nom_ar || item.nom_fr) : (item.nom_fr || item.nom_ar);
+            } 
+            else {
+                nom = item.nom || item.nom_fr || item.nom_ar || 'Produit';
             }
+            
+            // === CORRECTION : Période (si JSONB) ===
+            var periode = '';
+            if (item.periode && typeof item.periode === 'object') {
+                periode = isRTL ? (item.periode.ar || item.periode.fr || '') : (item.periode.fr || item.periode.ar || '');
+            } else {
+                periode = item.periode || '';
+            }
+            
+            // === CORRECTION : Statut (si JSONB) ===
+            var statut = '';
+            if (item.statut && typeof item.statut === 'object') {
+                statut = isRTL ? (item.statut.ar || item.statut.fr || 'Disponible') : (item.statut.fr || item.statut.ar || 'Disponible');
+            } else {
+                statut = item.statut || 'Disponible';
+            }
+            
+            var actions = canEdit ?
+                '<button class="btn-action edit" onclick="editGenericItem(\'produit\',' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+                '<button class="btn-action delete" onclick="deleteGenericItem(\'produit\',' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
+            
+            return '<tr>' +
+                '<td><strong>' + nom + '</strong></td>' +
+                '<td>' + localite + '</td>' +
+                '<td>' + (item.quantite || 0) + '</td>' +
+                '<td>' + periode + '</td>' +
+                '<td>' + statut + '</td>' +
+                '<td style="white-space:nowrap;">' + actions + '</td>' +
+                '</tr>';
+        }).join('');
+    }
+}
 
             // Arbres
             var arbresBody = document.getElementById('arbresAdminBody');
