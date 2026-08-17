@@ -4307,12 +4307,9 @@ function renderDocuments() {
         if (file.size > 10 * 1024 * 1024) {
             errors.push(file.name + ' dépasse 10MB');
             uploaded++;
+            updateProgress(uploaded, total, fill, text);
             if (uploaded === total) {
-                progress.style.display = 'none';
-                document.getElementById('actionButtons').style.display = 'flex';
-                if (errors.length > 0) {
-                    showAlert('⚠️ ' + errors.length + ' erreur(s): ' + errors.join('; '), 'error');
-                }
+                finishUpload(errors, progress);
             }
             return;
         }
@@ -4330,34 +4327,37 @@ function renderDocuments() {
         .then(function(result) {
             if (result.error) {
                 console.error('❌ Erreur upload storage:', result.error);
-                throw new Error('Erreur upload storage: ' + result.error.message);
+                throw new Error('Storage: ' + result.error.message);
             }
             console.log('✅ Fichier uploadé vers storage');
             return supabase.storage.from(folder).getPublicUrl(fileName);
         })
         .then(function(urlResult) {
-            console.log('📎 URL publique:', urlResult.data.publicUrl);
+            var publicUrl = urlResult.data.publicUrl;
+            console.log('📎 URL publique:', publicUrl);
             
-            // === CORRECTION : Structure adaptée à votre table ===
+            // Déterminer le type de fichier
             var fileType = 'image';
             if (file.type.startsWith('video/')) {
                 fileType = 'video';
             } else if (file.type === 'application/pdf') {
                 fileType = 'pdf';
-            } else if (file.type.startsWith('image/')) {
-                fileType = 'image';
             }
             
+            // === STRUCTURE CORRECTE POUR VOTRE TABLE ===
+            // Utiliser la colonne 'url' (NOT NULL) au lieu de 'image_url'
             var data = { 
-                url: urlResult.data.publicUrl,        // colonne url (NOT NULL)
-                title: file.name.split('.')[0] || 'Image', // colonne title
-                file_name: file.name,                  // colonne file_name
-                file_size: file.size,                  // colonne file_size
-                date: new Date().toISOString(),        // colonne date
-                type: fileType,                        // colonne type
-                created_at: new Date().toISOString(),  // colonne created_at
-                updated_at: new Date().toISOString(),  // colonne updated_at
-                publisher: 'admin'                     // colonne publisher
+                url: publicUrl,                    // ← colonne principale (NOT NULL)
+                title: file.name.split('.')[0] || 'Image',
+                file_name: file.name,
+                file_size: file.size,
+                date: new Date().toISOString(),
+                type: fileType,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                publisher: 'admin'
+                // Note: 'image_url' est optionnel, vous pouvez l'ajouter si besoin
+                // image_url: publicUrl
             };
             
             console.log('💾 Sauvegarde dans la table gallery:', data);
@@ -4371,42 +4371,50 @@ function renderDocuments() {
         .then(function(result) {
             if (result.error) {
                 console.error('❌ Erreur insertion DB:', result.error);
-                throw new Error('Erreur DB: ' + result.error.message);
+                throw new Error('DB: ' + result.error.message);
             }
             console.log('✅ Enregistré en base:', result.data);
             uploaded++;
-            var pct = Math.round((uploaded / total) * 100);
-            fill.style.width = pct + '%';
-            text.textContent = pct + '%';
+            updateProgress(uploaded, total, fill, text);
             
             if (uploaded === total) {
-                progress.style.display = 'none';
-                document.getElementById('uploadSuccess').style.display = 'block';
-                if (errors.length > 0) {
-                    showAlert('⚠️ ' + errors.length + ' erreur(s): ' + errors.join('; '), 'error');
-                } else {
-                    showAlert('✅ ' + total + ' fichier(s) uploadé(s) avec succès', 'success');
-                }
-                selectedFiles = [];
-                loadAllTables();
-                setTimeout(function() { hideUploadModal(); }, 2000);
+                finishUpload(errors, progress);
             }
         })
         .catch(function(e) {
             console.error('❌ Erreur complète:', e);
             errors.push(file.name + ': ' + e.message);
             uploaded++;
-            var pct = Math.round((uploaded / total) * 100);
-            fill.style.width = pct + '%';
-            text.textContent = pct + '%';
+            updateProgress(uploaded, total, fill, text);
             
             if (uploaded === total) {
-                progress.style.display = 'none';
-                document.getElementById('actionButtons').style.display = 'flex';
-                showAlert('⚠️ ' + errors.length + ' erreur(s): ' + errors.join('; '), 'error');
+                finishUpload(errors, progress);
             }
         });
     });
+}
+
+// Fonction pour mettre à jour la progression
+function updateProgress(uploaded, total, fill, text) {
+    var pct = Math.round((uploaded / total) * 100);
+    if (fill) fill.style.width = pct + '%';
+    if (text) text.textContent = pct + '%';
+}
+
+// Fonction pour terminer l'upload
+function finishUpload(errors, progress) {
+    if (progress) progress.style.display = 'none';
+    document.getElementById('actionButtons').style.display = 'flex';
+    
+    if (errors.length > 0) {
+        showAlert('⚠️ ' + errors.length + ' erreur(s): ' + errors.join('; '), 'error');
+    } else {
+        document.getElementById('uploadSuccess').style.display = 'block';
+        showAlert('✅ Tous les fichiers ont été uploadés avec succès', 'success');
+        selectedFiles = [];
+        loadAllTables();
+        setTimeout(function() { hideUploadModal(); }, 2000);
+    }
 }
         // ============================================================
         // GENERIC MODAL (Betail, Produits, Arbres, Eau, Sagia)
