@@ -4421,7 +4421,7 @@ async function deleteMedia(id, table) {
     var errors = [];
 
     selectedFiles.forEach(function(file, index) {
-        // Vérifier la taille du fichier (max 50MB pour les vidéos)
+        // Vérifier la taille du fichier (max 50MB pour les vidéos, 10MB pour les images)
         var maxSize = currentUploadType === 'video' ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
         if (file.size > maxSize) {
             errors.push(file.name + ' dépasse la taille maximale');
@@ -4433,14 +4433,6 @@ async function deleteMedia(id, table) {
             return;
         }
 
-        // Déterminer le type de fichier
-        var fileType = 'image';
-        if (file.type.startsWith('video/')) {
-            fileType = 'video';
-        } else if (file.type === 'application/pdf') {
-            fileType = 'pdf';
-        }
-        
         // Déterminer la table selon le type d'upload
         var table = currentUploadType === 'video' ? 'videos' : 'gallery';
         var prefix = currentUploadType === 'video' ? 'video_' : 'gallery_';
@@ -4449,6 +4441,7 @@ async function deleteMedia(id, table) {
         var folder = 'medias';
         
         console.log('📤 Upload du fichier:', fileName, 'Taille:', (file.size / 1024).toFixed(1), 'KB');
+        console.log('📁 Table cible:', table);
         
         // Étape 1: Upload vers Storage
         supabase.storage.from(folder).upload(fileName, file, { 
@@ -4466,6 +4459,14 @@ async function deleteMedia(id, table) {
         .then(function(urlResult) {
             var publicUrl = urlResult.data.publicUrl;
             console.log('📎 URL publique:', publicUrl);
+            
+            // Déterminer le type de fichier
+            var fileType = 'image';
+            if (file.type.startsWith('video/')) {
+                fileType = 'video';
+            } else if (file.type === 'application/pdf') {
+                fileType = 'pdf';
+            }
             
             // Nettoyer le titre
             var cleanTitle = file.name
