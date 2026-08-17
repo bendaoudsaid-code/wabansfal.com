@@ -4287,55 +4287,107 @@ function renderDocuments() {
         }
 
         function uploadFiles() {
-            if (selectedFiles.length === 0) { showAlert(getLang().alertNoFile, 'error'); return; }
-            var progress = document.getElementById('uploadProgress');
-            var fill = document.getElementById('progressFill');
-            var text = document.getElementById('progressText');
-            progress.style.display = 'block';
-            document.getElementById('actionButtons').style.display = 'none';
+    if (selectedFiles.length === 0) { 
+        showAlert(getLang().alertNoFile, 'error'); 
+        return; 
+    }
+    
+    var progress = document.getElementById('uploadProgress');
+    var fill = document.getElementById('progressFill');
+    var text = document.getElementById('progressText');
+    progress.style.display = 'block';
+    document.getElementById('actionButtons').style.display = 'none';
 
-            var total = selectedFiles.length;
-            var uploaded = 0;
-            var table = currentUploadType === 'image' ? 'gallery' : currentUploadType === 'video' ? 'videos' : 'articles';
-            var field = currentUploadType === 'image' ? 'image_url' : currentUploadType === 'video' ? 'video_url' : 'content';
+    var total = selectedFiles.length;
+    var uploaded = 0;
+    var table = currentUploadType === 'image' ? 'gallery' : currentUploadType === 'video' ? 'videos' : 'articles';
+    var field = currentUploadType === 'image' ? 'image_url' : currentUploadType === 'video' ? 'video_url' : 'content';
 
-            selectedFiles.forEach(function(file, index) {
-                var fileName = currentUploadType + '_' + Date.now() + '_' + index + '_' + file.name.replace(/\s/g, '_');
-                var folder = currentUploadType === 'image' ? 'medias' : currentUploadType === 'video' ? 'medias' : 'documents';
-                supabase.storage.from(folder).upload(fileName, file, { cacheControl: '3600', upsert: false })
-                    .then(function(result) {
-                        if (result.error) throw result.error;
-                        return supabase.storage.from(folder).getPublicUrl(fileName);
-                    })
-                    .then(function(urlResult) {
-                        var data = { title: file.name.split('.')[0], created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-                        data[field] = urlResult.data.publicUrl;
-                        if (currentUploadType === 'article') data.content = 'Contenu de ' + file.name;
-                        return fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + table, { method: 'POST', body: JSON.stringify(data) });
-                    })
-                    .then(function(resp) {
-                        if (!resp.ok) throw new Error('Erreur enregistrement');
-                        uploaded++;
-                        var pct = Math.round((uploaded / total) * 100);
-                        fill.style.width = pct + '%';
-                        text.textContent = pct + '%';
-                        if (uploaded === total) {
-                            progress.style.display = 'none';
-                            document.getElementById('uploadSuccess').style.display = 'block';
-                            showAlert(getLang().successMessage, 'success');
-                            selectedFiles = [];
-                            loadAllTables();
-                            setTimeout(function() { hideUploadModal(); }, 2000);
-                        }
-                    })
-                    .catch(function(e) {
-                        showAlert('❌ Erreur upload: ' + e.message, 'error');
-                        progress.style.display = 'none';
-                        document.getElementById('actionButtons').style.display = 'flex';
-                    });
-            });
+    selectedFiles.forEach(function(file, index) {
+        // Vérifier la taille du fichier (max 5MB pour les images)
+        if (file.size > 5 * 1024 * 1024) {
+            showAlert('❌ Le fichier ' + file.name + ' dépasse 5MB', 'error');
+            uploaded++;
+            if (uploaded === total) {
+                progress.style.display = 'none';
+                document.getElementById('actionButtons').style.display = 'flex';
+            }
+            return;
         }
 
+        var fileName = currentUploadType + '_' + Date.now() + '_' + index + '_' + file.name.replace(/\s/g, '_');
+        var folder = 'medias'; // Utiliser le bucket medias
+        
+        console.log('📤 Upload du fichier:', fileName, 'Taille:', (file.size / 1024).toFixed(1), 'KB');
+        
+        // Étape 1: Upload vers Storage
+        supabase.storage.from(folder).upload(fileName, file, { 
+            cacheControl: '3600', 
+            upsert: false 
+        })
+        .then(function(result) {
+            if (result.error) {
+                console.error('❌ Erreur upload storage:', result.error);
+                throw new Error('Erreur upload storage: ' + result.error.message);
+            }
+            console.log('✅ Fichier uploadé vers storage');
+            return supabase.storage.from(folder).getPublicUrl(fileName);
+        })
+        .then(function(urlResult) {
+            console.log('📎 URL publique:', urlResult.data.publicUrl);
+            
+            // Étape 2: Enregistrer dans la base de données
+            var data = { 
+                title: file.name.split('.')[0] || 'Image',
+                created_at: new Date().toISOString(), 
+                updated_at: new Date().toISOString()
+            };
+            data[field] = urlResult.data.publicUrl;
+            
+            console.log('💾 Sauvegarde dans la table:', table, data);
+            
+            return fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + table, { 
+                method: 'POST', 
+                body: JSON.stringify(data),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation'
+                }
+            });
+        })
+        .then(function(resp) {
+            if (!resp.ok) {
+                return resp.text().then(function(text) {
+                    console.error('❌ Erreur réponse DB:', text);
+                    throw new Error('Erreur enregistrement: ' + text);
+                });
+            }
+            return resp.json();
+        })
+        .then(function(data) {
+            console.log('✅ Enregistré en base:', data);
+            uploaded++;
+            var pct = Math.round((uploaded / total) * 100);
+            fill.style.width = pct + '%';
+            text.textContent = pct + '%';
+            
+            if (uploaded === total) {
+                progress.style.display = 'none';
+                document.getElementById('uploadSuccess').style.display = 'block';
+                showAlert('✅ ' + getLang().successMessage, 'success');
+                selectedFiles = [];
+                loadAllTables();
+                setTimeout(function() { hideUploadModal(); }, 2000);
+            }
+        })
+        .catch(function(e) {
+            console.error('❌ Erreur complète:', e);
+            showAlert('❌ Erreur: ' + e.message, 'error');
+            progress.style.display = 'none';
+            document.getElementById('actionButtons').style.display = 'flex';
+        });
+    });
+}
         // ============================================================
         // GENERIC MODAL (Betail, Produits, Arbres, Eau, Sagia)
         // ============================================================
