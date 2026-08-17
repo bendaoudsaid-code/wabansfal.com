@@ -4109,24 +4109,57 @@ async function deleteMedia(id, table) {
         // VIDEOS ADMIN
         // ============================================================
         function renderVideosAdmin() {
-            var list = document.getElementById('videosList');
-            if (!list) return;
-            var items = DATA.videos || [];
-            if (items.length === 0) { list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; return; }
-            var user = getCurrentUser();
-            var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
-            list.innerHTML = items.map(function(item) {
-                var url = item.video_url || item.url || '';
-                var actions = canEdit ?
-                    '<button class="btn-action delete" onclick="deleteMedia(' + item.id + ', \'videos\')"><i class="fas fa-trash"></i></button>' :
-                    '';
-                return '<div class="dashboard-item" onclick="viewMedia(\'' + url + '\', \'video\')">' +
-                    '<div class="item-icon"><i class="fas fa-video" style="color:#e74c3c;"></i></div>' +
-                    '<div class="item-info"><h4>' + (item.title || 'Vidéo') + '</h4></div>' +
-                    '<div class="item-actions">' + actions + '</div>' +
-                    '</div>';
-            }).join('');
+    var list = document.getElementById('videosList');
+    if (!list) return;
+    
+    var items = DATA.videos || [];
+    if (items.length === 0) { 
+        list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; 
+        return; 
+    }
+    
+    // Supprimer les doublons par URL
+    var uniqueItems = [];
+    var seenUrls = {};
+    
+    for (var item of items) {
+        var url = item.video_url || item.url || '';
+        if (!seenUrls[url]) {
+            seenUrls[url] = true;
+            uniqueItems.push(item);
         }
+    }
+    
+    var user = getCurrentUser();
+    var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
+    
+    // Trier par date décroissante
+    uniqueItems.sort(function(a, b) {
+        return new Date(b.created_at) - new Date(a.created_at);
+    });
+    
+    list.innerHTML = uniqueItems.map(function(item) {
+        var url = item.video_url || item.url || '';
+        var title = item.title || 'Vidéo';
+        var size = item.file_size ? (item.file_size / 1024).toFixed(1) + ' KB' : '';
+        
+        var actions = canEdit ?
+            '<button class="btn-action edit" onclick="event.stopPropagation(); editVideoTitlePrompt(' + item.id + ', \'' + title.replace(/'/g, "\\'") + '\')" title="Modifier le titre"><i class="fas fa-edit"></i></button> ' +
+            '<button class="btn-action delete" onclick="event.stopPropagation(); deleteMedia(' + item.id + ', \'videos\')" title="Supprimer"><i class="fas fa-trash"></i></button>' :
+            '';
+        
+        return '<div class="dashboard-item" onclick="viewMedia(\'' + url + '\', \'video\')">' +
+            '<div class="item-icon">' +
+                '<i class="fas fa-video" style="color:#e74c3c;font-size:1.8rem;"></i>' +
+            '</div>' +
+            '<div class="item-info">' +
+                '<h4>' + title + '</h4>' +
+                '<small>' + (size ? size : 'Vidéo') + '</small>' +
+            '</div>' +
+            '<div class="item-actions" onclick="event.stopPropagation();">' + actions + '</div>' +
+            '</div>';
+    }).join('');
+}
 
         // ============================================================
         // PUBLICATIONS ADMIN
