@@ -3186,7 +3186,7 @@
             }).join('');
         }
 
-        function renderProduits() {
+       function renderProduits() {
     var items = DATA.produits || [];
     var body = document.getElementById('produitsBody');
     if (!body) return;
@@ -3199,26 +3199,19 @@
     var isRTL = document.body.classList.contains('rtl');
     
     body.innerHTML = items.map(function(item) {
-        // === CORRECTION : Extraction correcte du nom selon la langue ===
+        // === Extraction correcte du nom ===
         var nom = '';
         if (item.nom_fr && typeof item.nom_fr === 'object') {
-            // Si nom_fr est un objet JSONB {fr: "...", ar: "..."}
             nom = isRTL ? (item.nom_fr.ar || item.nom_fr.fr || '') : (item.nom_fr.fr || item.nom_fr.ar || '');
         } else if (item.nom && typeof item.nom === 'object') {
-            // Si nom est un objet JSONB
             nom = isRTL ? (item.nom.ar || item.nom.fr || '') : (item.nom.fr || item.nom.ar || '');
-        } else if (item.nom_fr && typeof item.nom_fr === 'string') {
-            // Si nom_fr est une chaîne simple
-            nom = isRTL ? (item.nom_ar || item.nom_fr) : (item.nom_fr || item.nom_ar);
         } else {
-            // Fallback
             nom = item.nom_fr || item.nom || item.nom_ar || 'Produit';
         }
         
-        // === CORRECTION : Localité ===
         var localite = getLocaliteName(item.localite_id);
         
-        // === CORRECTION : Période (si JSONB) ===
+        // === Période ===
         var periode = '';
         if (item.periode && typeof item.periode === 'object') {
             periode = isRTL ? (item.periode.ar || item.periode.fr || '') : (item.periode.fr || item.periode.ar || '');
@@ -3226,22 +3219,13 @@
             periode = item.periode || '';
         }
         
-        // === CORRECTION : Statut (si JSONB) ===
+        // === Statut ===
         var statut = '';
         if (item.statut && typeof item.statut === 'object') {
             statut = isRTL ? (item.statut.ar || item.statut.fr || 'Disponible') : (item.statut.fr || item.statut.ar || 'Disponible');
         } else {
             statut = item.statut || 'Disponible';
         }
-        
-        // Traduire les statuts si nécessaire
-        var statutMap = {
-            'Disponible': isRTL ? 'متوفر' : 'Disponible',
-            'Épuisé': isRTL ? 'نفد' : 'Épuisé',
-            'En rupture': isRTL ? 'نفد' : 'En rupture',
-            'Saisonnier': isRTL ? 'موسمي' : 'Saisonnier'
-        };
-        statut = statutMap[statut] || statut;
         
         return '<tr>' +
             '<td><strong>' + nom + '</strong></td>' +
