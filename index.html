@@ -4241,37 +4241,25 @@ async function deleteMedia(id, table) {
 
         function hideTextModal() { document.getElementById('textModal').classList.remove('active'); }
 
-        async function saveTextContent() {
-            var title = document.getElementById('textTitle').value.trim();
-            var content = document.getElementById('textContent').value.trim();
-            var published = document.getElementById('publishText').checked;
-            if (!title || !content) { showAlert('Veuillez remplir tous les champs', 'error'); return; }
-            var data = { title: title, content: content, published: published, updated_at: new Date().toISOString() };
-            try {
-                var url = supabaseUrl + '/rest/v1/texts';
-                var method = 'POST';
-                if (currentEditId) { url += '?id=eq.' + currentEditId; method = 'PATCH'; } else { data.created_at = new Date().toISOString(); }
-                var resp = await fetchWithSupabaseAuth(url, { method: method, body: JSON.stringify(data) });
-                if (!resp.ok) throw new Error('Erreur sauvegarde');
-                showAlert('✅ Texte enregistré', 'success');
-                hideTextModal();
-                await loadAllTables();
-                renderAll();
-            } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
-        }
-
         async function deleteText(id) {
-            var user = getCurrentUser();
-            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { showAlert('Vous n\'avez pas les permissions', 'error'); return; }
-            if (!confirm('Supprimer ce texte ?')) return;
-            try {
-                var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/texts?id=eq.' + id, { method: 'DELETE' });
-                if (!resp.ok) throw new Error('Erreur suppression');
-                showAlert('✅ Texte supprimé', 'success');
-                await loadAllTables();
-                renderAll();
-            } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
-        }
+    var user = getCurrentUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
+        showAlert('Vous n\'avez pas les permissions', 'error'); 
+        return; 
+    }
+    if (!confirm('Supprimer ce texte ?')) return;
+    try {
+        var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/texts?id=eq.' + id, { 
+            method: 'DELETE' 
+        });
+        if (!resp.ok) throw new Error('Erreur suppression');
+        showAlert('✅ Texte supprimé', 'success');
+        await loadAllTables();
+        renderAll();
+    } catch (e) { 
+        showAlert('❌ Erreur: ' + e.message, 'error'); 
+    }
+}
 
         // ============================================================
         // UPLOAD MODAL
