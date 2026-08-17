@@ -4019,7 +4019,53 @@ function renderDocuments() {
                     '</div>';
             }).join('');
         }
-
+        // ============================================================
+// SUPPRESSION DES MÉDIAS (Galerie & Vidéos)
+// ============================================================
+async function deleteMedia(id, table) {
+    var user = getCurrentUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
+        showAlert('Vous n\'avez pas les permissions', 'error'); 
+        return; 
+    }
+    
+    // Récupérer le titre pour la confirmation
+    try {
+        const { data: item, error: fetchError } = await supabase
+            .from(table)
+            .select('title, url')
+            .eq('id', id)
+            .single();
+        
+        if (fetchError) {
+            console.warn('Impossible de récupérer le titre:', fetchError);
+        }
+        
+        var title = item?.title || 'cet élément';
+        
+        // Demander confirmation avec le nom
+        if (!confirm(`⚠️ Supprimer définitivement "${title}" ?\nCette action est irréversible !`)) {
+            return;
+        }
+        
+        // Supprimer de la base de données
+        const { data, error } = await supabase
+            .from(table)
+            .delete()
+            .eq('id', id)
+            .select();
+        
+        if (error) throw new Error(error.message);
+        
+        showAlert(`✅ "${title}" supprimé avec succès`, 'success');
+        await loadAllTables();
+        renderAll();
+        
+    } catch (e) { 
+        showAlert('❌ Erreur: ' + e.message, 'error'); 
+        console.error(e);
+    }
+}
         // ============================================================
         // VIDEOS ADMIN
         // ============================================================
