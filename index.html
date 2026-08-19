@@ -1915,6 +1915,48 @@
             </div>
         </div>
     </div>
+<!-- MODALE UTILISATEUR -->
+<div class="modal-overlay" id="userModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title"><i class="fas fa-user-plus"></i> <span id="userModalTitle">Ajouter un utilisateur</span></h3>
+            <button class="close-modal" onclick="hideUserModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div style="margin-bottom:15px;">
+                <label>Nom d'utilisateur <span style="color:red;">*</span></label>
+                <input type="text" id="userLogin" placeholder="Nom d'utilisateur" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" />
+            </div>
+            <!-- AJOUTEZ CE CHAMP EMAIL -->
+            <div style="margin-bottom:15px;">
+                <label>Email <span style="color:red;">*</span></label>
+                <input type="email" id="userEmail" placeholder="email@exemple.com" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" />
+                <small style="color:#888;">Si vide, l'email sera: nom_utilisateur@ansfal.org</small>
+            </div>
+            <div style="margin-bottom:15px;">
+                <label>Mot de passe <span style="color:red;">*</span></label>
+                <input type="password" id="userPassword" placeholder="Mot de passe" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" />
+            </div>
+            <div style="margin-bottom:15px;">
+                <label>Rôle <span style="color:red;">*</span></label>
+                <select id="userRoleSelect" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">
+                    <option value="admin">Admin</option>
+                    <option value="webmestre">Webmestre</option>
+                    <option value="membre">Membre</option>
+                </select>
+            </div>
+            <div class="upload-actions">
+                <button class="btn-browse" onclick="hideUserModal()" style="background:var(--danger);">
+                    <i class="fas fa-times"></i> Annuler
+                </button>
+                <button class="btn-browse" onclick="saveUser()" style="background:var(--success);">
+                    <i class="fas fa-save"></i> Enregistrer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
     <!-- MODALE GÉNÉRIQUE -->
     <div class="modal-overlay" id="genericModal">
@@ -2031,14 +2073,16 @@
         // Utilisateur admin par défaut (haché en SHA-256)
         // Mot de passe par défaut: "Admin123!" (haché)
         var DEFAULT_ADMIN = {
-            id: 1,
-            username: 'admin',
-            password_hash: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', // Admin123!
-            role: 'admin',
-            password_changed: false,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        };
+    id: 1,
+    username: 'admin',
+    email: 'admin@ansfal.org',
+    password_hash: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9',
+    password: 'admin123',
+    role: 'admin',
+    password_changed: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+};
 
         // Tableau des utilisateurs (chargé depuis Supabase ou localStorage)
         var USERS = [DEFAULT_ADMIN];
@@ -2071,56 +2115,55 @@
 }
 
         async function saveUsers(users) {
-            try {
-                // Sauvegarder en local
-                localStorage.setItem('ansfal_users', JSON.stringify(users));
-                
-                // Sauvegarder dans Supabase
-                for (var u of users) {
-                    var token = await getSupabaseToken();
-                    var headers = { 
-                        'apikey': supabaseKey, 
-                        'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey, 
-                        'Content-Type': 'application/json' 
-                    };
-                    
-                    // Vérifier si l'utilisateur existe déjà
-                    var checkResp = await fetch(supabaseUrl + '/rest/v1/users?username=eq.' + u.username, { headers: headers });
-                    var existing = await checkResp.json();
-                    
-                    var userData = {
-                        username: u.username,
-                        password_hash: u.password_hash || u.password,
-                        role: u.role || 'membre',
-                        password_changed: u.password_changed || false,
-                        updated_at: new Date().toISOString()
-                    };
-                    
-                    if (existing && existing.length > 0) {
-                        await fetch(supabaseUrl + '/rest/v1/users?id=eq.' + existing[0].id, {
-                            method: 'PATCH', 
-                            headers: headers,
-                            body: JSON.stringify(userData)
-                        });
-                    } else {
-                        userData.created_at = new Date().toISOString();
-                        await fetch(supabaseUrl + '/rest/v1/users', {
-                            method: 'POST', 
-                            headers: headers,
-                            body: JSON.stringify(userData)
-                        });
-                    }
-                }
-                USERS = users;
-                DATA.users = users;
-            } catch (e) { 
-                console.warn('⚠️ Erreur sauvegarde utilisateurs:', e); 
-                // Fallback: localStorage
-                try {
-                    localStorage.setItem('ansfal_users', JSON.stringify(users));
-                } catch (e2) {}
+    try {
+        localStorage.setItem('ansfal_users', JSON.stringify(users));
+        
+        for (var u of users) {
+            var token = await getSupabaseToken();
+            var headers = { 
+                'apikey': supabaseKey, 
+                'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey, 
+                'Content-Type': 'application/json' 
+            };
+            
+            var checkResp = await fetch(supabaseUrl + '/rest/v1/users?username=eq.' + u.username, { 
+                headers: headers,
+                mode: 'cors'
+            });
+            var existing = await checkResp.json();
+            
+            var userData = {
+                username: u.username,
+                email: u.email || u.username + '@ansfal.org',
+                password_hash: u.password_hash || u.password,
+                password: u.password || 'admin123',
+                role: u.role || 'membre',
+                password_changed: u.password_changed || false,
+                updated_at: new Date().toISOString()
+            };
+            
+            if (existing && existing.length > 0) {
+                await fetch(supabaseUrl + '/rest/v1/users?id=eq.' + existing[0].id, {
+                    method: 'PATCH', 
+                    headers: headers,
+                    body: JSON.stringify(userData)
+                });
+            } else {
+                userData.created_at = new Date().toISOString();
+                await fetch(supabaseUrl + '/rest/v1/users', {
+                    method: 'POST', 
+                    headers: headers,
+                    body: JSON.stringify(userData)
+                });
             }
         }
+        USERS = users;
+        DATA.users = users;
+    } catch (e) { 
+        console.warn('⚠️ Erreur sauvegarde utilisateurs:', e); 
+        localStorage.setItem('ansfal_users', JSON.stringify(users));
+    }
+}
 
         // ============================================================
         // AUTH
@@ -2166,6 +2209,7 @@
         
         if (!hasAdmin) {
             console.log('📝 Création de l\'utilisateur admin par défaut...');
+            
             var token = await getSupabaseToken();
             var headers = { 
                 'apikey': supabaseKey, 
@@ -2175,6 +2219,7 @@
             
             var newAdmin = {
                 username: 'admin',
+                email: 'admin@ansfal.org',
                 password_hash: DEFAULT_ADMIN.password_hash,
                 password: 'admin123',
                 role: 'admin',
@@ -2190,23 +2235,11 @@
             });
             
             console.log('✅ Utilisateur admin créé avec succès');
-        } else {
-            // Vérifier si admin a déjà changé son mot de passe
-            var admin = users.find(function(u) { return u.username === 'admin'; });
-            if (admin && admin.password_changed) {
-                console.log('✅ Admin a déjà changé son mot de passe');
-                // Mettre à jour la variable globale
-                var changed = localStorage.getItem('ansfal_admin_changed');
-                if (changed === 'true') {
-                    console.log('✅ Flag admin_changed trouvé dans localStorage');
-                }
-            }
         }
     } catch (e) {
         console.error('❌ Erreur lors de l\'initialisation de l\'admin:', e);
     }
 }
-
 async function login() {
     var t = getLang();
     var user = document.getElementById('username').value.trim();
@@ -5308,90 +5341,299 @@ async function getUsersFromSupabase() {
         // ============================================================
         // USERS
         // ============================================================
-        function renderUsers() {
-            var body = document.getElementById('usersBody');
-            if (!body) return;
-            var users = DATA.users || [];
-            if (users.length === 0) { body.innerHTML = '<tr><td colspan="5" class="no-content">Aucun utilisateur</td></tr>'; return; }
-            var currentUser = getCurrentUser();
-            var isAdmin = currentUser && currentUser.role === 'admin';
-            body.innerHTML = users.map(function(user, index) {
-                var roleClass = user.role === 'admin' ? 'badge-admin' : user.role === 'webmestre' ? 'badge-webmestre' : 'badge-membre';
-                var actions = isAdmin && user.username !== currentUser.username ?
-                    '<button class="btn-action delete" onclick="deleteUser(' + user.id + ')"><i class="fas fa-trash"></i></button>' :
-                    '';
-                var passwordStatus = user.password_changed ? '✅' : '⚠️';
-                return '<tr><td>' + (index + 1) + '</td><td>' + user.username + ' ' + passwordStatus + '</td><td><span class="badge ' + roleClass + '">' + user.role + '</span></td><td>' + (user.created_at ? new Date(user.created_at).toLocaleDateString() : '') + '</td><td style="white-space:nowrap;">' + actions + '</td></tr>';
-            }).join('');
-            document.getElementById('totalUsersStat').textContent = users.length;
-        }
+       function renderUsers() {
+    var body = document.getElementById('usersBody');
+    if (!body) return;
+    
+    var users = DATA.users || [];
+    
+    if (users.length === 0) { 
+        body.innerHTML = '<tr><td colspan="5" class="no-content">Aucun utilisateur dans Supabase</td></tr>'; 
+        return; 
+    }
+    
+    var currentUser = getCurrentUser();
+    var isAdmin = currentUser && currentUser.role === 'admin';
+    
+    body.innerHTML = users.map(function(user, index) {
+        var roleClass = user.role === 'admin' ? 'badge-admin' : 
+                        user.role === 'webmestre' ? 'badge-webmestre' : 'badge-membre';
+        
+        var actions = isAdmin && user.username !== currentUser.username ?
+            '<button class="btn-action delete" onclick="deleteUser(' + user.id + ')"><i class="fas fa-trash"></i></button>' :
+            '';
+        
+        var passwordStatus = user.password_changed ? '✅' : '⚠️';
+        
+        return '<tr>' +
+            '<td>' + (index + 1) + '</td>' +
+            '<td>' + user.username + ' ' + passwordStatus + '</td>' +
+            '<td><span class="badge ' + roleClass + '">' + user.role + '</span></td>' +
+            '<td>' + (user.created_at ? new Date(user.created_at).toLocaleDateString() : '') + '</td>' +
+            '<td style="white-space:nowrap;">' + actions + '</td>' +
+            '</tr>';
+    }).join('');
+    
+    document.getElementById('totalUsersStat').textContent = users.length;
+}
 
-        function showUserModal() {
-            var user = getCurrentUser();
-            if (!user || user.role !== 'admin') { showAlert('Seul l\'admin peut gérer les utilisateurs', 'error'); return; }
-            document.getElementById('userModalTitle').textContent = 'Ajouter un utilisateur';
-            document.getElementById('userLogin').value = '';
-            document.getElementById('userPassword').value = '';
-            document.getElementById('userRoleSelect').value = 'membre';
-            currentUserId = null;
-            document.getElementById('userModal').classList.add('active');
-        }
+        // ============================================================
+// FONCTIONS UTILISATEURS
+// ============================================================
 
-        function hideUserModal() { document.getElementById('userModal').classList.remove('active'); }
+function showUserModal() {
+    var user = getCurrentUser();
+    if (!user || user.role !== 'admin') { 
+        showAlert('Seul l\'admin peut gérer les utilisateurs', 'error'); 
+        return; 
+    }
+    document.getElementById('userModalTitle').textContent = 'Ajouter un utilisateur';
+    document.getElementById('userLogin').value = '';
+    document.getElementById('userEmail').value = '';
+    document.getElementById('userPassword').value = '';
+    document.getElementById('userRoleSelect').value = 'membre';
+    currentUserId = null;
+    document.getElementById('userModal').classList.add('active');
+}
 
-        async function saveUser() {
-            var login = document.getElementById('userLogin').value.trim();
-            var password = document.getElementById('userPassword').value.trim();
-            var role = document.getElementById('userRoleSelect').value;
-            if (!login || !password) { showAlert('Veuillez remplir tous les champs', 'error'); return; }
-            var users = await getUsers();
-            if (!currentUserId && users.find(function(u) { return u.username === login; })) {
-                showAlert('Ce nom d\'utilisateur existe déjà', 'error'); return;
+function hideUserModal() {
+    document.getElementById('userModal').classList.remove('active');
+}
+
+async function saveUser() {
+    var login = document.getElementById('userLogin').value.trim();
+    var email = document.getElementById('userEmail').value.trim();
+    var password = document.getElementById('userPassword').value.trim();
+    var role = document.getElementById('userRoleSelect').value;
+    
+    if (!login || !password) { 
+        showAlert('Veuillez remplir tous les champs', 'error'); 
+        return; 
+    }
+    
+    // Si email vide, générer automatiquement
+    if (!email) {
+        email = login + '@ansfal.org';
+    }
+    
+    var users = await getUsers();
+    
+    if (!currentUserId && users.find(function(u) { return u.username === login; })) {
+        showAlert('Ce nom d\'utilisateur existe déjà', 'error'); 
+        return;
+    }
+    
+    var hashedPassword = await hashPassword(password);
+    
+    try {
+        var token = await getSupabaseToken();
+        var headers = { 
+            'apikey': supabaseKey, 
+            'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey, 
+            'Content-Type': 'application/json' 
+        };
+        
+        if (currentUserId) {
+            var updateResp = await fetch(supabaseUrl + '/rest/v1/users?id=eq.' + currentUserId, {
+                method: 'PATCH',
+                headers: headers,
+                body: JSON.stringify({
+                    username: login,
+                    email: email,
+                    password_hash: hashedPassword,
+                    password: password,
+                    role: role,
+                    password_changed: true,
+                    updated_at: new Date().toISOString()
+                })
+            });
+            
+            if (!updateResp.ok) {
+                var errorText = await updateResp.text();
+                throw new Error('Erreur Supabase: ' + errorText);
             }
             
-            var hashedPassword = await hashPassword(password);
-            
+            var existing = users.find(function(u) { return u.id === currentUserId; });
+            if (existing) {
+                existing.username = login;
+                existing.email = email;
+                existing.password_hash = hashedPassword;
+                existing.password = password;
+                existing.role = role;
+                existing.password_changed = true;
+                existing.updated_at = new Date().toISOString();
+            }
+        } else {
             var newUser = { 
-                username: login, 
+                id: Date.now(),
+                username: login,
+                email: email,
                 password_hash: hashedPassword,
-                password: password, // Pour compatibilité
+                password: password,
                 role: role,
-                password_changed: true
+                password_changed: true,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
             };
-            if (currentUserId) {
-                var existing = users.find(function(u) { return u.id === currentUserId; });
-                if (existing) {
-                    existing.username = login;
-                    existing.password_hash = hashedPassword;
-                    existing.password = password;
-                    existing.role = role;
-                    existing.password_changed = true;
-                    existing.updated_at = new Date().toISOString();
-                }
-            } else {
-                newUser.id = Date.now();
-                newUser.created_at = new Date().toISOString();
-                newUser.updated_at = new Date().toISOString();
-                users.push(newUser);
+            
+            var insertResp = await fetch(supabaseUrl + '/rest/v1/users', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({
+                    username: login,
+                    email: email,
+                    password_hash: hashedPassword,
+                    password: password,
+                    role: role,
+                    password_changed: true,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                })
+            });
+            
+            if (!insertResp.ok) {
+                var errorText = await insertResp.text();
+                console.error('❌ Erreur Supabase:', errorText);
+                throw new Error('Erreur Supabase: ' + errorText);
             }
-            await saveUsers(users);
-            DATA.users = await getUsers();
-            showAlert('✅ Utilisateur enregistré', 'success');
-            hideUserModal();
-            renderUsers();
+            
+            users.push(newUser);
         }
+        
+        localStorage.setItem('ansfal_users', JSON.stringify(users));
+        USERS = users;
+        DATA.users = users;
+        
+        showAlert('✅ Utilisateur enregistré dans Supabase', 'success');
+        hideUserModal();
+        
+        DATA.users = await getUsers();
+        renderUsers();
+        
+    } catch (e) { 
+        showAlert('❌ Erreur: ' + e.message, 'error'); 
+        console.error('❌ Erreur détaillée:', e);
+    }
+}
+
+async function deleteUser(id) {
+    var user = getCurrentUser();
+    if (!user || user.role !== 'admin') { 
+        showAlert('Seul l\'admin peut supprimer des utilisateurs', 'error'); 
+        return; 
+    }
+    
+    if (!confirm('Supprimer cet utilisateur définitivement ?')) return;
+    
+    try {
+        var token = await getSupabaseToken();
+        var headers = { 
+            'apikey': supabaseKey, 
+            'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey 
+        };
+        
+        var deleteResp = await fetch(supabaseUrl + '/rest/v1/users?id=eq.' + id, {
+            method: 'DELETE',
+            headers: headers
+        });
+        
+        if (!deleteResp.ok) {
+            var errorText = await deleteResp.text();
+            throw new Error('Erreur Supabase: ' + errorText);
+        }
+        
+        var users = await getUsers();
+        users = users.filter(function(u) { return u.id !== id; });
+        localStorage.setItem('ansfal_users', JSON.stringify(users));
+        
+        DATA.users = users;
+        USERS = users;
+        
+        showAlert('✅ Utilisateur supprimé de Supabase', 'success');
+        renderUsers();
+        
+    } catch (e) { 
+        showAlert('❌ Erreur: ' + e.message, 'error'); 
+        console.error('❌ Erreur détaillée:', e);
+    }
+}
+
+async function refreshUsersFromSupabase() {
+    try {
+        var token = await getSupabaseToken();
+        var headers = { 
+            'apikey': supabaseKey, 
+            'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey 
+        };
+        
+        var resp = await fetch(supabaseUrl + '/rest/v1/users?select=*', { 
+            headers: headers,
+            mode: 'cors'
+        });
+        
+        if (resp.ok) { 
+            var data = await resp.json(); 
+            if (data && data.length > 0) {
+                DATA.users = data;
+                USERS = data;
+                localStorage.setItem('ansfal_users', JSON.stringify(data));
+                renderUsers();
+                showAlert('✅ Utilisateurs rechargés depuis Supabase', 'success');
+                return;
+            }
+        }
+        
+        showAlert('⚠️ Aucun utilisateur trouvé dans Supabase', 'warning');
+        
+    } catch (e) { 
+        showAlert('❌ Erreur: ' + e.message, 'error'); 
+        console.error('❌ Erreur détaillée:', e);
+    }
+}
 
         async function deleteUser(id) {
-            var user = getCurrentUser();
-            if (!user || user.role !== 'admin') { showAlert('Seul l\'admin peut supprimer des utilisateurs', 'error'); return; }
-            if (!confirm('Supprimer cet utilisateur ?')) return;
-            var users = await getUsers();
-            users = users.filter(function(u) { return u.id !== id; });
-            await saveUsers(users);
-            DATA.users = await getUsers();
-            showAlert('✅ Utilisateur supprimé', 'success');
-            renderUsers();
+    var user = getCurrentUser();
+    if (!user || user.role !== 'admin') { 
+        showAlert('Seul l\'admin peut supprimer des utilisateurs', 'error'); 
+        return; 
+    }
+    
+    if (!confirm('Supprimer cet utilisateur définitivement ?')) return;
+    
+    try {
+        var token = await getSupabaseToken();
+        var headers = { 
+            'apikey': supabaseKey, 
+            'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey 
+        };
+        
+        // Supprimer dans Supabase
+        var deleteResp = await fetch(supabaseUrl + '/rest/v1/users?id=eq.' + id, {
+            method: 'DELETE',
+            headers: headers
+        });
+        
+        if (!deleteResp.ok) {
+            var errorText = await deleteResp.text();
+            throw new Error('Erreur Supabase: ' + errorText);
         }
+        
+        // Supprimer dans localStorage
+        var users = await getUsers();
+        users = users.filter(function(u) { return u.id !== id; });
+        localStorage.setItem('ansfal_users', JSON.stringify(users));
+        
+        DATA.users = users;
+        USERS = users;
+        
+        showAlert('✅ Utilisateur supprimé de Supabase', 'success');
+        renderUsers();
+        
+    } catch (e) { 
+        showAlert('❌ Erreur: ' + e.message, 'error'); 
+        console.error('❌ Erreur détaillée:', e);
+    }
+}
 
         // ============================================================
         // FILE VIEWER
@@ -5782,6 +6024,91 @@ async function getUsersFromSupabase() {
                 console.error(e);
             }
         }
+window.refreshUsersFromSupabase = refreshUsersFromSupabase;
+// ============================================================
+// EXPOSER LES FONCTIONS GLOBALEMENT
+// ============================================================
+window.showSection = showSection;
+window.showDashboardSection = showDashboardSection;
+window.switchLanguage = switchLanguage;
+window.login = login;
+window.logout = logout;
+window.showUploadModal = showUploadModal;
+window.hideUploadModal = hideUploadModal;
+window.selectUploadMode = selectUploadMode;
+window.uploadFiles = uploadFiles;
+window.addUrlMedia = addUrlMedia;
+window.removeFile = removeFile;
+window.showTextModal = showTextModal;
+window.hideTextModal = hideTextModal;
+window.saveTextContent = saveTextContent;
+window.editText = editText;
+window.deleteText = deleteText;
+window.showConseilModal = showConseilModal;
+window.hideConseilModal = hideConseilModal;
+window.switchConseilTab = switchConseilTab;
+window.saveConseilMember = saveConseilMember;
+window.editConseil = editConseil;
+window.deleteConseil = deleteConseil;
+window.showDocumentModal = showDocumentModal;
+window.hideDocumentModal = hideDocumentModal;
+window.saveDocument = saveDocument;
+window.deleteDocument = deleteDocument;
+window.showAdherentModal = showAdherentModal;
+window.hideAdherentModal = hideAdherentModal;
+window.saveAdherent = saveAdherent;
+window.editAdherent = editAdherent;
+window.deleteAdherent = deleteAdherent;
+window.printAdherentCard = printAdherentCard;
+window.exportAdherents = exportAdherents;
+window.showLocaliteModal = showLocaliteModal;
+window.hideLocaliteModal = hideLocaliteModal;
+window.saveLocalite = saveLocalite;
+window.editLocalite = editLocalite;
+window.deleteLocalite = deleteLocalite;
+window.renderLocalites = renderLocalites;
+window.showUserModal = showUserModal;
+window.hideUserModal = hideUserModal;      // <-- AJOUTEZ CETTE LIGNE
+window.saveUser = saveUser;                // <-- AJOUTEZ CETTE LIGNE
+window.deleteUser = deleteUser;            // <-- AJOUTEZ CETTE LIGNE
+window.refreshUsersFromSupabase = refreshUsersFromSupabase; // <-- AJOUTEZ CETTE LIGNE
+window.showGenericModal = showGenericModal;
+window.hideGenericModal = hideGenericModal;
+window.saveGenericItem = saveGenericItem;
+window.editGenericItem = editGenericItem;
+window.deleteGenericItem = deleteGenericItem;
+window.showBankAccountModal = showBankAccountModal;
+window.hideBankAccountModal = hideBankAccountModal;
+window.saveBankAccountFromModal = saveBankAccountFromModal;
+window.saveBankAccount = saveBankAccount;
+window.showPasswordModal = showPasswordModal;
+window.hidePasswordModal = hidePasswordModal;
+window.changePassword = changePassword;
+window.exportToJSON = exportToJSON;
+window.resetAllData = resetAllData;
+window.selectCard = selectCard;
+window.processPayment = processPayment;
+window.submitActu = submitActu;
+window.publishActu = publishActu;
+window.deleteActu = deleteActu;
+window.viewMedia = viewMedia;
+window.viewPDF = viewPDF;
+window.closeFileViewer = closeFileViewer;
+window.printDocument = printDocument;
+window.hidePrintModal = hidePrintModal;
+window.saveContactInfo = saveContactInfo;
+window.uploadLogoToSupabase = uploadLogoToSupabase;
+window.saveTickerText = saveTickerText;
+window.loadTickerFromSupabase = loadTickerFromSupabase;
+window.updateTickerText = updateTickerText;
+window.loadLocalites = loadLocalites;
+window.loadAdherents = loadAdherents;
+window.loadAllTables = loadAllTables;
+window.closeForcedPasswordModal = closeForcedPasswordModal;
+window.changeForcedPassword = changeForcedPassword;
+window.editGalleryTitlePrompt = editGalleryTitlePrompt;
+window.editVideoTitlePrompt = editVideoTitlePrompt;
+window.deleteMedia = deleteMedia;
     </script>
 </body>
 </html>
