@@ -16,7 +16,7 @@
 
     <style>
         /* ============================================================
-           STYLES COMPLETS
+           STYLES COMPLETS (inchangés)
            ============================================================ */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -770,6 +770,77 @@
             .card-item { width: 70px; padding: 10px 5px; }
             .card-item .card-name { font-size: 0.6rem; }
             .actu-form { padding: 15px; }
+        }
+
+        /* Modale changement mot de passe obligatoire */
+        #forcedPasswordModal .modal {
+            max-width: 500px;
+        }
+        #forcedPasswordModal .modal-body {
+            text-align: center;
+        }
+        #forcedPasswordModal .modal-body .warning-icon {
+            font-size: 4rem;
+            color: var(--warning);
+            margin-bottom: 15px;
+        }
+        #forcedPasswordModal .modal-body .info-text {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        #forcedPasswordModal .modal-body input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            transition: border-color 0.3s;
+        }
+        #forcedPasswordModal .modal-body input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        #forcedPasswordModal .modal-body .btn-change-password {
+            width: 100%;
+            padding: 12px;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        #forcedPasswordModal .modal-body .btn-change-password:hover {
+            background: #219653;
+            transform: translateY(-2px);
+        }
+        #forcedPasswordModal .modal-body .error-message {
+            color: var(--danger);
+            font-size: 0.9rem;
+            margin-top: 10px;
+            display: none;
+        }
+        #forcedPasswordModal .modal-body .password-requirements {
+            text-align: left;
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 6px;
+        }
+        #forcedPasswordModal .modal-body .password-requirements ul {
+            margin: 5px 0 0 20px;
+        }
+        #forcedPasswordModal .modal-body .password-requirements ul li {
+            margin: 2px 0;
+        }
+        body.rtl #forcedPasswordModal .modal-body .password-requirements ul {
+            margin: 5px 20px 0 0;
         }
     </style>
 </head>
@@ -1813,6 +1884,38 @@
         </div>
     </div>
 
+    <!-- MODALE CHANGEMENT MOT DE PASSE OBLIGATOIRE -->
+    <div class="modal-overlay" id="forcedPasswordModal">
+        <div class="modal">
+            <div class="modal-header" style="background:linear-gradient(135deg, var(--warning), #e67e22);">
+                <h3 class="modal-title"><i class="fas fa-key"></i> <span id="forcedPasswordTitle">Changement de mot de passe obligatoire</span></h3>
+                <button class="close-modal" onclick="closeForcedPasswordModal()" style="display:none;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="warning-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <h2 style="color:var(--dark);margin-bottom:10px;" id="forcedPasswordGreeting">Bienvenue Admin !</h2>
+                <p class="info-text" id="forcedPasswordMessage">Pour des raisons de sécurité, vous devez changer votre mot de passe avant de continuer.</p>
+                
+                <div class="password-requirements">
+                    <strong><i class="fas fa-info-circle"></i> <span id="forcedPasswordRequirementsTitle">Exigences du mot de passe :</span></strong>
+                    <ul>
+                        <li id="reqLength">• Minimum 8 caractères</li>
+                        <li id="reqUppercase">• Au moins une majuscule</li>
+                        <li id="reqLowercase">• Au moins une minuscule</li>
+                        <li id="reqNumber">• Au moins un chiffre</li>
+                    </ul>
+                </div>
+                
+                <input type="password" id="forcedNewPassword" placeholder="Nouveau mot de passe" autocomplete="new-password" />
+                <input type="password" id="forcedConfirmPassword" placeholder="Confirmer le mot de passe" autocomplete="new-password" />
+                <div class="error-message" id="forcedPasswordError"></div>
+                <button class="btn-change-password" onclick="changeForcedPassword()">
+                    <i class="fas fa-save"></i> <span id="forcedChangeBtnText">Changer le mot de passe</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODALE GÉNÉRIQUE -->
     <div class="modal-overlay" id="genericModal">
         <div class="modal">
@@ -1880,7 +1983,8 @@
             visitors: 0,
             isAdmin: false,
             currentUser: null,
-            userRole: null
+            userRole: null,
+            forcePasswordChange: false
         };
 
         var currentLang = 'fr';
@@ -1896,6 +2000,7 @@
         var currentUserId = null;
         var currentAdherentId = null;
         var selectedLogoFile = null;
+        var forcedUserData = null;
 
         var weatherCities = ['Azilal', 'Zaouiat Ahansal', 'Ansfal', 'Azourki', 'Ait Mhmed', 'Tabant', 'Tilougguite'];
         var weatherIndex = 0;
@@ -1903,57 +2008,148 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
         // ============================================================
+        // FONCTIONS CRYPTO POUR HACHAGE
+        // ============================================================
+        // Fonction de hachage SHA-256 simple (utilise l'API Crypto)
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Vérifier si un mot de passe correspond à un hash
+        async function verifyPassword(password, hash) {
+            const hashedInput = await hashPassword(password);
+            return hashedInput === hash;
+        }
+
+        // ============================================================
         // UTILISATEURS
         // ============================================================
-        var USERS = [
-            { id: 1, username: 'admin', password: 'admin', role: 'admin' },
-            { id: 2, username: 'webmaster', password: 'webmaster', role: 'webmestre' },
-            { id: 3, username: 'membre', password: 'membre', role: 'membre' }
-        ];
+        // Utilisateur admin par défaut (haché en SHA-256)
+        // Mot de passe par défaut: "Admin123!" (haché)
+        var DEFAULT_ADMIN = {
+            id: 1,
+            username: 'admin',
+            password_hash: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', // Admin123!
+            role: 'admin',
+            password_changed: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
+
+        // Tableau des utilisateurs (chargé depuis Supabase ou localStorage)
+        var USERS = [DEFAULT_ADMIN];
 
         async function getUsers() {
-            try {
-                var token = await getSupabaseToken();
-                var headers = { 'apikey': supabaseKey, 'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey };
-                var resp = await fetch(supabaseUrl + '/rest/v1/users?select=*', { headers: headers });
-                if (resp.ok) { var data = await resp.json(); if (data && data.length > 0) return data; }
-            } catch (e) { console.warn('⚠️ Erreur chargement utilisateurs:', e); }
-            try { var saved = localStorage.getItem('ansfal_users'); if (saved) { var parsed = JSON.parse(saved); if (parsed && parsed.length > 0) return parsed; } } catch (e) {}
-            return USERS;
-        }
+    // Essayer de charger depuis Supabase d'abord
+    var supabaseUsers = await getUsersFromSupabase();
+    if (supabaseUsers && supabaseUsers.length > 0) {
+        USERS = supabaseUsers;
+        return USERS;
+    }
+    
+    // Fallback: localStorage
+    try { 
+        var saved = localStorage.getItem('ansfal_users'); 
+        if (saved) { 
+            var parsed = JSON.parse(saved); 
+            if (parsed && parsed.length > 0) {
+                USERS = parsed;
+                return USERS;
+            }
+        } 
+    } catch (e) {}
+    
+    // Si rien, retourner le default admin
+    if (!USERS || USERS.length === 0) {
+        USERS = [DEFAULT_ADMIN];
+    }
+    return USERS;
+}
 
         async function saveUsers(users) {
             try {
+                // Sauvegarder en local
                 localStorage.setItem('ansfal_users', JSON.stringify(users));
+                
+                // Sauvegarder dans Supabase
                 for (var u of users) {
                     var token = await getSupabaseToken();
-                    var headers = { 'apikey': supabaseKey, 'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey, 'Content-Type': 'application/json' };
+                    var headers = { 
+                        'apikey': supabaseKey, 
+                        'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey, 
+                        'Content-Type': 'application/json' 
+                    };
+                    
+                    // Vérifier si l'utilisateur existe déjà
                     var checkResp = await fetch(supabaseUrl + '/rest/v1/users?username=eq.' + u.username, { headers: headers });
                     var existing = await checkResp.json();
+                    
+                    var userData = {
+                        username: u.username,
+                        password_hash: u.password_hash || u.password,
+                        role: u.role || 'membre',
+                        password_changed: u.password_changed || false,
+                        updated_at: new Date().toISOString()
+                    };
+                    
                     if (existing && existing.length > 0) {
                         await fetch(supabaseUrl + '/rest/v1/users?id=eq.' + existing[0].id, {
-                            method: 'PATCH', headers: headers,
-                            body: JSON.stringify({ password: u.password, role: u.role, updated_at: new Date().toISOString() })
+                            method: 'PATCH', 
+                            headers: headers,
+                            body: JSON.stringify(userData)
                         });
                     } else {
+                        userData.created_at = new Date().toISOString();
                         await fetch(supabaseUrl + '/rest/v1/users', {
-                            method: 'POST', headers: headers,
-                            body: JSON.stringify({ email: u.username + '@ansfal.org', username: u.username, password: u.password, role: u.role, created_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+                            method: 'POST', 
+                            headers: headers,
+                            body: JSON.stringify(userData)
                         });
                     }
                 }
-            } catch (e) { console.warn('⚠️ Erreur sauvegarde utilisateurs:', e); }
+                USERS = users;
+                DATA.users = users;
+            } catch (e) { 
+                console.warn('⚠️ Erreur sauvegarde utilisateurs:', e); 
+                // Fallback: localStorage
+                try {
+                    localStorage.setItem('ansfal_users', JSON.stringify(users));
+                } catch (e2) {}
+            }
         }
 
         // ============================================================
         // AUTH
         // ============================================================
         async function loginSupabase(email, password) {
-            try { const { data, error } = await supabase.auth.signInWithPassword({ email: email, password: password }); if (error) throw error; return data; } catch (e) { return null; }
+            try { 
+                const { data, error } = await supabase.auth.signInWithPassword({ email: email, password: password }); 
+                if (error) throw error; 
+                return data; 
+            } catch (e) { 
+                console.warn('⚠️ Erreur login Supabase:', e.message);
+                return null; 
+            }
         }
-        async function logoutSupabase() { try { await supabase.auth.signOut(); return true; } catch (e) { return false; } }
-        async function getSupabaseSession() { try { const { data, error } = await supabase.auth.getSession(); if (error) throw error; return data.session; } catch (e) { return null; } }
-        async function getSupabaseToken() { var session = await getSupabaseSession(); return session?.access_token || null; }
+        async function logoutSupabase() { 
+            try { await supabase.auth.signOut(); return true; } 
+            catch (e) { return false; } 
+        }
+        async function getSupabaseSession() { 
+            try { 
+                const { data, error } = await supabase.auth.getSession(); 
+                if (error) throw error; 
+                return data.session; 
+            } catch (e) { return null; } 
+        }
+        async function getSupabaseToken() { 
+            var session = await getSupabaseSession(); 
+            return session?.access_token || null; 
+        }
         async function fetchWithSupabaseAuth(url, options = {}) {
             var token = await getSupabaseToken();
             var headers = { 'apikey': supabaseKey, 'Content-Type': 'application/json', ...options.headers };
@@ -1962,91 +2158,316 @@
             return fetch(url, { ...options, headers: headers });
         }
 
-        async function login() {
-            var t = getLang();
-            var user = document.getElementById('username').value.trim();
-            var pass = document.getElementById('password').value.trim();
-            if (!user || !pass) { showAlert(t.alertFillFields, 'error'); return; }
-            var email = user.includes('@') ? user : user + '@ansfal.org';
-            showAlert('Connexion en cours...', 'info');
-            var authResult = await loginSupabase(email, pass);
-            if (authResult) {
-                try {
-                    var token = await getSupabaseToken();
-                    var headers = { 'apikey': supabaseKey, 'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey };
-                    var resp = await fetch(supabaseUrl + '/rest/v1/users?username=eq.' + user, { headers: headers });
-                    if (resp.ok) {
-                        var users = await resp.json();
-                        var found = users.find(function(u) { return u.username === user && u.password === pass; });
-                        if (found) {
-                            DATA.isAdmin = found.role === 'admin';
-                            DATA.currentUser = found;
-                            DATA.userRole = found.role;
-                            showAlert(t.alertLoginSuccess + ' (' + found.role + ')', 'success');
-                            document.getElementById('loginForm').classList.add('hidden');
-                            document.getElementById('userInfo').classList.remove('hidden');
-                            document.getElementById('userName').textContent = user;
-                            document.getElementById('userRole').textContent = found.role;
-                            document.body.classList.add('admin-mode');
-                            document.getElementById('addBtn').style.display = 'flex';
-                            document.getElementById('loginBtn').style.display = 'none';
-                            document.getElementById('menuDashboard').classList.remove('hidden');
-                            document.getElementById('bankAccountEditBtn').style.display = 'inline-block';
-                            document.getElementById('conseilProtected').style.display = 'none';
-                            document.getElementById('conseilContent').style.display = 'block';
-                            document.getElementById('documentsProtected').style.display = 'none';
-                            document.getElementById('documentsContent').style.display = 'block';
-                            if (found.role === 'admin' || found.role === 'webmestre') document.getElementById('contactEditForm').style.display = 'block';
-                            else document.getElementById('contactEditForm').style.display = 'none';
-                            if (found.role === 'membre') document.querySelectorAll('.admin-only').forEach(function(el) { el.style.display = 'none'; });
-                            setCurrentUser(found);
-                            await loadAllTables();
-                            renderAll();
-                            showSection('dashboard');
-                            return;
-                        }
-                    }
-                } catch (e) { console.warn('⚠️ Erreur récupération utilisateur:', e); }
-            }
-            var fallbackUsers = getUsersLocal();
-            var found = fallbackUsers.find(function(u) { return u.username === user && u.password === pass; });
-            if (found) {
-                DATA.isAdmin = found.role === 'admin';
-                DATA.currentUser = found;
-                DATA.userRole = found.role;
-                showAlert(t.alertLoginSuccess + ' (' + found.role + ')', 'success');
-                document.getElementById('loginForm').classList.add('hidden');
-                document.getElementById('userInfo').classList.remove('hidden');
-                document.getElementById('userName').textContent = user;
-                document.getElementById('userRole').textContent = found.role;
-                document.body.classList.add('admin-mode');
-                document.getElementById('addBtn').style.display = 'flex';
-                document.getElementById('loginBtn').style.display = 'none';
-                document.getElementById('menuDashboard').classList.remove('hidden');
-                document.getElementById('bankAccountEditBtn').style.display = 'inline-block';
-                document.getElementById('conseilProtected').style.display = 'none';
-                document.getElementById('conseilContent').style.display = 'block';
-                document.getElementById('documentsProtected').style.display = 'none';
-                document.getElementById('documentsContent').style.display = 'block';
-                if (found.role === 'admin' || found.role === 'webmestre') document.getElementById('contactEditForm').style.display = 'block';
-                else document.getElementById('contactEditForm').style.display = 'none';
-                if (found.role === 'membre') document.querySelectorAll('.admin-only').forEach(function(el) { el.style.display = 'none'; });
-                setCurrentUser(found);
-                await loadAllTables();
-                renderAll();
-                showSection('dashboard');
-            } else {
-                showAlert(t.alertInvalidCredentials, 'error');
+        // Fonction pour initialiser l'utilisateur admin par défaut dans Supabase
+       async function initializeAdminUser() {
+    try {
+        var users = await getUsersFromSupabase();
+        var hasAdmin = users.some(function(u) { return u.username === 'admin'; });
+        
+        if (!hasAdmin) {
+            console.log('📝 Création de l\'utilisateur admin par défaut...');
+            var token = await getSupabaseToken();
+            var headers = { 
+                'apikey': supabaseKey, 
+                'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey, 
+                'Content-Type': 'application/json' 
+            };
+            
+            var newAdmin = {
+                username: 'admin',
+                password_hash: DEFAULT_ADMIN.password_hash,
+                password: 'admin123',
+                role: 'admin',
+                password_changed: false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            };
+            
+            await fetch(supabaseUrl + '/rest/v1/users', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(newAdmin)
+            });
+            
+            console.log('✅ Utilisateur admin créé avec succès');
+        } else {
+            // Vérifier si admin a déjà changé son mot de passe
+            var admin = users.find(function(u) { return u.username === 'admin'; });
+            if (admin && admin.password_changed) {
+                console.log('✅ Admin a déjà changé son mot de passe');
+                // Mettre à jour la variable globale
+                var changed = localStorage.getItem('ansfal_admin_changed');
+                if (changed === 'true') {
+                    console.log('✅ Flag admin_changed trouvé dans localStorage');
+                }
             }
         }
+    } catch (e) {
+        console.error('❌ Erreur lors de l\'initialisation de l\'admin:', e);
+    }
+}
 
-        function getUsersLocal() { try { var saved = localStorage.getItem('ansfal_users'); if (saved) { var parsed = JSON.parse(saved); if (parsed && parsed.length > 0) return parsed; } } catch (e) {} return USERS; }
+async function login() {
+    var t = getLang();
+    var user = document.getElementById('username').value.trim();
+    var pass = document.getElementById('password').value.trim();
+    if (!user || !pass) { showAlert(t.alertFillFields, 'error'); return; }
+
+    showAlert('Connexion en cours...', 'info');
+
+    // Récupérer les utilisateurs
+    var users = await getUsers();
+    console.log('👥 Utilisateurs chargés:', users);
+    
+    var found = null;
+    for (var u of users) {
+        if (u.username === user) {
+            var isValid = false;
+            
+            // Vérifier avec le hash
+            if (u.password_hash) {
+                var hashedInput = await hashPassword(pass);
+                console.log('🔑 Hash saisi:', hashedInput);
+                console.log('🔑 Hash stocké:', u.password_hash);
+                isValid = (hashedInput === u.password_hash);
+            }
+            
+            // Compatibilité avec l'ancien format
+            if (!isValid && u.password) {
+                isValid = (u.password === pass);
+            }
+            
+            // Fallback pour admin123
+            if (!isValid && user === 'admin' && pass === 'admin123' && !u.password_changed) {
+                isValid = true;
+                console.log('⚠️ Connexion avec le mot de passe par défaut');
+            }
+            
+            if (isValid) {
+                found = u;
+                break;
+            }
+        }
+    }
+
+    if (found) {
+        DATA.isAdmin = found.role === 'admin' || found.role === 'webmestre';
+        DATA.currentUser = found;
+        DATA.userRole = found.role;
+        
+        // Vérifier si le mot de passe doit être changé
+        // IMPORTANT: Vérifier aussi dans localStorage
+        var adminChanged = localStorage.getItem('ansfal_admin_changed') === 'true';
+        
+        if (found.username === 'admin' && !found.password_changed && !adminChanged) {
+            DATA.forcePasswordChange = true;
+            forcedUserData = found;
+            showForcedPasswordModal(found.username);
+            showAlert('⚠️ Vous devez changer votre mot de passe', 'warning');
+            return;
+        }
+
+        showAlert(t.alertLoginSuccess + ' (' + found.role + ')', 'success');
+        completeLogin(found);
+        await loadAllTables();
+        renderAll();
+        showSection('dashboard');
+    } else {
+        showAlert('❌ ' + t.alertInvalidCredentials, 'error');
+    }
+}
+
+        function showForcedPasswordModal(username) {
+            var modal = document.getElementById('forcedPasswordModal');
+            document.getElementById('forcedPasswordGreeting').textContent = 'Bienvenue ' + username + ' !';
+            document.getElementById('forcedNewPassword').value = '';
+            document.getElementById('forcedConfirmPassword').value = '';
+            document.getElementById('forcedPasswordError').style.display = 'none';
+            modal.classList.add('active');
+        }
+
+        function closeForcedPasswordModal() {
+            // Ne pas permettre de fermer la modale sans changer le mot de passe
+            showAlert('⚠️ Vous devez changer votre mot de passe pour continuer', 'error');
+        }
+
+        async function changeForcedPassword() {
+    var newPass = document.getElementById('forcedNewPassword').value.trim();
+    var confirmPass = document.getElementById('forcedConfirmPassword').value.trim();
+    var errorEl = document.getElementById('forcedPasswordError');
+    errorEl.style.display = 'none';
+
+    // Vérifications
+    if (!newPass || newPass.length < 8) {
+        errorEl.textContent = '⚠️ Le mot de passe doit contenir au moins 8 caractères.';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    if (!/[A-Z]/.test(newPass)) {
+        errorEl.textContent = '⚠️ Le mot de passe doit contenir au moins une majuscule.';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    if (!/[a-z]/.test(newPass)) {
+        errorEl.textContent = '⚠️ Le mot de passe doit contenir au moins une minuscule.';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    if (!/[0-9]/.test(newPass)) {
+        errorEl.textContent = '⚠️ Le mot de passe doit contenir au moins un chiffre.';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    if (newPass !== confirmPass) {
+        errorEl.textContent = '⚠️ Les mots de passe ne correspondent pas.';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    try {
+        showAlert('Mise à jour du mot de passe en cours...', 'info');
+
+        // Hacher le nouveau mot de passe
+        var hashedPassword = await hashPassword(newPass);
+        console.log('🔑 Nouveau hash:', hashedPassword);
+
+        // Récupérer les utilisateurs actuels
+        var users = await getUsersFromSupabase();
+        console.log('👥 Utilisateurs avant mise à jour:', users);
+        
+        // Trouver l'utilisateur admin
+        var userToUpdate = users.find(function(u) { 
+            return u.username === 'admin' || u.id === forcedUserData.id; 
+        });
+        
+        if (userToUpdate) {
+            // Mettre à jour les données
+            userToUpdate.password_hash = hashedPassword;
+            userToUpdate.password = newPass;
+            userToUpdate.password_changed = true;
+            userToUpdate.updated_at = new Date().toISOString();
+            
+            console.log('📝 Utilisateur mis à jour:', userToUpdate);
+            
+            // === SAUVEGARDE FORCÉE DANS SUPABASE ===
+            var token = await getSupabaseToken();
+            var headers = { 
+                'apikey': supabaseKey, 
+                'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey, 
+                'Content-Type': 'application/json' 
+            };
+            
+            // Mettre à jour dans Supabase
+            var updateResp = await fetch(supabaseUrl + '/rest/v1/users?id=eq.' + userToUpdate.id, {
+                method: 'PATCH',
+                headers: headers,
+                body: JSON.stringify({
+                    password_hash: hashedPassword,
+                    password: newPass,
+                    password_changed: true,
+                    updated_at: new Date().toISOString()
+                })
+            });
+            
+            if (!updateResp.ok) {
+                var errorText = await updateResp.text();
+                throw new Error('Erreur Supabase: ' + errorText);
+            }
+            
+            console.log('✅ Mise à jour Supabase réussie');
+            
+            // === SAUVEGARDE DANS LOCALSTORAGE ===
+            localStorage.setItem('ansfal_users', JSON.stringify(users));
+            localStorage.setItem('ansfal_admin_changed', 'true');
+            
+            // Mettre à jour les variables globales
+            USERS = users;
+            DATA.users = users;
+            
+            console.log('✅ Sauvegarde terminée');
+
+            // Fermer la modale
+            document.getElementById('forcedPasswordModal').classList.remove('active');
+            DATA.forcePasswordChange = false;
+
+            // Recharger l'utilisateur
+            var updatedUser = users.find(function(u) { return u.id === userToUpdate.id; });
+            
+            showAlert('✅ Mot de passe changé avec succès !', 'success');
+            
+            // Connecter l'utilisateur
+            completeLogin(updatedUser);
+            await loadAllTables();
+            renderAll();
+            showSection('dashboard');
+            
+        } else {
+            errorEl.textContent = '❌ Utilisateur non trouvé';
+            errorEl.style.display = 'block';
+        }
+    } catch (e) {
+        errorEl.textContent = '❌ Erreur: ' + e.message;
+        errorEl.style.display = 'block';
+        console.error('❌ Erreur détaillée:', e);
+    }
+}
+
+        function completeLogin(user) {
+            var t = getLang();
+            DATA.currentUser = user;
+            DATA.userRole = user.role;
+            DATA.isAdmin = user.role === 'admin' || user.role === 'webmestre';
+
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('userInfo').classList.remove('hidden');
+            document.getElementById('userName').textContent = user.username;
+            document.getElementById('userRole').textContent = user.role;
+            document.body.classList.add('admin-mode');
+            document.getElementById('addBtn').style.display = 'flex';
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('menuDashboard').classList.remove('hidden');
+            document.getElementById('bankAccountEditBtn').style.display = 'inline-block';
+            document.getElementById('conseilProtected').style.display = 'none';
+            document.getElementById('conseilContent').style.display = 'block';
+            document.getElementById('documentsProtected').style.display = 'none';
+            document.getElementById('documentsContent').style.display = 'block';
+            
+            if (user.role === 'admin' || user.role === 'webmestre') {
+                document.getElementById('contactEditForm').style.display = 'block';
+            } else {
+                document.getElementById('contactEditForm').style.display = 'none';
+            }
+            
+            if (user.role === 'membre') {
+                document.querySelectorAll('.admin-only').forEach(function(el) { el.style.display = 'none'; });
+            }
+
+            setCurrentUser(user);
+        }
+
+        function getUsersLocal() { 
+            try { 
+                var saved = localStorage.getItem('ansfal_users'); 
+                if (saved) { 
+                    var parsed = JSON.parse(saved); 
+                    if (parsed && parsed.length > 0) return parsed; 
+                } 
+            } catch (e) {} 
+            return USERS; 
+        }
 
         async function logout() {
             var t = getLang();
             if (!confirm(t.alertLogout + ' ?')) return;
             await logoutSupabase();
-            DATA.isAdmin = false; DATA.currentUser = null; DATA.userRole = null;
+            DATA.isAdmin = false; 
+            DATA.currentUser = null; 
+            DATA.userRole = null;
+            DATA.forcePasswordChange = false;
             document.getElementById('loginForm').classList.remove('hidden');
             document.getElementById('userInfo').classList.add('hidden');
             document.body.classList.remove('admin-mode');
@@ -2065,46 +2486,76 @@
             showSection('home');
         }
 
-        function getCurrentUser() { try { var saved = localStorage.getItem('ansfal_current_user'); if (saved) return JSON.parse(saved); } catch (e) {} return null; }
-        function setCurrentUser(user) { try { localStorage.setItem('ansfal_current_user', JSON.stringify(user)); } catch (e) {} }
+        function getCurrentUser() { 
+            try { 
+                var saved = localStorage.getItem('ansfal_current_user'); 
+                if (saved) return JSON.parse(saved); 
+            } catch (e) {} 
+            return null; 
+        }
+        function setCurrentUser(user) { 
+            try { localStorage.setItem('ansfal_current_user', JSON.stringify(user)); } 
+            catch (e) {} 
+        }
 
-        async function initAuth() {
-            var session = await getSupabaseSession();
-            if (session) {
-                var username = session.user.email.replace('@ansfal.org', '');
-                try {
-                    var token = await getSupabaseToken();
-                    var headers = { 'apikey': supabaseKey, 'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey };
-                    var resp = await fetch(supabaseUrl + '/rest/v1/users?username=eq.' + username, { headers: headers });
-                    if (resp.ok) {
-                        var users = await resp.json();
-                        var found = users.find(function(u) { return u.username === username; });
-                        if (found) {
-                            DATA.isAdmin = found.role === 'admin';
-                            DATA.currentUser = found;
-                            DATA.userRole = found.role;
-                            document.getElementById('loginForm').classList.add('hidden');
-                            document.getElementById('userInfo').classList.remove('hidden');
-                            document.getElementById('userName').textContent = found.username;
-                            document.getElementById('userRole').textContent = found.role;
-                            document.body.classList.add('admin-mode');
-                            document.getElementById('addBtn').style.display = 'flex';
-                            document.getElementById('loginBtn').style.display = 'none';
-                            document.getElementById('menuDashboard').classList.remove('hidden');
-                            document.getElementById('bankAccountEditBtn').style.display = 'inline-block';
-                            if (found.role === 'admin' || found.role === 'webmestre') document.getElementById('contactEditForm').style.display = 'block';
-                            document.getElementById('conseilProtected').style.display = 'none';
-                            document.getElementById('conseilContent').style.display = 'block';
-                            document.getElementById('documentsProtected').style.display = 'none';
-                            document.getElementById('documentsContent').style.display = 'block';
-                            setCurrentUser(found);
-                        }
-                    }
-                } catch (e) { console.warn('⚠️ Erreur récupération utilisateur:', e); }
-            } else {
-                document.getElementById('bankAccountEditBtn').style.display = 'none';
+        
+async function initAuth() {
+    // Initialiser l'utilisateur admin par défaut
+    await initializeAdminUser();
+    
+    // Déboguer les utilisateurs
+    await debugUsers();
+
+    var session = await getSupabaseSession();
+    if (session) {
+        var username = session.user.email.replace('@ansfal.org', '');
+        try {
+            var users = await getUsers();
+            var found = users.find(function(u) { return u.username === username; });
+            if (found) {
+                if (found.username === 'admin' && !found.password_changed) {
+                    DATA.forcePasswordChange = true;
+                    forcedUserData = found;
+                    showForcedPasswordModal(found.username);
+                    return;
+                }
+                completeLogin(found);
+            }
+        } catch (e) { console.warn('⚠️ Erreur récupération utilisateur:', e); }
+    } else {
+        document.getElementById('bankAccountEditBtn').style.display = 'none';
+    }
+}
+async function getUsersFromSupabase() {
+    try {
+        var token = await getSupabaseToken();
+        var headers = { 
+            'apikey': supabaseKey, 
+            'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey 
+        };
+        var resp = await fetch(supabaseUrl + '/rest/v1/users?select=*', { headers: headers });
+        if (resp.ok) { 
+            var data = await resp.json(); 
+            if (data && data.length > 0) {
+                return data;
             }
         }
+    } catch (e) { 
+        console.warn('⚠️ Erreur chargement depuis Supabase:', e); 
+    }
+    
+    // Fallback: localStorage
+    try { 
+        var saved = localStorage.getItem('ansfal_users'); 
+        if (saved) { 
+            var parsed = JSON.parse(saved); 
+            if (parsed && parsed.length > 0) return parsed; 
+        } 
+    } catch (e) {}
+    
+    // Fallback: utilisateur par défaut
+    return [DEFAULT_ADMIN];
+}
 
         // ============================================================
         // LOGO
@@ -2305,9 +2756,15 @@
             var div = document.createElement('div');
             div.className = 'alert ' + (type || 'info');
             var icon = type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle';
+            if (type === 'warning') {
+                div.style.background = '#fff3cd';
+                div.style.color = '#856404';
+                div.style.border = '1px solid #ffc107';
+                icon = 'exclamation-triangle';
+            }
             div.innerHTML = '<i class="fas fa-' + icon + '"></i> ' + message;
             document.body.appendChild(div);
-            setTimeout(function() { div.remove(); }, 4000);
+            setTimeout(function() { div.remove(); }, 5000);
         }
 
         // ============================================================
@@ -3663,503 +4120,377 @@
         // ============================================================
         // DOCUMENTS ADMIN
         // ============================================================
-        // ============================================================
-// GESTION DES DOCUMENTS - VERSION FINALE
-// ============================================================
+        function showDocumentModal() {
+            var user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
+                showAlert('Vous n\'avez pas les permissions', 'error'); 
+                return; 
+            }
+            document.getElementById('documentTitre').value = '';
+            document.getElementById('documentType').value = 'Statuts';
+            document.getElementById('documentFile').value = '';
+            currentEditId = null;
+            document.getElementById('documentModal').classList.add('active');
+        }
 
-// ============================================================
-// GESTION DES DOCUMENTS - VERSION CORRIGÉE POUR VOTRE TABLE
-// ============================================================
+        function hideDocumentModal() { 
+            document.getElementById('documentModal').classList.remove('active'); 
+        }
 
-function showDocumentModal() {
-    var user = getCurrentUser();
-    if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
-        showAlert('Vous n\'avez pas les permissions', 'error'); 
-        return; 
-    }
-    document.getElementById('documentTitre').value = '';
-    document.getElementById('documentType').value = 'Statuts';
-    document.getElementById('documentFile').value = '';
-    currentEditId = null;
-    document.getElementById('documentModal').classList.add('active');
-}
-
-function hideDocumentModal() { 
-    document.getElementById('documentModal').classList.remove('active'); 
-}
-
-async function saveDocument() {
-    var titre = document.getElementById('documentTitre').value.trim();
-    var type = document.getElementById('documentType').value;
-    var fileInput = document.getElementById('documentFile');
-    
-    if (!titre) { 
-        showAlert('Veuillez entrer un titre', 'error'); 
-        return; 
-    }
-    
-    if (!fileInput.files || fileInput.files.length === 0) { 
-        showAlert('Veuillez sélectionner un fichier PDF', 'error'); 
-        return; 
-    }
-    
-    var file = fileInput.files[0];
-    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-        showAlert('Veuillez sélectionner un fichier PDF', 'error'); 
-        return; 
-    }
-    
-    // Vérifier la taille du fichier (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-        showAlert('Le fichier ne doit pas dépasser 10MB', 'error');
-        return;
-    }
-    
-    try {
-        showAlert('Upload du document en cours...', 'info');
-        
-        var fileName = 'doc_' + Date.now() + '_' + file.name.replace(/\s/g, '_');
-        
-        // Upload vers le bucket documents
-        var { data: uploadData, error: uploadError } = await supabase.storage
-            .from('documents')
-            .upload(fileName, file, { 
-                cacheControl: '3600', 
-                upsert: false
-            });
-        
-        if (uploadError) {
-            console.error('❌ Erreur upload documents:', uploadError);
+        async function saveDocument() {
+            var titre = document.getElementById('documentTitre').value.trim();
+            var type = document.getElementById('documentType').value;
+            var fileInput = document.getElementById('documentFile');
             
-            // Essayer avec le bucket medias en fallback
-            showAlert('Tentative avec le bucket "medias"...', 'info');
-            var { data: uploadData2, error: uploadError2 } = await supabase.storage
-                .from('medias')
-                .upload(fileName, file, { 
-                    cacheControl: '3600', 
-                    upsert: false
+            if (!titre) { 
+                showAlert('Veuillez entrer un titre', 'error'); 
+                return; 
+            }
+            
+            if (!fileInput.files || fileInput.files.length === 0) { 
+                showAlert('Veuillez sélectionner un fichier PDF', 'error'); 
+                return; 
+            }
+            
+            var file = fileInput.files[0];
+            if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                showAlert('Veuillez sélectionner un fichier PDF', 'error'); 
+                return; 
+            }
+            
+            if (file.size > 10 * 1024 * 1024) {
+                showAlert('Le fichier ne doit pas dépasser 10MB', 'error');
+                return;
+            }
+            
+            try {
+                showAlert('Upload du document en cours...', 'info');
+                
+                var fileName = 'doc_' + Date.now() + '_' + file.name.replace(/\s/g, '_');
+                
+                var { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('documents')
+                    .upload(fileName, file, { 
+                        cacheControl: '3600', 
+                        upsert: false
+                    });
+                
+                if (uploadError) {
+                    console.error('❌ Erreur upload documents:', uploadError);
+                    
+                    showAlert('Tentative avec le bucket "medias"...', 'info');
+                    var { data: uploadData2, error: uploadError2 } = await supabase.storage
+                        .from('medias')
+                        .upload(fileName, file, { 
+                            cacheControl: '3600', 
+                            upsert: false
+                        });
+                    
+                    if (uploadError2) {
+                        throw new Error('Erreur upload: ' + uploadError2.message);
+                    }
+                    
+                    var { data: urlData2 } = supabase.storage.from('medias').getPublicUrl(fileName);
+                    var documentUrl = urlData2.publicUrl;
+                    showAlert('✅ Document uploadé vers "medias"', 'success');
+                } else {
+                    var { data: urlData } = supabase.storage.from('documents').getPublicUrl(fileName);
+                    var documentUrl = urlData.publicUrl;
+                    showAlert('✅ Document uploadé vers "documents"', 'success');
+                }
+
+                var titreObj = { fr: titre, ar: titre };
+                var descriptionObj = { fr: 'Document ' + type + ' - ' + titre, ar: 'وثيقة ' + type + ' - ' + titre };
+                var beneficiaireObj = { nom: 'Association ANSFAL', type: 'association' };
+                
+                var data = { 
+                    type: type,
+                    type_label: type,
+                    titre: titreObj,
+                    titre_fr: titre,
+                    titre_ar: titre,
+                    beneficiaire: beneficiaireObj,
+                    description: descriptionObj,
+                    montant: 0,
+                    date: new Date().toISOString().split('T')[0],
+                    color: '#1a6d2c',
+                    icon: 'fa-file-pdf',
+                    updated_at: new Date().toISOString() 
+                };
+                
+                data.description = {
+                    fr: 'Document ' + type + ' - ' + titre,
+                    ar: 'وثيقة ' + type + ' - ' + titre,
+                    url: documentUrl
+                };
+                
+                var url = supabaseUrl + '/rest/v1/documents_admin';
+                var method = 'POST';
+                if (currentEditId) { 
+                    url += '?id=eq.' + currentEditId; 
+                    method = 'PATCH'; 
+                } else { 
+                    data.created_at = new Date().toISOString(); 
+                }
+                
+                var resp = await fetchWithSupabaseAuth(url, { 
+                    method: method, 
+                    body: JSON.stringify(data) 
                 });
-            
-            if (uploadError2) {
-                throw new Error('Erreur upload: ' + uploadError2.message);
+                
+                if (!resp.ok) {
+                    var errorText = await resp.text();
+                    throw new Error('Erreur sauvegarde: ' + errorText);
+                }
+                
+                showAlert('✅ Document ajouté avec succès', 'success');
+                hideDocumentModal();
+                document.getElementById('documentFile').value = '';
+                await loadAllTables();
+                renderAll();
+                
+            } catch (e) { 
+                showAlert('❌ Erreur: ' + e.message, 'error'); 
+                console.error(e);
+            }
+        }
+
+        async function deleteDocument(id) {
+            var user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
+                showAlert('Vous n\'avez pas les permissions', 'error'); 
+                return; 
             }
             
-            var { data: urlData2 } = supabase.storage.from('medias').getPublicUrl(fileName);
-            var documentUrl = urlData2.publicUrl;
-            showAlert('✅ Document uploadé vers "medias"', 'success');
-        } else {
-            var { data: urlData } = supabase.storage.from('documents').getPublicUrl(fileName);
-            var documentUrl = urlData.publicUrl;
-            showAlert('✅ Document uploadé vers "documents"', 'success');
-        }
-
-        // ============================================================
-        // SAUVEGARDE ADAPTÉE À VOTRE STRUCTURE DE TABLE
-        // ============================================================
-        
-        // Créer l'objet titre JSONB
-        var titreObj = {
-            fr: titre,
-            ar: titre
-        };
-        
-        // Créer l'objet description JSONB (optionnel)
-        var descriptionObj = {
-            fr: 'Document ' + type + ' - ' + titre,
-            ar: 'وثيقة ' + type + ' - ' + titre
-        };
-        
-        // Créer l'objet beneficiaire JSONB (optionnel)
-        var beneficiaireObj = {
-            nom: 'Association ANSFAL',
-            type: 'association'
-        };
-        
-        var data = { 
-            type: type,
-            type_label: type,
-            titre: titreObj,
-            titre_fr: titre,
-            titre_ar: titre,
-            beneficiaire: beneficiaireObj,
-            description: descriptionObj,
-            montant: 0,
-            date: new Date().toISOString().split('T')[0],
-            color: '#1a6d2c',
-            icon: 'fa-file-pdf',
-            // Stocker l'URL dans une colonne existante ou dans le JSON
-            // Option 1: Utiliser le champ description pour stocker l'URL
-            // description: { ...descriptionObj, url: documentUrl }
-            updated_at: new Date().toISOString() 
-        };
-        
-        // Option: Ajouter l'URL dans le champ description
-        data.description = {
-            fr: 'Document ' + type + ' - ' + titre,
-            ar: 'وثيقة ' + type + ' - ' + titre,
-            url: documentUrl
-        };
-        
-        var url = supabaseUrl + '/rest/v1/documents_admin';
-        var method = 'POST';
-        if (currentEditId) { 
-            url += '?id=eq.' + currentEditId; 
-            method = 'PATCH'; 
-        } else { 
-            data.created_at = new Date().toISOString(); 
-        }
-        
-        var resp = await fetchWithSupabaseAuth(url, { 
-            method: method, 
-            body: JSON.stringify(data) 
-        });
-        
-        if (!resp.ok) {
-            var errorText = await resp.text();
-            throw new Error('Erreur sauvegarde: ' + errorText);
-        }
-        
-        showAlert('✅ Document ajouté avec succès', 'success');
-        hideDocumentModal();
-        document.getElementById('documentFile').value = '';
-        await loadAllTables();
-        renderAll();
-        
-    } catch (e) { 
-        showAlert('❌ Erreur: ' + e.message, 'error'); 
-        console.error(e);
-    }
-}
-
-async function deleteDocument(id) {
-    var user = getCurrentUser();
-    if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
-        showAlert('Vous n\'avez pas les permissions', 'error'); 
-        return; 
-    }
-    
-    if (!confirm('Supprimer ce document définitivement ?')) return;
-    
-    try {
-        var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/documents_admin?id=eq.' + id, { 
-            method: 'DELETE' 
-        });
-        
-        if (!resp.ok) throw new Error('Erreur suppression');
-        
-        showAlert('✅ Document supprimé avec succès', 'success');
-        await loadAllTables();
-        renderAll();
-        
-    } catch (e) { 
-        showAlert('❌ Erreur: ' + e.message, 'error'); 
-        console.error(e);
-    }
-}
-
-function renderDocumentsAdminList() {
-    var list = document.getElementById('documentsAdminList');
-    if (!list) return;
-    
-    var items = DATA.documentsAdmin || [];
-    if (items.length === 0) { 
-        list.innerHTML = ''; 
-        return; 
-    }
-    
-    var user = getCurrentUser();
-    var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
-    
-    list.innerHTML = items.map(function(item) {
-        // Récupérer le titre depuis le JSONB ou les champs texte
-        var title = '';
-        if (item.titre && typeof item.titre === 'object') {
-            title = item.titre.fr || item.titre.ar || 'Document';
-        } else if (item.titre_fr) {
-            title = item.titre_fr;
-        } else if (item.titre_ar) {
-            title = item.titre_ar;
-        } else {
-            title = 'Document';
-        }
-        
-        // Récupérer l'URL depuis description.url
-        var url = '';
-        if (item.description && typeof item.description === 'object' && item.description.url) {
-            url = item.description.url;
-        }
-        
-        var type = item.type || item.type_label || '';
-        var icon = 'fa-file-pdf';
-        var color = '#e74c3c';
-        
-        // Déterminer l'icône en fonction du type
-        if (type && (type.includes('Bon') || type.includes('Réception') || type.includes('Retour') || 
-            type.includes('Commande') || type.includes('Caisse') || type.includes('Dépense'))) {
-            icon = 'fa-file-invoice';
-            color = '#2b579a';
-        }
-        
-        var actions = canEdit ?
-            '<button class="btn-action delete" onclick="deleteDocument(' + item.id + ')"><i class="fas fa-trash"></i></button>' :
-            '';
-        
-        var viewer = url ? 
-            (url.toLowerCase().endsWith('.pdf') ? 
-                'onclick="viewPDF(\'' + url + '\', \'' + title + '\')"' : 
-                'onclick="window.open(\'' + url + '\', \'_blank\')"') :
-            '';
-        
-        return '<div class="dashboard-item" ' + viewer + '>' +
-            '<div class="item-icon"><i class="fas ' + icon + '" style="color:' + color + ';font-size:1.8rem;"></i></div>' +
-            '<div class="item-info"><h4>' + title + '</h4><small>' + type + '</small></div>' +
-            '<div class="item-actions">' + actions + '</div>' +
-            '</div>';
-    }).join('');
-}
-
-function renderDocuments() {
-    var items = DATA.documentsAdmin || [];
-    var grid = document.getElementById('documentsGrid');
-    
-    if (!grid) return;
-    
-    if (items.length === 0) { 
-        grid.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; 
-        return; 
-    }
-    
-    var isRTL = document.body.classList.contains('rtl');
-    var typeMap = {
-        'Statuts': isRTL ? 'النظام الأساسي' : 'Statuts',
-        'Règlement intérieur': isRTL ? 'النظام الداخلي' : 'Règlement intérieur',
-        'Bon de réception': isRTL ? 'إيصال استلام' : 'Bon de réception',
-        'Bon de retour': isRTL ? 'إيصال إرجاع' : 'Bon de retour',
-        'Bon de commande': isRTL ? 'أمر طلب' : 'Bon de commande',
-        'Bon de caisse': isRTL ? 'إيصال صندوق' : 'Bon de caisse',
-        'Bon de dépense': isRTL ? 'إيصال صرف' : 'Bon de dépense',
-        'Autre': isRTL ? 'أخرى' : 'Autre'
-    };
-    
-    grid.innerHTML = items.map(function(item) {
-        // Récupérer le titre depuis le JSONB ou les champs texte
-        var title = '';
-        if (isRTL) {
-            if (item.titre && typeof item.titre === 'object') {
-                title = item.titre.ar || item.titre.fr || 'Document';
-            } else if (item.titre_ar) {
-                title = item.titre_ar;
-            } else if (item.titre_fr) {
-                title = item.titre_fr;
-            } else {
-                title = 'Document';
-            }
-        } else {
-            if (item.titre && typeof item.titre === 'object') {
-                title = item.titre.fr || item.titre.ar || 'Document';
-            } else if (item.titre_fr) {
-                title = item.titre_fr;
-            } else if (item.titre_ar) {
-                title = item.titre_ar;
-            } else {
-                title = 'Document';
+            if (!confirm('Supprimer ce document définitivement ?')) return;
+            
+            try {
+                var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/documents_admin?id=eq.' + id, { 
+                    method: 'DELETE' 
+                });
+                
+                if (!resp.ok) throw new Error('Erreur suppression');
+                
+                showAlert('✅ Document supprimé avec succès', 'success');
+                await loadAllTables();
+                renderAll();
+                
+            } catch (e) { 
+                showAlert('❌ Erreur: ' + e.message, 'error'); 
+                console.error(e);
             }
         }
-        
-        // Récupérer l'URL depuis description.url
-        var url = '';
-        if (item.description && typeof item.description === 'object' && item.description.url) {
-            url = item.description.url;
+
+        function renderDocumentsAdminList() {
+            var list = document.getElementById('documentsAdminList');
+            if (!list) return;
+            
+            var items = DATA.documentsAdmin || [];
+            if (items.length === 0) { 
+                list.innerHTML = ''; 
+                return; 
+            }
+            
+            var user = getCurrentUser();
+            var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
+            
+            list.innerHTML = items.map(function(item) {
+                var title = '';
+                if (item.titre && typeof item.titre === 'object') {
+                    title = item.titre.fr || item.titre.ar || 'Document';
+                } else if (item.titre_fr) {
+                    title = item.titre_fr;
+                } else if (item.titre_ar) {
+                    title = item.titre_ar;
+                } else {
+                    title = 'Document';
+                }
+                
+                var url = '';
+                if (item.description && typeof item.description === 'object' && item.description.url) {
+                    url = item.description.url;
+                }
+                
+                var type = item.type || item.type_label || '';
+                var icon = 'fa-file-pdf';
+                var color = '#e74c3c';
+                
+                if (type && (type.includes('Bon') || type.includes('Réception') || type.includes('Retour') || 
+                    type.includes('Commande') || type.includes('Caisse') || type.includes('Dépense'))) {
+                    icon = 'fa-file-invoice';
+                    color = '#2b579a';
+                }
+                
+                var actions = canEdit ?
+                    '<button class="btn-action delete" onclick="deleteDocument(' + item.id + ')"><i class="fas fa-trash"></i></button>' :
+                    '';
+                
+                var viewer = url ? 
+                    (url.toLowerCase().endsWith('.pdf') ? 
+                        'onclick="viewPDF(\'' + url + '\', \'' + title + '\')"' : 
+                        'onclick="window.open(\'' + url + '\', \'_blank\')"') :
+                    '';
+                
+                return '<div class="dashboard-item" ' + viewer + '>' +
+                    '<div class="item-icon"><i class="fas ' + icon + '" style="color:' + color + ';font-size:1.8rem;"></i></div>' +
+                    '<div class="item-info"><h4>' + title + '</h4><small>' + type + '</small></div>' +
+                    '<div class="item-actions">' + actions + '</div>' +
+                    '</div>';
+            }).join('');
         }
-        
-        var type = isRTL && typeMap[item.type] ? typeMap[item.type] : (item.type || item.type_label || '');
-        var icon = 'fa-file-pdf';
-        var color = '#e74c3c';
-        
-        if (item.type && (item.type.includes('Bon') || item.type.includes('Réception') || item.type.includes('Retour') || 
-            item.type.includes('Commande') || item.type.includes('Caisse') || item.type.includes('Dépense'))) {
-            icon = 'fa-file-invoice';
-            color = '#2b579a';
-        }
-        
-        var viewer = url ? 
-            (url.toLowerCase().endsWith('.pdf') ? 
-                'onclick="viewPDF(\'' + url + '\', \'' + title + '\')"' : 
-                'onclick="window.open(\'' + url + '\', \'_blank\')"') :
-            '';
-        
-        return '<div class="document-item" ' + viewer + '>' +
-            '<div class="doc-icon"><i class="fas ' + icon + '" style="color:' + color + ';"></i></div>' +
-            '<div class="doc-info"><h4>' + title + '</h4><small>' + type + '</small></div>' +
-            '<div class="doc-actions">' +
-            (url ? '<button class="btn-action view" onclick="event.stopPropagation();viewPDF(\'' + url + '\', \'' + title + '\')"><i class="fas fa-eye"></i></button>' : '') +
-            (url ? '<button class="btn-action view" onclick="event.stopPropagation();window.open(\'' + url + '\', \'_blank\')"><i class="fas fa-download"></i></button>' : '') +
-            '</div></div>';
-    }).join('');
-}
+
         // ============================================================
         // GALERIE ADMIN
         // ============================================================
         function renderGalleryAdmin() {
-    var list = document.getElementById('galleryList');
-    if (!list) return;
-    
-    var items = DATA.gallery || [];
-    if (items.length === 0) { 
-        list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; 
-        return; 
-    }
-    
-    // Supprimer les doublons par URL
-    var uniqueItems = [];
-    var seenUrls = {};
-    
-    for (var item of items) {
-        var url = item.url || item.image_url || '';
-        if (!seenUrls[url]) {
-            seenUrls[url] = true;
-            uniqueItems.push(item);
+            var list = document.getElementById('galleryList');
+            if (!list) return;
+            
+            var items = DATA.gallery || [];
+            if (items.length === 0) { 
+                list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; 
+                return; 
+            }
+            
+            var uniqueItems = [];
+            var seenUrls = {};
+            
+            for (var item of items) {
+                var url = item.url || item.image_url || '';
+                if (!seenUrls[url]) {
+                    seenUrls[url] = true;
+                    uniqueItems.push(item);
+                }
+            }
+            
+            var user = getCurrentUser();
+            var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
+            
+            uniqueItems.sort(function(a, b) {
+                return new Date(b.created_at) - new Date(a.created_at);
+            });
+            
+            list.innerHTML = uniqueItems.map(function(item) {
+                var url = item.url || item.image_url || '';
+                var title = item.title || 'Image';
+                var fileType = item.type || 'image';
+                var size = item.file_size ? (item.file_size / 1024).toFixed(1) + ' KB' : '';
+                
+                var icon = fileType === 'video' ? 'fa-video' : 'fa-image';
+                var color = fileType === 'video' ? '#e74c3c' : 'var(--primary)';
+                
+                var actions = canEdit ?
+                    '<button class="btn-action edit" onclick="event.stopPropagation(); editGalleryTitlePrompt(' + item.id + ', \'' + title.replace(/'/g, "\\'") + '\')" title="Modifier le titre"><i class="fas fa-edit"></i></button> ' +
+                    '<button class="btn-action delete" onclick="event.stopPropagation(); deleteMedia(' + item.id + ', \'gallery\')" title="Supprimer"><i class="fas fa-trash"></i></button>' :
+                    '';
+                
+                return '<div class="dashboard-item" onclick="viewMedia(\'' + url + '\', \'' + fileType + '\')">' +
+                    '<div class="item-icon">' +
+                        (fileType === 'video' ? 
+                            '<i class="fas fa-video" style="color:' + color + ';font-size:1.8rem;"></i>' :
+                            '<img src="' + url + '" style="width:45px;height:45px;object-fit:cover;border-radius:10px;" />') +
+                    '</div>' +
+                    '<div class="item-info">' +
+                        '<h4>' + title + '</h4>' +
+                        '<small>' + fileType + (size ? ' - ' + size : '') + '</small>' +
+                    '</div>' +
+                    '<div class="item-actions" onclick="event.stopPropagation();">' + actions + '</div>' +
+                    '</div>';
+            }).join('');
         }
-    }
-    
-    var user = getCurrentUser();
-    var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
-    
-    // Trier par date décroissante
-    uniqueItems.sort(function(a, b) {
-        return new Date(b.created_at) - new Date(a.created_at);
-    });
-    
-    list.innerHTML = uniqueItems.map(function(item) {
-        var url = item.url || item.image_url || '';
-        var title = item.title || 'Image';
-        var fileType = item.type || 'image';
-        var size = item.file_size ? (item.file_size / 1024).toFixed(1) + ' KB' : '';
-        
-        var icon = fileType === 'video' ? 'fa-video' : 'fa-image';
-        var color = fileType === 'video' ? '#e74c3c' : 'var(--primary)';
-        
-        var actions = canEdit ?
-            '<button class="btn-action edit" onclick="event.stopPropagation(); editGalleryTitlePrompt(' + item.id + ', \'' + title.replace(/'/g, "\\'") + '\')" title="Modifier le titre"><i class="fas fa-edit"></i></button> ' +
-            '<button class="btn-action delete" onclick="event.stopPropagation(); deleteMedia(' + item.id + ', \'gallery\')" title="Supprimer"><i class="fas fa-trash"></i></button>' :
-            '';
-        
-        return '<div class="dashboard-item" onclick="viewMedia(\'' + url + '\', \'' + fileType + '\')">' +
-            '<div class="item-icon">' +
-                (fileType === 'video' ? 
-                    '<i class="fas fa-video" style="color:' + color + ';font-size:1.8rem;"></i>' :
-                    '<img src="' + url + '" style="width:45px;height:45px;object-fit:cover;border-radius:10px;" />') +
-            '</div>' +
-            '<div class="item-info">' +
-                '<h4>' + title + '</h4>' +
-                '<small>' + fileType + (size ? ' - ' + size : '') + '</small>' +
-            '</div>' +
-            '<div class="item-actions" onclick="event.stopPropagation();">' + actions + '</div>' +
-            '</div>';
-    }).join('');
-}
-        // ============================================================
-// SUPPRESSION DES MÉDIAS (Galerie & Vidéos)
-// ============================================================
-async function deleteMedia(id, table) {
-    var user = getCurrentUser();
-    if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
-        showAlert('Vous n\'avez pas les permissions', 'error'); 
-        return; 
-    }
-    
-    // Récupérer le titre pour la confirmation
-    try {
-        const { data: item, error: fetchError } = await supabase
-            .from(table)
-            .select('title, url')
-            .eq('id', id)
-            .single();
-        
-        if (fetchError) {
-            console.warn('Impossible de récupérer le titre:', fetchError);
+
+        async function deleteMedia(id, table) {
+            var user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
+                showAlert('Vous n\'avez pas les permissions', 'error'); 
+                return; 
+            }
+            
+            try {
+                const { data: item, error: fetchError } = await supabase
+                    .from(table)
+                    .select('title, url')
+                    .eq('id', id)
+                    .single();
+                
+                if (fetchError) {
+                    console.warn('Impossible de récupérer le titre:', fetchError);
+                }
+                
+                var title = item?.title || 'cet élément';
+                
+                if (!confirm(`⚠️ Supprimer définitivement "${title}" ?\nCette action est irréversible !`)) {
+                    return;
+                }
+                
+                const { data, error } = await supabase
+                    .from(table)
+                    .delete()
+                    .eq('id', id)
+                    .select();
+                
+                if (error) throw new Error(error.message);
+                
+                showAlert(`✅ "${title}" supprimé avec succès`, 'success');
+                await loadAllTables();
+                renderAll();
+                
+            } catch (e) { 
+                showAlert('❌ Erreur: ' + e.message, 'error'); 
+                console.error(e);
+            }
         }
-        
-        var title = item?.title || 'cet élément';
-        
-        // Demander confirmation avec le nom
-        if (!confirm(`⚠️ Supprimer définitivement "${title}" ?\nCette action est irréversible !`)) {
-            return;
-        }
-        
-        // Supprimer de la base de données
-        const { data, error } = await supabase
-            .from(table)
-            .delete()
-            .eq('id', id)
-            .select();
-        
-        if (error) throw new Error(error.message);
-        
-        showAlert(`✅ "${title}" supprimé avec succès`, 'success');
-        await loadAllTables();
-        renderAll();
-        
-    } catch (e) { 
-        showAlert('❌ Erreur: ' + e.message, 'error'); 
-        console.error(e);
-    }
-}
-        // ============================================================
-        // VIDEOS ADMIN
-        // ============================================================
+
         function renderVideosAdmin() {
-    var list = document.getElementById('videosList');
-    if (!list) return;
-    
-    var items = DATA.videos || [];
-    if (items.length === 0) { 
-        list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; 
-        return; 
-    }
-    
-    // Supprimer les doublons par URL
-    var uniqueItems = [];
-    var seenUrls = {};
-    
-    for (var item of items) {
-        var url = item.video_url || item.url || '';
-        if (!seenUrls[url]) {
-            seenUrls[url] = true;
-            uniqueItems.push(item);
+            var list = document.getElementById('videosList');
+            if (!list) return;
+            
+            var items = DATA.videos || [];
+            if (items.length === 0) { 
+                list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; 
+                return; 
+            }
+            
+            var uniqueItems = [];
+            var seenUrls = {};
+            
+            for (var item of items) {
+                var url = item.video_url || item.url || '';
+                if (!seenUrls[url]) {
+                    seenUrls[url] = true;
+                    uniqueItems.push(item);
+                }
+            }
+            
+            var user = getCurrentUser();
+            var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
+            
+            uniqueItems.sort(function(a, b) {
+                return new Date(b.created_at) - new Date(a.created_at);
+            });
+            
+            list.innerHTML = uniqueItems.map(function(item) {
+                var url = item.video_url || item.url || '';
+                var title = item.title || 'Vidéo';
+                var size = item.file_size ? (item.file_size / 1024).toFixed(1) + ' KB' : '';
+                
+                var actions = canEdit ?
+                    '<button class="btn-action edit" onclick="event.stopPropagation(); editVideoTitlePrompt(' + item.id + ', \'' + title.replace(/'/g, "\\'") + '\')" title="Modifier le titre"><i class="fas fa-edit"></i></button> ' +
+                    '<button class="btn-action delete" onclick="event.stopPropagation(); deleteMedia(' + item.id + ', \'videos\')" title="Supprimer"><i class="fas fa-trash"></i></button>' :
+                    '';
+                
+                return '<div class="dashboard-item" onclick="viewMedia(\'' + url + '\', \'video\')">' +
+                    '<div class="item-icon">' +
+                        '<i class="fas fa-video" style="color:#e74c3c;font-size:1.8rem;"></i>' +
+                    '</div>' +
+                    '<div class="item-info">' +
+                        '<h4>' + title + '</h4>' +
+                        '<small>' + (size ? size : 'Vidéo') + '</small>' +
+                    '</div>' +
+                    '<div class="item-actions" onclick="event.stopPropagation();">' + actions + '</div>' +
+                    '</div>';
+            }).join('');
         }
-    }
-    
-    var user = getCurrentUser();
-    var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
-    
-    // Trier par date décroissante
-    uniqueItems.sort(function(a, b) {
-        return new Date(b.created_at) - new Date(a.created_at);
-    });
-    
-    list.innerHTML = uniqueItems.map(function(item) {
-        var url = item.video_url || item.url || '';
-        var title = item.title || 'Vidéo';
-        var size = item.file_size ? (item.file_size / 1024).toFixed(1) + ' KB' : '';
-        
-        var actions = canEdit ?
-            '<button class="btn-action edit" onclick="event.stopPropagation(); editVideoTitlePrompt(' + item.id + ', \'' + title.replace(/'/g, "\\'") + '\')" title="Modifier le titre"><i class="fas fa-edit"></i></button> ' +
-            '<button class="btn-action delete" onclick="event.stopPropagation(); deleteMedia(' + item.id + ', \'videos\')" title="Supprimer"><i class="fas fa-trash"></i></button>' :
-            '';
-        
-        return '<div class="dashboard-item" onclick="viewMedia(\'' + url + '\', \'video\')">' +
-            '<div class="item-icon">' +
-                '<i class="fas fa-video" style="color:#e74c3c;font-size:1.8rem;"></i>' +
-            '</div>' +
-            '<div class="item-info">' +
-                '<h4>' + title + '</h4>' +
-                '<small>' + (size ? size : 'Vidéo') + '</small>' +
-            '</div>' +
-            '<div class="item-actions" onclick="event.stopPropagation();">' + actions + '</div>' +
-            '</div>';
-    }).join('');
-}
 
         // ============================================================
         // PUBLICATIONS ADMIN
@@ -4200,72 +4531,113 @@ async function deleteMedia(id, table) {
         // TEXTS
         // ============================================================
         function renderTexts() {
-    var list = document.getElementById('textList');
-    var published = document.getElementById('publishedTexts');
-    if (!list) return;
-    
-    var items = DATA.texts || [];
-    if (items.length === 0) { 
-        list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; 
-        if (published) published.innerHTML = '<p class="no-content">Aucun texte publié.</p>';
-        return; 
-    }
-    
-    var user = getCurrentUser();
-    var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
-    var isRTL = document.body.classList.contains('rtl');
-    
-    items.sort(function(a, b) {
-        return new Date(b.created_at) - new Date(a.created_at);
-    });
-    
-    list.innerHTML = items.map(function(item) {
-        // === LECTURE DES JSONB ===
-        var title = '';
-        if (item.title && typeof item.title === 'object') {
-            title = isRTL ? (item.title.ar || item.title.fr || '') : (item.title.fr || item.title.ar || '');
-        } else {
-            title = item.title || 'Sans titre';
+            var list = document.getElementById('textList');
+            var published = document.getElementById('publishedTexts');
+            if (!list) return;
+            
+            var items = DATA.texts || [];
+            if (items.length === 0) { 
+                list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; 
+                if (published) published.innerHTML = '<p class="no-content">Aucun texte publié.</p>';
+                return; 
+            }
+            
+            var user = getCurrentUser();
+            var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
+            var isRTL = document.body.classList.contains('rtl');
+            
+            items.sort(function(a, b) {
+                return new Date(b.created_at) - new Date(a.created_at);
+            });
+            
+            list.innerHTML = items.map(function(item) {
+                var title = '';
+                if (item.title && typeof item.title === 'object') {
+                    title = isRTL ? (item.title.ar || item.title.fr || '') : (item.title.fr || item.title.ar || '');
+                } else {
+                    title = item.title || 'Sans titre';
+                }
+                
+                var content = '';
+                if (item.content && typeof item.content === 'object') {
+                    content = isRTL ? (item.content.ar || item.content.fr || '') : (item.content.fr || item.content.ar || '');
+                } else {
+                    content = item.content || '';
+                }
+                
+                var actions = canEdit ?
+                    '<button class="btn-action edit" onclick="editText(' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+                    '<button class="btn-action delete" onclick="deleteText(' + item.id + ')"><i class="fas fa-trash"></i></button>' :
+                    '';
+                
+                var status = item.published ? '✅ Publié' : '📝 Brouillon';
+                var preview = content.length > 80 ? content.substring(0, 80) + '...' : content;
+                
+                return '<div class="dashboard-item">' +
+                    '<div class="item-icon"><i class="fas fa-file-alt" style="color:var(--primary);"></i></div>' +
+                    '<div class="item-info">' +
+                        '<h4>' + title + '</h4>' +
+                        '<small>' + preview + ' - ' + new Date(item.created_at).toLocaleDateString() + ' ' + status + '</small>' +
+                    '</div>' +
+                    '<div class="item-actions">' + actions + '</div>' +
+                    '</div>';
+            }).join('');
+            
+            if (published) {
+                var publishedItems = items.filter(function(item) { return item.published; });
+                if (publishedItems.length === 0) { 
+                    published.innerHTML = '<p class="no-content">Aucun texte publié.</p>'; 
+                    return; 
+                }
+                published.innerHTML = publishedItems.map(function(item) {
+                    var title = '';
+                    if (item.title && typeof item.title === 'object') {
+                        title = isRTL ? (item.title.ar || item.title.fr || '') : (item.title.fr || item.title.ar || '');
+                    } else {
+                        title = item.title || 'Sans titre';
+                    }
+                    
+                    var content = '';
+                    if (item.content && typeof item.content === 'object') {
+                        content = isRTL ? (item.content.ar || item.content.fr || '') : (item.content.fr || item.content.ar || '');
+                    } else {
+                        content = item.content || '';
+                    }
+                    
+                    return '<div style="margin:10px 0;padding:15px;background:white;border-radius:8px;border-left:4px solid var(--primary);box-shadow:var(--shadow);">' +
+                        '<h4 style="color:var(--primary);margin:0 0 5px 0;">' + title + '</h4>' +
+                        '<p style="white-space:pre-wrap;margin:5px 0;">' + content + '</p>' +
+                        '<small style="color:#888;">' + new Date(item.created_at).toLocaleDateString() + '</small>' +
+                        '</div>';
+                }).join('');
+            }
         }
-        
-        var content = '';
-        if (item.content && typeof item.content === 'object') {
-            content = isRTL ? (item.content.ar || item.content.fr || '') : (item.content.fr || item.content.ar || '');
-        } else {
-            content = item.content || '';
+
+        function showTextModal() {
+            var user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { showAlert('Vous n\'avez pas les permissions', 'error'); return; }
+            document.getElementById('textTitle').value = '';
+            document.getElementById('textContent').value = '';
+            document.getElementById('publishText').checked = true;
+            currentEditId = null;
+            document.getElementById('textModalHeaderText').textContent = 'Ajouter un texte';
+            document.getElementById('textModal').classList.add('active');
         }
-        
-        var actions = canEdit ?
-            '<button class="btn-action edit" onclick="editText(' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
-            '<button class="btn-action delete" onclick="deleteText(' + item.id + ')"><i class="fas fa-trash"></i></button>' :
-            '';
-        
-        var status = item.published ? '✅ Publié' : '📝 Brouillon';
-        var preview = content.length > 80 ? content.substring(0, 80) + '...' : content;
-        
-        return '<div class="dashboard-item">' +
-            '<div class="item-icon"><i class="fas fa-file-alt" style="color:var(--primary);"></i></div>' +
-            '<div class="item-info">' +
-                '<h4>' + title + '</h4>' +
-                '<small>' + preview + ' - ' + new Date(item.created_at).toLocaleDateString() + ' ' + status + '</small>' +
-            '</div>' +
-            '<div class="item-actions">' + actions + '</div>' +
-            '</div>';
-    }).join('');
-    
-    // Afficher les textes publiés
-    if (published) {
-        var publishedItems = items.filter(function(item) { return item.published; });
-        if (publishedItems.length === 0) { 
-            published.innerHTML = '<p class="no-content">Aucun texte publié.</p>'; 
-            return; 
-        }
-        published.innerHTML = publishedItems.map(function(item) {
+
+        function hideTextModal() { document.getElementById('textModal').classList.remove('active'); }
+
+        function editText(id) {
+            var user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { showAlert('Vous n\'avez pas les permissions', 'error'); return; }
+            var item = DATA.texts.find(function(el) { return el.id === id; });
+            if (!item) { showAlert('Texte non trouvé', 'error'); return; }
+            
+            var isRTL = document.body.classList.contains('rtl');
             var title = '';
             if (item.title && typeof item.title === 'object') {
                 title = isRTL ? (item.title.ar || item.title.fr || '') : (item.title.fr || item.title.ar || '');
             } else {
-                title = item.title || 'Sans titre';
+                title = item.title || '';
             }
             
             var content = '';
@@ -4275,14 +4647,58 @@ async function deleteMedia(id, table) {
                 content = item.content || '';
             }
             
-            return '<div style="margin:10px 0;padding:15px;background:white;border-radius:8px;border-left:4px solid var(--primary);box-shadow:var(--shadow);">' +
-                '<h4 style="color:var(--primary);margin:0 0 5px 0;">' + title + '</h4>' +
-                '<p style="white-space:pre-wrap;margin:5px 0;">' + content + '</p>' +
-                '<small style="color:#888;">' + new Date(item.created_at).toLocaleDateString() + '</small>' +
-                '</div>';
-        }).join('');
-    }
-}
+            document.getElementById('textTitle').value = title;
+            document.getElementById('textContent').value = content;
+            document.getElementById('publishText').checked = item.published || false;
+            document.getElementById('textModalHeaderText').textContent = 'Modifier un texte';
+            currentEditId = id;
+            document.getElementById('textModal').classList.add('active');
+        }
+
+        async function saveTextContent() {
+            var title = document.getElementById('textTitle').value.trim();
+            var content = document.getElementById('textContent').value.trim();
+            var published = document.getElementById('publishText').checked;
+            
+            if (!title || !content) { showAlert('Veuillez remplir titre et contenu', 'error'); return; }
+            
+            var isRTL = document.body.classList.contains('rtl');
+            var titleObj = { fr: title, ar: title };
+            var contentObj = { fr: content, ar: content };
+            
+            var data = {
+                title: titleObj,
+                content: contentObj,
+                published: published,
+                updated_at: new Date().toISOString()
+            };
+            
+            try {
+                var url = supabaseUrl + '/rest/v1/texts';
+                var method = 'POST';
+                if (currentEditId) { url += '?id=eq.' + currentEditId; method = 'PATCH'; } else { data.created_at = new Date().toISOString(); }
+                var resp = await fetchWithSupabaseAuth(url, { method: method, body: JSON.stringify(data) });
+                if (!resp.ok) throw new Error('Erreur sauvegarde: ' + await resp.text());
+                showAlert('✅ Texte enregistré', 'success');
+                hideTextModal();
+                await loadAllTables();
+                renderAll();
+            } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
+        }
+
+        async function deleteText(id) {
+            var user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { showAlert('Vous n\'avez pas les permissions', 'error'); return; }
+            if (!confirm('Supprimer ce texte ?')) return;
+            try {
+                var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/texts?id=eq.' + id, { method: 'DELETE' });
+                if (!resp.ok) throw new Error('Erreur suppression');
+                showAlert('✅ Texte supprimé', 'success');
+                await loadAllTables();
+                renderAll();
+            } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
+        }
+
         // ============================================================
         // UPLOAD MODAL
         // ============================================================
@@ -4324,7 +4740,6 @@ async function deleteMedia(id, table) {
             document.getElementById('urlUploadArea').style.display = mode === 'url' ? 'block' : 'none';
         }
 
-        // File selection
         document.addEventListener('DOMContentLoaded', function() {
             var fileInput = document.getElementById('fileInput');
             if (fileInput) {
@@ -4340,7 +4755,6 @@ async function deleteMedia(id, table) {
                 });
             }
 
-            // Drag and drop
             var area = document.getElementById('pcUploadArea');
             if (area) {
                 area.addEventListener('dragover', function(e) {
@@ -4414,151 +4828,143 @@ async function deleteMedia(id, table) {
                 }).catch(function(e) { showAlert('❌ Erreur: ' + e.message, 'error'); });
         }
 
-    function uploadFiles() {
-    if (selectedFiles.length === 0) { 
-        showAlert(getLang().alertNoFile, 'error'); 
-        return; 
-    }
-    
-    var progress = document.getElementById('uploadProgress');
-    var fill = document.getElementById('progressFill');
-    var text = document.getElementById('progressText');
-    progress.style.display = 'block';
-    document.getElementById('actionButtons').style.display = 'none';
-
-    var total = selectedFiles.length;
-    var uploaded = 0;
-    var errors = [];
-
-    selectedFiles.forEach(function(file, index) {
-        // Vérifier la taille du fichier (max 50MB pour les vidéos, 10MB pour les images)
-        var maxSize = currentUploadType === 'video' ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
-        if (file.size > maxSize) {
-            errors.push(file.name + ' dépasse la taille maximale');
-            uploaded++;
-            updateProgress(uploaded, total, fill, text);
-            if (uploaded === total) {
-                finishUpload(errors, progress);
+        function uploadFiles() {
+            if (selectedFiles.length === 0) { 
+                showAlert(getLang().alertNoFile, 'error'); 
+                return; 
             }
-            return;
+            
+            var progress = document.getElementById('uploadProgress');
+            var fill = document.getElementById('progressFill');
+            var text = document.getElementById('progressText');
+            progress.style.display = 'block';
+            document.getElementById('actionButtons').style.display = 'none';
+
+            var total = selectedFiles.length;
+            var uploaded = 0;
+            var errors = [];
+
+            selectedFiles.forEach(function(file, index) {
+                var maxSize = currentUploadType === 'video' ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    errors.push(file.name + ' dépasse la taille maximale');
+                    uploaded++;
+                    updateProgress(uploaded, total, fill, text);
+                    if (uploaded === total) {
+                        finishUpload(errors, progress);
+                    }
+                    return;
+                }
+
+                var table = currentUploadType === 'video' ? 'videos' : 'gallery';
+                var prefix = currentUploadType === 'video' ? 'video_' : 'gallery_';
+                
+                var fileName = prefix + Date.now() + '_' + index + '_' + file.name.replace(/\s/g, '_');
+                var folder = 'medias';
+                
+                console.log('📤 Upload du fichier:', fileName, 'Taille:', (file.size / 1024).toFixed(1), 'KB');
+                console.log('📁 Table cible:', table);
+                
+                supabase.storage.from(folder).upload(fileName, file, { 
+                    cacheControl: '3600', 
+                    upsert: false 
+                })
+                .then(function(result) {
+                    if (result.error) {
+                        console.error('❌ Erreur upload storage:', result.error);
+                        throw new Error('Storage: ' + result.error.message);
+                    }
+                    console.log('✅ Fichier uploadé vers storage');
+                    return supabase.storage.from(folder).getPublicUrl(fileName);
+                })
+                .then(function(urlResult) {
+                    var publicUrl = urlResult.data.publicUrl;
+                    console.log('📎 URL publique:', publicUrl);
+                    
+                    var fileType = 'image';
+                    if (file.type.startsWith('video/')) {
+                        fileType = 'video';
+                    } else if (file.type === 'application/pdf') {
+                        fileType = 'pdf';
+                    }
+                    
+                    var cleanTitle = file.name
+                        .replace(/\.[^/.]+$/, '')
+                        .replace(/[_-]/g, ' ')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                    
+                    if (!cleanTitle || cleanTitle.length < 2) {
+                        cleanTitle = (fileType === 'video' ? 'Vidéo ' : 'Image ') + (index + 1);
+                    }
+                    cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
+                    
+                    var data = { 
+                        url: publicUrl,
+                        title: cleanTitle,
+                        file_name: file.name,
+                        file_size: file.size,
+                        date: new Date().toISOString(),
+                        type: fileType,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString(),
+                        publisher: 'admin'
+                    };
+                    
+                    console.log('💾 Sauvegarde dans la table:', table, data);
+                    
+                    return supabase
+                        .from(table)
+                        .insert(data)
+                        .select();
+                })
+                .then(function(result) {
+                    if (result.error) {
+                        console.error('❌ Erreur insertion DB:', result.error);
+                        throw new Error('DB: ' + result.error.message);
+                    }
+                    console.log('✅ Enregistré en base:', result.data);
+                    uploaded++;
+                    updateProgress(uploaded, total, fill, text);
+                    
+                    if (uploaded === total) {
+                        finishUpload(errors, progress);
+                    }
+                })
+                .catch(function(e) {
+                    console.error('❌ Erreur complète:', e);
+                    errors.push(file.name + ': ' + e.message);
+                    uploaded++;
+                    updateProgress(uploaded, total, fill, text);
+                    
+                    if (uploaded === total) {
+                        finishUpload(errors, progress);
+                    }
+                });
+            });
         }
 
-        // Déterminer la table selon le type d'upload
-        var table = currentUploadType === 'video' ? 'videos' : 'gallery';
-        var prefix = currentUploadType === 'video' ? 'video_' : 'gallery_';
-        
-        var fileName = prefix + Date.now() + '_' + index + '_' + file.name.replace(/\s/g, '_');
-        var folder = 'medias';
-        
-        console.log('📤 Upload du fichier:', fileName, 'Taille:', (file.size / 1024).toFixed(1), 'KB');
-        console.log('📁 Table cible:', table);
-        
-        // Étape 1: Upload vers Storage
-        supabase.storage.from(folder).upload(fileName, file, { 
-            cacheControl: '3600', 
-            upsert: false 
-        })
-        .then(function(result) {
-            if (result.error) {
-                console.error('❌ Erreur upload storage:', result.error);
-                throw new Error('Storage: ' + result.error.message);
-            }
-            console.log('✅ Fichier uploadé vers storage');
-            return supabase.storage.from(folder).getPublicUrl(fileName);
-        })
-        .then(function(urlResult) {
-            var publicUrl = urlResult.data.publicUrl;
-            console.log('📎 URL publique:', publicUrl);
-            
-            // Déterminer le type de fichier
-            var fileType = 'image';
-            if (file.type.startsWith('video/')) {
-                fileType = 'video';
-            } else if (file.type === 'application/pdf') {
-                fileType = 'pdf';
-            }
-            
-            // Nettoyer le titre
-            var cleanTitle = file.name
-                .replace(/\.[^/.]+$/, '')
-                .replace(/[_-]/g, ' ')
-                .replace(/\s+/g, ' ')
-                .trim();
-            
-            if (!cleanTitle || cleanTitle.length < 2) {
-                cleanTitle = (fileType === 'video' ? 'Vidéo ' : 'Image ') + (index + 1);
-            }
-            cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
-            
-            // === STRUCTURE CORRECTE POUR LES DEUX TABLES ===
-            var data = { 
-                url: publicUrl,                    // colonne principale (NOT NULL)
-                title: cleanTitle,
-                file_name: file.name,
-                file_size: file.size,
-                date: new Date().toISOString(),
-                type: fileType,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-                publisher: 'admin'
-            };
-            
-            console.log('💾 Sauvegarde dans la table:', table, data);
-            
-            // Utiliser le client Supabase directement
-            return supabase
-                .from(table)
-                .insert(data)
-                .select();
-        })
-        .then(function(result) {
-            if (result.error) {
-                console.error('❌ Erreur insertion DB:', result.error);
-                throw new Error('DB: ' + result.error.message);
-            }
-            console.log('✅ Enregistré en base:', result.data);
-            uploaded++;
-            updateProgress(uploaded, total, fill, text);
-            
-            if (uploaded === total) {
-                finishUpload(errors, progress);
-            }
-        })
-        .catch(function(e) {
-            console.error('❌ Erreur complète:', e);
-            errors.push(file.name + ': ' + e.message);
-            uploaded++;
-            updateProgress(uploaded, total, fill, text);
-            
-            if (uploaded === total) {
-                finishUpload(errors, progress);
-            }
-        });
-    });
-}
+        function updateProgress(uploaded, total, fill, text) {
+            var pct = Math.round((uploaded / total) * 100);
+            if (fill) fill.style.width = pct + '%';
+            if (text) text.textContent = pct + '%';
+        }
 
-// Fonction pour mettre à jour la progression
-function updateProgress(uploaded, total, fill, text) {
-    var pct = Math.round((uploaded / total) * 100);
-    if (fill) fill.style.width = pct + '%';
-    if (text) text.textContent = pct + '%';
-}
+        function finishUpload(errors, progress) {
+            if (progress) progress.style.display = 'none';
+            document.getElementById('actionButtons').style.display = 'flex';
+            
+            if (errors.length > 0) {
+                showAlert('⚠️ ' + errors.length + ' erreur(s): ' + errors.join('; '), 'error');
+            } else {
+                document.getElementById('uploadSuccess').style.display = 'block';
+                showAlert('✅ Tous les fichiers ont été uploadés avec succès', 'success');
+                selectedFiles = [];
+                loadAllTables();
+                setTimeout(function() { hideUploadModal(); }, 2000);
+            }
+        }
 
-// Fonction pour terminer l'upload
-function finishUpload(errors, progress) {
-    if (progress) progress.style.display = 'none';
-    document.getElementById('actionButtons').style.display = 'flex';
-    
-    if (errors.length > 0) {
-        showAlert('⚠️ ' + errors.length + ' erreur(s): ' + errors.join('; '), 'error');
-    } else {
-        document.getElementById('uploadSuccess').style.display = 'block';
-        showAlert('✅ Tous les fichiers ont été uploadés avec succès', 'success');
-        selectedFiles = [];
-        loadAllTables();
-        setTimeout(function() { hideUploadModal(); }, 2000);
-    }
-}
         // ============================================================
         // GENERIC MODAL (Betail, Produits, Arbres, Eau, Sagia)
         // ============================================================
@@ -4769,7 +5175,6 @@ function finishUpload(errors, progress) {
         // DASHBOARD TABLES
         // ============================================================
         function renderDashboardTables() {
-            // Betail
             var betailBody = document.getElementById('betailAdminBody');
             if (betailBody) {
                 var betailItems = DATA.betail || [];
@@ -4789,73 +5194,64 @@ function finishUpload(errors, progress) {
                 }
             }
 
-            // Produits
-            // Produits
-var produitsBody = document.getElementById('produitsAdminBody');
-if (produitsBody) {
-    var produitsItems = DATA.produits || [];
-    if (produitsItems.length === 0) { 
-        produitsBody.innerHTML = '<tr><td colspan="6" class="no-content">' + getLang().noData + '</td></tr>'; 
-    }
-    else {
-        var user = getCurrentUser();
-        var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
-        var isRTL = document.body.classList.contains('rtl');
-        
-        produitsBody.innerHTML = produitsItems.map(function(item) {
-            var localite = getLocaliteName(item.localite_id);
-            
-            // === CORRECTION : Extraction correcte du nom ===
-            var nom = '';
-            // Si nom_fr est un objet JSONB {fr: "...", ar: "..."}
-            if (item.nom_fr && typeof item.nom_fr === 'object') {
-                nom = isRTL ? (item.nom_fr.ar || item.nom_fr.fr || '') : (item.nom_fr.fr || item.nom_fr.ar || '');
-            } 
-            // Si nom est un objet JSONB
-            else if (item.nom && typeof item.nom === 'object') {
-                nom = isRTL ? (item.nom.ar || item.nom.fr || '') : (item.nom.fr || item.nom.ar || '');
-            } 
-            // Si c'est une chaîne simple
-            else if (item.nom_fr && typeof item.nom_fr === 'string') {
-                nom = isRTL ? (item.nom_ar || item.nom_fr) : (item.nom_fr || item.nom_ar);
-            } 
-            else {
-                nom = item.nom || item.nom_fr || item.nom_ar || 'Produit';
+            var produitsBody = document.getElementById('produitsAdminBody');
+            if (produitsBody) {
+                var produitsItems = DATA.produits || [];
+                if (produitsItems.length === 0) { 
+                    produitsBody.innerHTML = '<tr><td colspan="6" class="no-content">' + getLang().noData + '</td></tr>'; 
+                }
+                else {
+                    var user = getCurrentUser();
+                    var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
+                    var isRTL = document.body.classList.contains('rtl');
+                    
+                    produitsBody.innerHTML = produitsItems.map(function(item) {
+                        var localite = getLocaliteName(item.localite_id);
+                        
+                        var nom = '';
+                        if (item.nom_fr && typeof item.nom_fr === 'object') {
+                            nom = isRTL ? (item.nom_fr.ar || item.nom_fr.fr || '') : (item.nom_fr.fr || item.nom_fr.ar || '');
+                        } 
+                        else if (item.nom && typeof item.nom === 'object') {
+                            nom = isRTL ? (item.nom.ar || item.nom.fr || '') : (item.nom.fr || item.nom.ar || '');
+                        } 
+                        else if (item.nom_fr && typeof item.nom_fr === 'string') {
+                            nom = isRTL ? (item.nom_ar || item.nom_fr) : (item.nom_fr || item.nom_ar);
+                        } 
+                        else {
+                            nom = item.nom || item.nom_fr || item.nom_ar || 'Produit';
+                        }
+                        
+                        var periode = '';
+                        if (item.periode && typeof item.periode === 'object') {
+                            periode = isRTL ? (item.periode.ar || item.periode.fr || '') : (item.periode.fr || item.periode.ar || '');
+                        } else {
+                            periode = item.periode || '';
+                        }
+                        
+                        var statut = '';
+                        if (item.statut && typeof item.statut === 'object') {
+                            statut = isRTL ? (item.statut.ar || item.statut.fr || 'Disponible') : (item.statut.fr || item.statut.ar || 'Disponible');
+                        } else {
+                            statut = item.statut || 'Disponible';
+                        }
+                        
+                        var actions = canEdit ?
+                            '<button class="btn-action edit" onclick="editGenericItem(\'produit\',' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+                            '<button class="btn-action delete" onclick="deleteGenericItem(\'produit\',' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
+                        
+                        return '<tr>' +
+                            '<td><strong>' + nom + '</strong></td>' +
+                            '<td>' + localite + '</td>' +
+                            '<td>' + (item.quantite || 0) + '</td>' +
+                            '<td>' + periode + '</td>' +
+                            '<td>' + statut + '</td>' +
+                            '<td style="white-space:nowrap;">' + actions + '</td>' +
+                            '</tr>';
+                    }).join('');
+                }
             }
-            
-            // === CORRECTION : Période (si JSONB) ===
-            var periode = '';
-            if (item.periode && typeof item.periode === 'object') {
-                periode = isRTL ? (item.periode.ar || item.periode.fr || '') : (item.periode.fr || item.periode.ar || '');
-            } else {
-                periode = item.periode || '';
-            }
-            
-            // === CORRECTION : Statut (si JSONB) ===
-            var statut = '';
-            if (item.statut && typeof item.statut === 'object') {
-                statut = isRTL ? (item.statut.ar || item.statut.fr || 'Disponible') : (item.statut.fr || item.statut.ar || 'Disponible');
-            } else {
-                statut = item.statut || 'Disponible';
-            }
-            
-            var actions = canEdit ?
-                '<button class="btn-action edit" onclick="editGenericItem(\'produit\',' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
-                '<button class="btn-action delete" onclick="deleteGenericItem(\'produit\',' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
-            
-            return '<tr>' +
-                '<td><strong>' + nom + '</strong></td>' +
-                '<td>' + localite + '</td>' +
-                '<td>' + (item.quantite || 0) + '</td>' +
-                '<td>' + periode + '</td>' +
-                '<td>' + statut + '</td>' +
-                '<td style="white-space:nowrap;">' + actions + '</td>' +
-                '</tr>';
-        }).join('');
-    }
-}
 
-            // Arbres
             var arbresBody = document.getElementById('arbresAdminBody');
             if (arbresBody) {
                 var arbresItems = DATA.arbres || [];
@@ -4875,7 +5271,6 @@ if (produitsBody) {
                 }
             }
 
-            // Eau
             var eauBody = document.getElementById('eauAdminBody');
             if (eauBody) {
                 var eauItems = DATA.eau || [];
@@ -4893,7 +5288,6 @@ if (produitsBody) {
                 }
             }
 
-            // Sagia
             var sagiaBody = document.getElementById('sagiaAdminBody');
             if (sagiaBody) {
                 var sagiaItems = DATA.sagia || [];
@@ -4926,7 +5320,8 @@ if (produitsBody) {
                 var actions = isAdmin && user.username !== currentUser.username ?
                     '<button class="btn-action delete" onclick="deleteUser(' + user.id + ')"><i class="fas fa-trash"></i></button>' :
                     '';
-                return '<tr><td>' + (index + 1) + '</td><td>' + user.username + '</td><td><span class="badge ' + roleClass + '">' + user.role + '</span></td><td>' + (user.created_at ? new Date(user.created_at).toLocaleDateString() : '') + '</td><td style="white-space:nowrap;">' + actions + '</td></tr>';
+                var passwordStatus = user.password_changed ? '✅' : '⚠️';
+                return '<tr><td>' + (index + 1) + '</td><td>' + user.username + ' ' + passwordStatus + '</td><td><span class="badge ' + roleClass + '">' + user.role + '</span></td><td>' + (user.created_at ? new Date(user.created_at).toLocaleDateString() : '') + '</td><td style="white-space:nowrap;">' + actions + '</td></tr>';
             }).join('');
             document.getElementById('totalUsersStat').textContent = users.length;
         }
@@ -4953,13 +5348,24 @@ if (produitsBody) {
             if (!currentUserId && users.find(function(u) { return u.username === login; })) {
                 showAlert('Ce nom d\'utilisateur existe déjà', 'error'); return;
             }
-            var newUser = { username: login, password: password, role: role };
+            
+            var hashedPassword = await hashPassword(password);
+            
+            var newUser = { 
+                username: login, 
+                password_hash: hashedPassword,
+                password: password, // Pour compatibilité
+                role: role,
+                password_changed: true
+            };
             if (currentUserId) {
                 var existing = users.find(function(u) { return u.id === currentUserId; });
                 if (existing) {
                     existing.username = login;
+                    existing.password_hash = hashedPassword;
                     existing.password = password;
                     existing.role = role;
+                    existing.password_changed = true;
                     existing.updated_at = new Date().toISOString();
                 }
             } else {
@@ -5094,12 +5500,37 @@ if (produitsBody) {
             var confirm = document.getElementById('confirmPassword').value.trim();
             if (!current || !newPass || !confirm) { showAlert('Veuillez remplir tous les champs', 'error'); return; }
             if (newPass !== confirm) { showAlert('Les mots de passe ne correspondent pas', 'error'); return; }
+            
+            // Vérifier la complexité
+            if (newPass.length < 8 || !/[A-Z]/.test(newPass) || !/[a-z]/.test(newPass) || !/[0-9]/.test(newPass)) {
+                showAlert('Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre.', 'error');
+                return;
+            }
+            
             var user = getCurrentUser();
             if (!user) { showAlert('Veuillez vous connecter', 'error'); return; }
+            
             var users = await getUsers();
             var found = users.find(function(u) { return u.id === user.id; });
-            if (!found || found.password !== current) { showAlert('Mot de passe actuel incorrect', 'error'); return; }
+            if (!found) { showAlert('Utilisateur non trouvé', 'error'); return; }
+            
+            // Vérifier l'ancien mot de passe
+            var isValid = false;
+            if (found.password_hash) {
+                isValid = await verifyPassword(current, found.password_hash);
+            } else if (found.password) {
+                isValid = found.password === current;
+            }
+            
+            if (!isValid) { showAlert('Mot de passe actuel incorrect', 'error'); return; }
+            
+            // Mettre à jour
+            var hashedPassword = await hashPassword(newPass);
+            found.password_hash = hashedPassword;
             found.password = newPass;
+            found.password_changed = true;
+            found.updated_at = new Date().toISOString();
+            
             await saveUsers(users);
             DATA.users = await getUsers();
             showAlert('✅ Mot de passe changé avec succès', 'success');
@@ -5210,7 +5641,6 @@ if (produitsBody) {
             loadTickerFromSupabase();
             updateTickerText();
 
-            // Actu word counter
             var actuText = document.getElementById('actuText');
             if (actuText) {
                 actuText.addEventListener('input', function() {
@@ -5221,7 +5651,6 @@ if (produitsBody) {
                 });
             }
 
-            // Auth init
             initAuth().then(function() {
                 loadAllTables();
                 updateVisitorCounter();
@@ -5230,12 +5659,10 @@ if (produitsBody) {
                 setInterval(updateVisitorCounter, 60000);
             });
 
-            // Add button
             document.getElementById('addBtn').addEventListener('click', function() {
                 showUploadModal('image');
             });
 
-            // Login button
             document.getElementById('loginBtn').addEventListener('click', function() {
                 document.getElementById('username').focus();
             });
@@ -5258,6 +5685,7 @@ if (produitsBody) {
         window.showTextModal = showTextModal;
         window.hideTextModal = hideTextModal;
         window.saveTextContent = saveTextContent;
+        window.editText = editText;
         window.deleteText = deleteText;
         window.showConseilModal = showConseilModal;
         window.hideConseilModal = hideConseilModal;
@@ -5316,6 +5744,44 @@ if (produitsBody) {
         window.loadLocalites = loadLocalites;
         window.loadAdherents = loadAdherents;
         window.loadAllTables = loadAllTables;
+        window.closeForcedPasswordModal = closeForcedPasswordModal;
+        window.changeForcedPassword = changeForcedPassword;
+        window.editGalleryTitlePrompt = editGalleryTitlePrompt;
+        window.editVideoTitlePrompt = editVideoTitlePrompt;
+        window.deleteMedia = deleteMedia;
+
+        // Fonctions pour éditer les titres
+        function editGalleryTitlePrompt(id, currentTitle) {
+            var newTitle = prompt('Modifier le titre de l\'image:', currentTitle);
+            if (newTitle !== null && newTitle.trim() !== '') {
+                updateMediaTitle(id, 'gallery', newTitle.trim());
+            }
+        }
+
+        function editVideoTitlePrompt(id, currentTitle) {
+            var newTitle = prompt('Modifier le titre de la vidéo:', currentTitle);
+            if (newTitle !== null && newTitle.trim() !== '') {
+                updateMediaTitle(id, 'videos', newTitle.trim());
+            }
+        }
+
+        async function updateMediaTitle(id, table, newTitle) {
+            try {
+                const { data, error } = await supabase
+                    .from(table)
+                    .update({ title: newTitle, updated_at: new Date().toISOString() })
+                    .eq('id', id)
+                    .select();
+                
+                if (error) throw new Error(error.message);
+                showAlert('✅ Titre mis à jour avec succès', 'success');
+                await loadAllTables();
+                renderAll();
+            } catch (e) {
+                showAlert('❌ Erreur: ' + e.message, 'error');
+                console.error(e);
+            }
+        }
     </script>
 </body>
 </html>
