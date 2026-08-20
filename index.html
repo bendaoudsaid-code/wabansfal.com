@@ -5281,20 +5281,25 @@
         }
 
         function renderEauAdmin() {
-            var body = document.getElementById('eauAdminBody');
-            if (!body) return;
-            var items = DATA.eau || [];
-            if (items.length === 0) { body.innerHTML = '<tr><td colspan="6" class="no-content">' + getLang().noData + '</td></tr>'; return; }
-            var user = getCurrentUser();
-            var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
-            body.innerHTML = items.map(function(item) {
-                var localite = getLocaliteName(item.localite_id);
-                var actions = canEdit ? 
-                    '<button class="btn-action edit" onclick="editGenericItem(\'eau\', ' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
-                    '<button class="btn-action delete" onclick="deleteGenericItem(\'eau\', ' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
-                return '<tr><td>' + localite + '</td><td>' + (item.foyers || 0) + '</td><td>' + (item.forages || 0) + '</td><td>' + (item.capacite || 0) + '</td><td>' + (item.statut || 'Opérationnel') + '</td><td>' + actions + '</td></tr>';
-            }).join('');
-        }
+    var body = document.getElementById('eauAdminBody');
+    if (!body) return;
+    var items = DATA.eau || [];
+    if (items.length === 0) { 
+        body.innerHTML = '<tr><td colspan="6" class="no-content">' + getLang().noData + '</td></tr>'; 
+        return; 
+    }
+    var user = getCurrentUser();
+    var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
+    body.innerHTML = items.map(function(item) {
+        // 🔧 Utiliser localite_id pour récupérer le nom
+        var localite = item.localite_id ? getLocaliteName(item.localite_id) : 'Non définie';
+        
+        var actions = canEdit ? 
+            '<button class="btn-action edit" onclick="editGenericItem(\'eau\', ' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+            '<button class="btn-action delete" onclick="deleteGenericItem(\'eau\', ' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
+        return '<tr><td>' + localite + '</td><td>' + (item.foyers || 0) + '</td><td>' + (item.forages || 0) + '</td><td>' + (item.capacite || 0) + '</td><td>' + (item.statut || 'Opérationnel') + '</td><td>' + actions + '</td></tr>';
+    }).join('');
+}
 
         function renderSagiaAdmin() {
             var body = document.getElementById('sagiaAdminBody');
