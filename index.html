@@ -268,6 +268,7 @@
         .actu-item {
             background: var(--light); border-radius: 10px; padding: 15px 20px;
             border-left: 4px solid var(--primary); transition: all 0.3s; position: relative;
+            cursor: pointer;
         }
         .actu-item:hover { transform: translateX(5px); box-shadow: var(--shadow); }
         .actu-item .actu-text { font-size: 0.95rem; color: var(--text); line-height: 1.5; }
@@ -290,6 +291,24 @@
         .actu-item .admin-actions .btn-actu.publish:hover { background: #219653; }
         .actu-item .admin-actions .btn-actu.delete { background: var(--danger); color: white; }
         .actu-item .admin-actions .btn-actu.delete:hover { background: #c0392b; }
+        .actu-item .actu-pdf-link {
+            display: inline-block;
+            margin-top: 10px;
+            background: var(--danger);
+            color: white;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .actu-item .actu-pdf-link:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+        .actu-item .actu-pdf-link i { margin-right: 5px; }
+        body.rtl .actu-item .actu-pdf-link i { margin-right: 0; margin-left: 5px; }
 
         .actu-form {
             max-width: 800px; margin: 30px auto 0; background: var(--light); padding: 25px; border-radius: 10px;
@@ -838,6 +857,91 @@
         }
         body.rtl #forcedPasswordModal .modal-body .password-requirements ul {
             margin: 5px 20px 0 0;
+        }
+
+        /* Style pour la modale de détail d'actualité */
+        #actuDetailModal .modal {
+            max-width: 700px;
+        }
+        #actuDetailModal .modal-body {
+            padding: 30px;
+        }
+        #actuDetailModal .actu-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        #actuDetailModal .actu-detail-header .author {
+            font-weight: 500;
+            color: var(--primary);
+        }
+        #actuDetailModal .actu-detail-header .date {
+            color: #888;
+            font-size: 0.85rem;
+        }
+        #actuDetailModal .actu-detail-content {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: var(--text);
+            padding: 15px 0;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+        }
+        #actuDetailModal .actu-detail-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        #actuDetailModal .actu-detail-footer .status {
+            padding: 3px 12px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        #actuDetailModal .actu-detail-footer .status.published {
+            background: var(--success);
+            color: white;
+        }
+        #actuDetailModal .actu-detail-footer .status.draft {
+            background: var(--warning);
+            color: white;
+        }
+        #actuDetailModal .actu-detail-pdf {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        #actuDetailModal .actu-detail-pdf a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--danger);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        #actuDetailModal .actu-detail-pdf a:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+        #actuDetailModal .actu-detail-pdf a i {
+            font-size: 1.1rem;
+        }
+        body.rtl #actuDetailModal .actu-detail-pdf a {
+            flex-direction: row-reverse;
         }
     </style>
 </head>
@@ -1733,13 +1837,12 @@
                     <div><label>Photo</label><input type="file" id="adherentPhoto" accept="image/*" style="width:100%;padding:10px;" /></div>
                     <div><label>Statut</label>
                         <select id="adherentStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">
-    <option value="Actif">Actif</option>
-    <option value="Suspendu">Suspendu</option>
-    <option value="Ancien">Ancien / Inactif</option>
-</select>
+                            <option value="Actif">Actif</option>
+                            <option value="Suspendu">Suspendu</option>
+                            <option value="Ancien">Ancien / Inactif</option>
+                        </select>
                     </div>
                 </div>
-                <!-- CHAMP LOCALITÉ AJOUTÉ -->
                 <div style="margin-top:15px;">
                     <label>Localité <span style="color:red;">*</span></label>
                     <select id="adherentLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">
@@ -1900,6 +2003,33 @@
                 <div class="upload-actions" style="margin-top:15px;">
                     <button class="btn-browse" onclick="hidePrintModal()" style="background:var(--danger);"><i class="fas fa-times"></i> Fermer</button>
                     <button class="btn-browse" onclick="printDocument()" style="background:var(--success);"><i class="fas fa-print"></i> Imprimer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE DÉTAIL ACTUALITÉ (PUBLIC) AVEC PDF -->
+    <div class="modal-overlay" id="actuDetailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-newspaper"></i> <span id="actuDetailTitle">Détail de l'actualité</span></h3>
+                <button class="close-modal" onclick="hideActuDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="actuDetailBody">
+                <div class="actu-detail-header">
+                    <span class="author" id="actuDetailAuthor">Auteur</span>
+                    <span class="date" id="actuDetailDate">Date</span>
+                </div>
+                <div class="actu-detail-content" id="actuDetailContent">Contenu de l'actualité</div>
+                <div class="actu-detail-footer">
+                    <span><i class="fas fa-tag"></i> <span id="actuDetailWordCount">0 mots</span></span>
+                    <span class="status" id="actuDetailStatus">Statut</span>
+                </div>
+                <!-- Zone pour afficher le PDF joint -->
+                <div class="actu-detail-pdf" id="actuDetailPdf" style="display:none;">
+                    <a href="#" target="_blank" id="actuDetailPdfLink">
+                        <i class="fas fa-file-pdf"></i> <span id="actuDetailPdfLabel">Voir le document PDF</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -3164,133 +3294,127 @@
         function hideAdherentModal() { document.getElementById('adherentModal').classList.remove('active'); }
 
         function editAdherent(id) {
-    var user = getCurrentUser();
-    if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
-        showAlert('Vous n\'avez pas les permissions', 'error'); 
-        return; 
-    }
-    var item = DATA.adherents.find(function(el) { return el.id === id; });
-    if (!item) { 
-        showAlert('Adhérent non trouvé', 'error'); 
-        return; 
-    }
-    
-    // Remplir le select des localités
-    var select = document.getElementById('adherentLocalite');
-    select.innerHTML = getLocaliteOptions(item.localite);
-    
-    // 🔧 CORRECTION : Mapping du statut de la base vers l'affichage
-    // La base stocke : 'actif', 'inactif', 'suspendu'
-    // L'affichage utilise : 'Actif', 'Ancien', 'Suspendu'
-    var statutDisplay = item.statut || 'actif';
-    var statutMapping = {
-        'actif': 'Actif',
-        'inactif': 'Ancien',
-        'suspendu': 'Suspendu'
-    };
-    var statutValue = statutMapping[statutDisplay] || 'Actif';
-    
-    document.getElementById('adherentModalTitle').textContent = 'Modifier un adhérent';
-    document.getElementById('adherentNom').value = item.nom || '';
-    document.getElementById('adherentPrenom').value = item.prenom || '';
-    document.getElementById('adherentEmail').value = item.email || '';
-    document.getElementById('adherentTelephone').value = item.telephone || '';
-    document.getElementById('adherentAdresse').value = item.adresse || '';
-    document.getElementById('adherentDate').value = item.date_adhesion ? item.date_adhesion.split('T')[0] : '';
-    document.getElementById('adherentStatut').value = statutValue;  // ✅ Utiliser la valeur mappée
-    document.getElementById('adherentNotes').value = item.notes || '';
-    document.getElementById('adherentPhoto').value = '';
-    currentAdherentId = id;
-    document.getElementById('adherentModal').classList.add('active');
-}
+            var user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
+                showAlert('Vous n\'avez pas les permissions', 'error'); 
+                return; 
+            }
+            var item = DATA.adherents.find(function(el) { return el.id === id; });
+            if (!item) { 
+                showAlert('Adhérent non trouvé', 'error'); 
+                return; 
+            }
+            
+            // Remplir le select des localités
+            var select = document.getElementById('adherentLocalite');
+            select.innerHTML = getLocaliteOptions(item.localite);
+            
+            // Mapping du statut
+            var statutDisplay = item.statut || 'actif';
+            var statutMapping = {
+                'actif': 'Actif',
+                'inactif': 'Ancien',
+                'suspendu': 'Suspendu'
+            };
+            var statutValue = statutMapping[statutDisplay] || 'Actif';
+            
+            document.getElementById('adherentModalTitle').textContent = 'Modifier un adhérent';
+            document.getElementById('adherentNom').value = item.nom || '';
+            document.getElementById('adherentPrenom').value = item.prenom || '';
+            document.getElementById('adherentEmail').value = item.email || '';
+            document.getElementById('adherentTelephone').value = item.telephone || '';
+            document.getElementById('adherentAdresse').value = item.adresse || '';
+            document.getElementById('adherentDate').value = item.date_adhesion ? item.date_adhesion.split('T')[0] : '';
+            document.getElementById('adherentStatut').value = statutValue;
+            document.getElementById('adherentNotes').value = item.notes || '';
+            document.getElementById('adherentPhoto').value = '';
+            currentAdherentId = id;
+            document.getElementById('adherentModal').classList.add('active');
+        }
 
         async function saveAdherent() {
-    var nom = document.getElementById('adherentNom').value.trim();
-    var prenom = document.getElementById('adherentPrenom').value.trim();
-    var email = document.getElementById('adherentEmail').value.trim();
-    var telephone = document.getElementById('adherentTelephone').value.trim();
-    var adresse = document.getElementById('adherentAdresse').value.trim();
-    var date = document.getElementById('adherentDate').value;
-    var statut = document.getElementById('adherentStatut').value;
-    var localite = document.getElementById('adherentLocalite').value;
-    var notes = document.getElementById('adherentNotes').value.trim();
+            var nom = document.getElementById('adherentNom').value.trim();
+            var prenom = document.getElementById('adherentPrenom').value.trim();
+            var email = document.getElementById('adherentEmail').value.trim();
+            var telephone = document.getElementById('adherentTelephone').value.trim();
+            var adresse = document.getElementById('adherentAdresse').value.trim();
+            var date = document.getElementById('adherentDate').value;
+            var statut = document.getElementById('adherentStatut').value;
+            var localite = document.getElementById('adherentLocalite').value;
+            var notes = document.getElementById('adherentNotes').value.trim();
 
-    if (!nom || !prenom) { 
-        showAlert('Veuillez remplir nom et prénom', 'error'); 
-        return; 
-    }
-    if (!localite) { 
-        showAlert('Veuillez sélectionner une localité', 'error'); 
-        return; 
-    }
+            if (!nom || !prenom) { 
+                showAlert('Veuillez remplir nom et prénom', 'error'); 
+                return; 
+            }
+            if (!localite) { 
+                showAlert('Veuillez sélectionner une localité', 'error'); 
+                return; 
+            }
 
-    // 🔧 CORRECTION : Mapping du statut d'affichage vers la base
-    // L'affichage utilise : 'Actif', 'Ancien', 'Suspendu'
-    // La base stocke : 'actif', 'inactif', 'suspendu'
-    var statutMapping = {
-        'Actif': 'actif',
-        'Ancien': 'inactif',
-        'Suspendu': 'suspendu'
-    };
-    var statutValue = statutMapping[statut] || 'actif';
+            var statutMapping = {
+                'Actif': 'actif',
+                'Ancien': 'inactif',
+                'Suspendu': 'suspendu'
+            };
+            var statutValue = statutMapping[statut] || 'actif';
 
-    var data = {
-        nom: nom, 
-        prenom: prenom, 
-        email: email || null,
-        telephone: telephone || null, 
-        adresse: adresse || null,
-        date_adhesion: date || null, 
-        statut: statutValue,  // ✅ Utiliser la valeur en minuscules pour la base
-        localite: parseInt(localite),
-        notes: notes || null,
-        updated_at: new Date().toISOString()
-    };
+            var data = {
+                nom: nom, 
+                prenom: prenom, 
+                email: email || null,
+                telephone: telephone || null, 
+                adresse: adresse || null,
+                date_adhesion: date || null, 
+                statut: statutValue,
+                localite: parseInt(localite),
+                notes: notes || null,
+                updated_at: new Date().toISOString()
+            };
 
-    // Gestion de la photo
-    var photoInput = document.getElementById('adherentPhoto');
-    if (photoInput && photoInput.files && photoInput.files.length > 0) {
-        var photoFile = photoInput.files[0];
-        var photoName = 'adherent_' + Date.now() + '_' + photoFile.name.replace(/\s/g, '_');
-        var { data: uploadData, error: uploadError } = await supabase.storage
-            .from('medias')
-            .upload(photoName, photoFile, { cacheControl: '3600', upsert: false });
-        if (!uploadError) {
-            var { data: urlData } = supabase.storage.from('medias').getPublicUrl(photoName);
-            data.photo_url = urlData.publicUrl;
+            var photoInput = document.getElementById('adherentPhoto');
+            if (photoInput && photoInput.files && photoInput.files.length > 0) {
+                var photoFile = photoInput.files[0];
+                var photoName = 'adherent_' + Date.now() + '_' + photoFile.name.replace(/\s/g, '_');
+                var { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('medias')
+                    .upload(photoName, photoFile, { cacheControl: '3600', upsert: false });
+                if (!uploadError) {
+                    var { data: urlData } = supabase.storage.from('medias').getPublicUrl(photoName);
+                    data.photo_url = urlData.publicUrl;
+                }
+            }
+
+            try {
+                var url = supabaseUrl + '/rest/v1/adherents';
+                var method = 'POST';
+                if (currentAdherentId) { 
+                    url += '?id=eq.' + currentAdherentId; 
+                    method = 'PATCH'; 
+                } else { 
+                    data.created_at = new Date().toISOString(); 
+                }
+                
+                var resp = await fetchWithSupabaseAuth(url, { 
+                    method: method, 
+                    body: JSON.stringify(data), 
+                    headers: { 'Prefer': 'return=representation' } 
+                });
+                
+                if (!resp.ok) {
+                    var errorText = await resp.text();
+                    throw new Error('Erreur sauvegarde: ' + errorText);
+                }
+                
+                showAlert('✅ Adhérent enregistré avec succès', 'success');
+                hideAdherentModal();
+                await loadAdherents();
+                renderAdherents();
+            } catch (e) { 
+                showAlert('❌ Erreur: ' + e.message, 'error'); 
+                console.error(e);
+            }
         }
-    }
-
-    try {
-        var url = supabaseUrl + '/rest/v1/adherents';
-        var method = 'POST';
-        if (currentAdherentId) { 
-            url += '?id=eq.' + currentAdherentId; 
-            method = 'PATCH'; 
-        } else { 
-            data.created_at = new Date().toISOString(); 
-        }
-        
-        var resp = await fetchWithSupabaseAuth(url, { 
-            method: method, 
-            body: JSON.stringify(data), 
-            headers: { 'Prefer': 'return=representation' } 
-        });
-        
-        if (!resp.ok) {
-            var errorText = await resp.text();
-            throw new Error('Erreur sauvegarde: ' + errorText);
-        }
-        
-        showAlert('✅ Adhérent enregistré avec succès', 'success');
-        hideAdherentModal();
-        await loadAdherents();
-        renderAdherents();
-    } catch (e) { 
-        showAlert('❌ Erreur: ' + e.message, 'error'); 
-        console.error(e);
-    }
-}
 
         async function deleteAdherent(id) {
             var user = getCurrentUser();
@@ -3690,7 +3814,7 @@
         }
 
         // ============================================================
-        // ACTUALITÉS
+        // ACTUALITÉS - AVEC FONCTIONNALITÉ DE CLIC POUR DÉTAIL PUBLIC ET PDF
         // ============================================================
         function renderActu() { loadActu(); }
 
@@ -3701,12 +3825,77 @@
             if (items.length === 0) { container.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; return; }
             var user = getCurrentUser();
             var isAdmin = user && (user.role === 'admin' || user.role === 'webmestre');
+            var isRTL = document.body.classList.contains('rtl');
+            
             container.innerHTML = items.map(function(item) {
-                var text = document.body.classList.contains('rtl') ? (item.text_ar || item.text_fr) : (item.text_fr || item.text_ar);
+                var text = isRTL ? (item.text_ar || item.text_fr) : (item.text_fr || item.text_ar);
                 var status = item.status === 'published' ? getLang().statusPublished : getLang().statusDraft;
-                var adminActions = isAdmin ? `<div class="admin-actions">${item.status === 'draft' ? `<button class="btn-actu publish" onclick="publishActu(${item.id})">${getLang().publishBtn}</button>` : ''}<button class="btn-actu delete" onclick="deleteActu(${item.id})">${getLang().deleteBtn}</button></div>` : '';
-                return `<div class="actu-item"><div class="actu-text">${text}</div><div class="actu-meta"><span class="author">${item.author || 'Anonyme'}</span><span class="word-count">${item.word_count || 0} mots</span><span class="status ${item.status}">${status}</span><span>${new Date(item.created_at).toLocaleDateString()}</span></div>${adminActions}</div>`;
+                var adminActions = isAdmin ? `<div class="admin-actions">${item.status === 'draft' ? `<button class="btn-actu publish" onclick="event.stopPropagation();publishActu(${item.id})">${getLang().publishBtn}</button>` : ''}<button class="btn-actu delete" onclick="event.stopPropagation();deleteActu(${item.id})">${getLang().deleteBtn}</button></div>` : '';
+                var author = item.author || 'Anonyme';
+                var date = new Date(item.created_at).toLocaleDateString();
+                var wordCount = item.word_count || 0;
+                
+                // Vérifier si un PDF est attaché
+                var pdfHtml = '';
+                if (item.pdf_url) {
+                    pdfHtml = `<a href="${item.pdf_url}" target="_blank" class="actu-pdf-link" onclick="event.stopPropagation();"><i class="fas fa-file-pdf"></i> Voir le PDF</a>`;
+                }
+                
+                // Ajout de l'événement onclick pour ouvrir les détails
+                return `<div class="actu-item" onclick="showActuDetail(${item.id})">
+                    <div class="actu-text">${text}</div>
+                    ${pdfHtml}
+                    <div class="actu-meta">
+                        <span class="author">${author}</span>
+                        <span class="word-count">${wordCount} mots</span>
+                        <span class="status ${item.status}">${status}</span>
+                        <span>${date}</span>
+                    </div>
+                    ${adminActions}
+                </div>`;
             }).join('');
+        }
+
+        // Fonction pour afficher les détails d'une actualité dans une modale (public) avec PDF
+        function showActuDetail(id) {
+            var item = DATA.actu.find(function(el) { return el.id === id; });
+            if (!item) {
+                showAlert('Actualité non trouvée', 'error');
+                return;
+            }
+            
+            var isRTL = document.body.classList.contains('rtl');
+            var text = isRTL ? (item.text_ar || item.text_fr) : (item.text_fr || item.text_ar);
+            var author = item.author || 'Anonyme';
+            var date = new Date(item.created_at).toLocaleDateString() + ' ' + new Date(item.created_at).toLocaleTimeString();
+            var status = item.status === 'published' ? getLang().statusPublished : getLang().statusDraft;
+            var wordCount = item.word_count || 0;
+            
+            document.getElementById('actuDetailTitle').textContent = 'Détail de l\'actualité';
+            document.getElementById('actuDetailAuthor').textContent = '✍️ ' + author;
+            document.getElementById('actuDetailDate').textContent = '📅 ' + date;
+            document.getElementById('actuDetailContent').textContent = text;
+            document.getElementById('actuDetailWordCount').textContent = wordCount + ' mots';
+            
+            var statusEl = document.getElementById('actuDetailStatus');
+            statusEl.textContent = status;
+            statusEl.className = 'status ' + item.status;
+            
+            // Gestion du PDF joint
+            var pdfContainer = document.getElementById('actuDetailPdf');
+            var pdfLink = document.getElementById('actuDetailPdfLink');
+            if (item.pdf_url) {
+                pdfLink.href = item.pdf_url;
+                pdfContainer.style.display = 'block';
+            } else {
+                pdfContainer.style.display = 'none';
+            }
+            
+            document.getElementById('actuDetailModal').classList.add('active');
+        }
+
+        function hideActuDetailModal() {
+            document.getElementById('actuDetailModal').classList.remove('active');
         }
 
         function submitActu() {
@@ -4944,7 +5133,7 @@
                     <div><label>${t.zone}</label><input type="text" id="genericZone" value="${item.zone || ''}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
                     <div><label>${t.superficie}</label><input type="number" id="genericSuperficie" value="${item.superficie || 0}" step="0.1" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
                     <div><label>${t.debit}</label><input type="number" id="genericDebit" value="${item.debit || 0}" step="0.1" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>                    <div><label>${t.statut}</label><select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;"><option value="Actif" ${item.statut === 'Actif' ? 'selected' : ''}>Actif</option><option value="Inactif" ${item.statut === 'Inactif' ? 'selected' : ''}>Inactif</option></select></div>
+                    <div><label>${t.statut}</label><select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;"><option value="Actif" ${item.statut === 'Actif' ? 'selected' : ''}>Actif</option><option value="Inactif" ${item.statut === 'Inactif' ? 'selected' : ''}>Inactif</option></select></div>
                 `;
             }
             document.getElementById('genericModalTitle').textContent = title;
@@ -5217,7 +5406,6 @@
                 hideLocaliteModal();
                 await loadLocalites();
                 renderLocalites();
-                // Rafraîchir les selects de localités dans toutes les modales
                 refreshLocaliteSelects();
             } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
         }
@@ -5439,7 +5627,6 @@
             body.innerHTML = '<div class="pdf-container" id="pdfContainer"><p style="text-align:center;color:#888;">Chargement du PDF...</p></div>';
             viewer.classList.add('active');
 
-            // Utiliser pdf.js pour afficher le PDF
             var container = document.getElementById('pdfContainer');
             var loadingTask = pdfjsLib.getDocument(url);
             loadingTask.promise.then(function(pdf) {
@@ -5517,7 +5704,6 @@
                     document.getElementById('onlineVisitors').textContent = Math.floor(Math.random() * 10) + 1;
                     document.getElementById('lastVisit').textContent = new Date().toLocaleString();
                 } else {
-                    // Créer un compteur initial
                     await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/visitors', {
                         method: 'POST',
                         body: JSON.stringify({ count: 1, last_visit: new Date().toISOString() })
@@ -5623,7 +5809,7 @@
 
             // Météo
             fetchWeather();
-            setInterval(fetchWeather, 300000); // Toutes les 5 min
+            setInterval(fetchWeather, 300000);
 
             // Compteur visiteurs
             updateVisitors();
@@ -5699,8 +5885,6 @@
         // ============================================================
         // EXPOSITION DES FONCTIONS DANS LE SCOPE GLOBAL
         // ============================================================
-        // Toutes les fonctions sont déjà dans le scope global via 'function' declarations
-        // Mais on s'assure que les plus importantes sont disponibles
         window.showSection = showSection;
         window.showDashboardSection = showDashboardSection;
         window.switchLanguage = switchLanguage;
@@ -5759,6 +5943,8 @@
         window.submitActu = submitActu;
         window.publishActu = publishActu;
         window.deleteActu = deleteActu;
+        window.showActuDetail = showActuDetail;
+        window.hideActuDetailModal = hideActuDetailModal;
         window.viewMedia = viewMedia;
         window.viewPDF = viewPDF;
         window.closeFileViewer = closeFileViewer;
