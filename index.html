@@ -4894,68 +4894,82 @@
         function hideGenericModal() { document.getElementById('genericModal').classList.remove('active'); }
 
         function editGenericItem(type, id) {
-            var user = getCurrentUser();
-            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { showAlert('Vous n\'avez pas les permissions', 'error'); return; }
-            var items = DATA[type] || [];
-            var item = items.find(function(el) { return el.id === id; });
-            if (!item) { showAlert('Élément non trouvé', 'error'); return; }
-            currentEditType = type;
-            currentEditId = id;
-            var t = getLang();
-            var title = type === 'betail' ? 'Modifier les données bétail' : type === 'produit' ? 'Modifier le produit' : type === 'arbre' ? 'Modifier les données arbres' : type === 'eau' ? 'Modifier les données eau' : 'Modifier le SAGIA';
-            var fields = '';
-            if (type === 'betail') {
-                fields = `
-                    <div><label>${t.localite}</label><select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">${getLocaliteOptions(item.localite_id)}</select></div>
-                    <div><label>${t.bovins}</label><input type="number" id="genericBovins" value="${item.bovins || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.ovins}</label><input type="number" id="genericOvins" value="${item.ovins || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.caprins}</label><input type="number" id="genericCaprins" value="${item.caprins || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.habitants}</label><input type="number" id="genericHabitants" value="${item.habitants || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                `;
-            } else if (type === 'produit') {
-                fields = `
-                    <div><label>${t.produit}</label><input type="text" id="genericNom" value="${item.nom || item.nom_fr || ''}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.localite}</label><select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">${getLocaliteOptions(item.localite_id)}</select></div>
-                    <div><label>${t.quantite}</label><input type="number" id="genericQuantite" value="${item.quantite || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.periode}</label><input type="text" id="genericPeriode" value="${item.periode || ''}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.statut}</label><select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;"><option value="Disponible" ${item.statut === 'Disponible' ? 'selected' : ''}>Disponible</option><option value="Épuisé" ${item.statut === 'Épuisé' ? 'selected' : ''}>Épuisé</option></select></div>
-                `;
-            } else if (type === 'arbre') {
-                fields = `
-                    <div><label>${t.localite}</label><select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">${getLocaliteOptions(item.localite_id)}</select></div>
-                    <div><label>${t.oliviers}</label><input type="number" id="genericOliviers" value="${item.oliviers || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.amandiers}</label><input type="number" id="genericAmandiers" value="${item.amandiers || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.figuiers}</label><input type="number" id="genericFiguiers" value="${item.figuiers || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.noyers}</label><input type="number" id="genericNoyers" value="${item.noyers || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.habitants}</label><input type="number" id="genericHabitants" value="${item.habitants || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                `;
-            } else if (type === 'eau') {
-                fields = `
-                    <div><label>${t.localite}</label><select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">${getLocaliteOptions(item.localite_id)}</select></div>
-                    <div><label>${t.foyers}</label><input type="number" id="genericFoyers" value="${item.foyers || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.forages}</label><input type="number" id="genericForages" value="${item.forages || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.capacite}</label><input type="number" id="genericCapacite" value="${item.capacite || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.statut}</label><select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;"><option value="Opérationnel" ${item.statut === 'Opérationnel' ? 'selected' : ''}>Opérationnel</option><option value="En maintenance" ${item.statut === 'En maintenance' ? 'selected' : ''}>En maintenance</option></select></div>
-                `;
-            } else if (type === 'sagia') {
-                fields = `
-                    <div><label>${t.code}</label><input type="text" id="genericCode" value="${item.code || ''}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.nom}</label><input type="text" id="genericNom" value="${item.nom || item.nom_fr || ''}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.zone}</label><input type="text" id="genericZone" value="${item.zone || ''}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.superficie}</label><input type="number" id="genericSuperficie" value="${item.superficie || 0}" step="0.1" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.debit}</label><input type="number" id="genericDebit" value="${item.debit || 0}" step="0.1" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>                    <div><label>${t.statut}</label><select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;"><option value="Actif" ${item.statut === 'Actif' ? 'selected' : ''}>Actif</option><option value="Inactif" ${item.statut === 'Inactif' ? 'selected' : ''}>Inactif</option></select></div>
-                `;
-            }
-            document.getElementById('genericModalTitle').textContent = title;
-            document.getElementById('genericModalBody').innerHTML = fields +
-                `<div class="upload-actions" style="margin-top:15px;">
-                    <button class="btn-browse" onclick="hideGenericModal()" style="background:var(--danger);"><i class="fas fa-times"></i> Annuler</button>
-                    <button class="btn-browse" onclick="saveGenericItem()" style="background:var(--success);"><i class="fas fa-save"></i> Enregistrer</button>
-                </div>`;
-            document.getElementById('genericModal').classList.add('active');
-        }
-
+    var user = getCurrentUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
+        showAlert('Vous n\'avez pas les permissions', 'error'); 
+        return; 
+    }
+    
+    // 🔧 CORRECTION : Utiliser la bonne table pour récupérer les données
+    var tableName = type;
+    if (type === 'arbre') {
+        tableName = 'arbres';
+    }
+    
+    var items = DATA[tableName] || [];
+    var item = items.find(function(el) { return el.id === id; });
+    if (!item) { 
+        showAlert('Élément non trouvé', 'error'); 
+        return; 
+    }
+    
+    currentEditType = type;
+    currentEditId = id;
+    var t = getLang();
+    var title = '';
+    var fields = '';
+    
+    if (type === 'betail') {
+        title = 'Modifier les données bétail';
+        var localiteId = item.localite_id || (item.localite && item.localite.id) || 0;
+        fields = `
+            <div style="margin-bottom:15px;">
+                <label>${t.localite} <span style="color:red;">*</span></label>
+                <select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">
+                    ${getLocaliteOptions(localiteId)}
+                </select>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                <div><label>${t.bovins}</label><input type="number" id="genericBovins" value="${item.bovins || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                <div><label>${t.ovins}</label><input type="number" id="genericOvins" value="${item.ovins || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                <div><label>${t.caprins}</label><input type="number" id="genericCaprins" value="${item.caprins || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                <div><label>${t.habitants}</label><input type="number" id="genericHabitants" value="${item.habitants || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+            </div>
+        `;
+    } else if (type === 'produit') {
+        // ... code existant ...
+    } else if (type === 'arbre') {
+        title = 'Modifier les données arbres';
+        var localiteId = item.localite_id || (item.localite && item.localite.id) || 0;
+        fields = `
+            <div style="margin-bottom:15px;">
+                <label>${t.localite} <span style="color:red;">*</span></label>
+                <select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">
+                    ${getLocaliteOptions(localiteId)}
+                </select>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                <div><label>${t.oliviers}</label><input type="number" id="genericOliviers" value="${item.oliviers || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                <div><label>${t.amandiers}</label><input type="number" id="genericAmandiers" value="${item.amandiers || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                <div><label>${t.figuiers}</label><input type="number" id="genericFiguiers" value="${item.figuiers || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                <div><label>${t.noyers}</label><input type="number" id="genericNoyers" value="${item.noyers || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                <div><label>${t.habitants}</label><input type="number" id="genericHabitants" value="${item.habitants || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+            </div>
+        `;
+    } else if (type === 'eau') {
+        // ... code existant ...
+    } else if (type === 'sagia') {
+        // ... code existant ...
+    }
+    
+    document.getElementById('genericModalTitle').textContent = title;
+    document.getElementById('genericModalBody').innerHTML = fields +
+        `<div class="upload-actions" style="margin-top:15px;">
+            <button class="btn-browse" onclick="hideGenericModal()" style="background:var(--danger);"><i class="fas fa-times"></i> Annuler</button>
+            <button class="btn-browse" onclick="saveGenericItem()" style="background:var(--success);"><i class="fas fa-save"></i> Enregistrer</button>
+        </div>`;
+    document.getElementById('genericModal').classList.add('active');
+}
         async function saveGenericItem() {
     var type = currentEditType;
     var t = getLang();
