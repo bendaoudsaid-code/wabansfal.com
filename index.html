@@ -4961,6 +4961,7 @@
     var t = getLang();
     
     var data = { updated_at: new Date().toISOString() };
+    var tableName = type; // Par défaut, le type est le nom de la table
     
     if (type === 'betail') {
         var localiteId = parseInt(document.getElementById('genericLocalite').value);
@@ -4969,14 +4970,12 @@
             return; 
         }
         
-        // 🔧 Trouver la localité complète
         var localite = DATA.localites.find(function(l) { return l.id === localiteId; });
         if (!localite) {
             showAlert('Localité non trouvée', 'error');
             return;
         }
         
-        // 🔧 Stocker la localité comme JSONB
         data.localite = {
             id: localite.id,
             nom_fr: localite.nom_fr || '',
@@ -4986,8 +4985,6 @@
             province: localite.province || '',
             commune: localite.commune || ''
         };
-        
-        // Optionnel : stocker aussi l'ID séparément pour faciliter les requêtes
         data.localite_id = localiteId;
         data.localite_nom = localite.nom_fr || '';
         
@@ -5001,12 +4998,75 @@
         if (isNaN(data.caprins)) data.caprins = 0;
         if (isNaN(data.habitants)) data.habitants = 0;
         
-        console.log('📤 Données bétail à sauvegarder:', data);
-        
     } else if (type === 'produit') {
-        // ... code existant ...
+        var localiteId = parseInt(document.getElementById('genericLocalite').value);
+        if (!localiteId) { 
+            showAlert('Veuillez sélectionner une localité', 'error'); 
+            return; 
+        }
+        
+        var localite = DATA.localites.find(function(l) { return l.id === localiteId; });
+        if (!localite) {
+            showAlert('Localité non trouvée', 'error');
+            return;
+        }
+        
+        data.nom = document.getElementById('genericNom').value.trim();
+        data.nom_fr = data.nom;
+        data.nom_ar = data.nom;
+        data.localite = {
+            id: localite.id,
+            nom_fr: localite.nom_fr || '',
+            nom_ar: localite.nom_ar || ''
+        };
+        data.localite_id = localiteId;
+        data.localite_nom = localite.nom_fr || '';
+        data.quantite = parseFloat(document.getElementById('genericQuantite').value) || 0;
+        data.periode = document.getElementById('genericPeriode').value.trim();
+        data.statut = document.getElementById('genericStatut').value;
+        
+        if (!data.nom) { showAlert('Veuillez entrer un nom de produit', 'error'); return; }
+        
     } else if (type === 'arbre') {
-        // ... code existant ...
+        // 🔧 CORRECTION : Utiliser la table 'arbres'
+        tableName = 'arbres';
+        
+        var localiteId = parseInt(document.getElementById('genericLocalite').value);
+        if (!localiteId) { 
+            showAlert('Veuillez sélectionner une localité', 'error'); 
+            return; 
+        }
+        
+        var localite = DATA.localites.find(function(l) { return l.id === localiteId; });
+        if (!localite) {
+            showAlert('Localité non trouvée', 'error');
+            return;
+        }
+        
+        data.localite = {
+            id: localite.id,
+            nom_fr: localite.nom_fr || '',
+            nom_ar: localite.nom_ar || '',
+            code: localite.code || '',
+            region: localite.region || '',
+            province: localite.province || '',
+            commune: localite.commune || ''
+        };
+        data.localite_id = localiteId;
+        data.localite_nom = localite.nom_fr || '';
+        
+        data.oliviers = parseInt(document.getElementById('genericOliviers').value) || 0;
+        data.amandiers = parseInt(document.getElementById('genericAmandiers').value) || 0;
+        data.figuiers = parseInt(document.getElementById('genericFiguiers').value) || 0;
+        data.noyers = parseInt(document.getElementById('genericNoyers').value) || 0;
+        data.habitants = parseInt(document.getElementById('genericHabitants').value) || 0;
+        
+        if (isNaN(data.oliviers)) data.oliviers = 0;
+        if (isNaN(data.amandiers)) data.amandiers = 0;
+        if (isNaN(data.figuiers)) data.figuiers = 0;
+        if (isNaN(data.noyers)) data.noyers = 0;
+        if (isNaN(data.habitants)) data.habitants = 0;
+        
     } else if (type === 'eau') {
         // ... code existant ...
     } else if (type === 'sagia') {
@@ -5014,7 +5074,8 @@
     }
 
     try {
-        var url = supabaseUrl + '/rest/v1/' + type;
+        // 🔧 Utiliser le nom de table correct
+        var url = supabaseUrl + '/rest/v1/' + tableName;
         var method = 'POST';
         if (currentEditId) { 
             url += '?id=eq.' + currentEditId; 
@@ -5022,6 +5083,8 @@
         } else { 
             data.created_at = new Date().toISOString(); 
         }
+        
+        console.log('📤 Table:', tableName, 'Données:', data);
         
         var resp = await fetchWithSupabaseAuth(url, { 
             method: method, 
@@ -5046,18 +5109,32 @@
 }
 
         async function deleteGenericItem(type, id) {
-            var user = getCurrentUser();
-            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { showAlert('Vous n\'avez pas les permissions', 'error'); return; }
-            if (!confirm('Supprimer cet élément définitivement ?')) return;
-            try {
-                var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + type + '?id=eq.' + id, { method: 'DELETE' });
-                if (!resp.ok) throw new Error('Erreur suppression');
-                showAlert('✅ Élément supprimé', 'success');
-                await loadAllTables();
-                renderAll();
-                renderDashboardTables();
-            } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
+    var user = getCurrentUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
+        showAlert('Vous n\'avez pas les permissions', 'error'); 
+        return; 
+    }
+    if (!confirm('Supprimer cet élément définitivement ?')) return;
+    
+    try {
+        // 🔧 CORRECTION : Utiliser le bon nom de table
+        var tableName = type;
+        if (type === 'arbre') {
+            tableName = 'arbres';
         }
+        
+        var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + tableName + '?id=eq.' + id, { 
+            method: 'DELETE' 
+        });
+        if (!resp.ok) throw new Error('Erreur suppression');
+        showAlert('✅ Élément supprimé', 'success');
+        await loadAllTables();
+        renderAll();
+        renderDashboardTables();
+    } catch (e) { 
+        showAlert('❌ Erreur: ' + e.message, 'error'); 
+    }
+}
 
         // ============================================================
         // RENDER DASHBOARD TABLES
