@@ -2496,38 +2496,44 @@
         }
 
         function completeLogin(user) {
-            var t = getLang();
-            DATA.currentUser = user;
-            DATA.userRole = user.role;
-            DATA.isAdmin = user.role === 'admin' || user.role === 'webmestre';
+    var t = getLang();
+    DATA.currentUser = user;
+    DATA.userRole = user.role;
+    DATA.isAdmin = user.role === 'admin' || user.role === 'webmestre';
 
-            document.getElementById('loginForm').classList.add('hidden');
-            document.getElementById('userInfo').classList.remove('hidden');
-            document.getElementById('userName').textContent = user.username;
-            document.getElementById('userRole').textContent = user.role;
-            document.body.classList.add('admin-mode');
-            document.getElementById('addBtn').style.display = 'flex';
-            document.getElementById('loginBtn').style.display = 'none';
-            document.getElementById('menuDashboard').classList.remove('hidden');
-            document.getElementById('bankAccountEditBtn').style.display = 'inline-block';
-            document.getElementById('conseilProtected').style.display = 'none';
-            document.getElementById('conseilContent').style.display = 'block';
-            document.getElementById('documentsProtected').style.display = 'none';
-            document.getElementById('documentsContent').style.display = 'block';
+    document.getElementById('loginForm').classList.add('hidden');
+    document.getElementById('userInfo').classList.remove('hidden');
+    document.getElementById('userName').textContent = user.username;
+    document.getElementById('userRole').textContent = user.role;
+    document.body.classList.add('admin-mode');
+    document.getElementById('addBtn').style.display = 'flex';
+    document.getElementById('loginBtn').style.display = 'none';
+    document.getElementById('menuDashboard').classList.remove('hidden');
+    document.getElementById('bankAccountEditBtn').style.display = 'inline-block';
+    
+    // Afficher le menu Documents pour les admins
+    document.getElementById('menuDocuments').style.display = 'inline-block';
+    
+    // Afficher le contenu du conseil
+    document.getElementById('conseilProtected').style.display = 'none';
+    document.getElementById('conseilContent').style.display = 'block';
+    
+    // Afficher le contenu des documents
+    document.getElementById('documentsProtected').style.display = 'none';
+    document.getElementById('documentsContent').style.display = 'block';
 
-            if (user.role === 'admin' || user.role === 'webmestre') {
-                document.getElementById('contactEditForm').style.display = 'block';
-            } else {
-                document.getElementById('contactEditForm').style.display = 'none';
-            }
+    if (user.role === 'admin' || user.role === 'webmestre') {
+        document.getElementById('contactEditForm').style.display = 'block';
+    } else {
+        document.getElementById('contactEditForm').style.display = 'none';
+    }
 
-            if (user.role === 'membre') {
-                document.querySelectorAll('.admin-only').forEach(function(el) { el.style.display = 'none'; });
-            }
+    if (user.role === 'membre') {
+        document.querySelectorAll('.admin-only').forEach(function(el) { el.style.display = 'none'; });
+    }
 
-            setCurrentUser(user);
-        }
-
+    setCurrentUser(user);
+}
         function getUsersLocal() {
             try {
                 var saved = localStorage.getItem('ansfal_users');
