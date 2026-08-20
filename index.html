@@ -2845,35 +2845,52 @@
         // NAVIGATION
         // ============================================================
         function showSection(id) {
-            document.querySelectorAll('section').forEach(function(s) { s.classList.remove('active'); });
-            var target = document.getElementById(id);
-            if (target) target.classList.add('active');
-            document.querySelectorAll('#mainMenu a').forEach(function(l) { l.classList.remove('active'); });
-            var map = {
-                home: 'menuHome', about: 'menuAbout', betail: 'menuBetail', produits: 'menuProduits',
-                arbres: 'menuArbres', eau: 'menuEau', sagia: 'menuSagia', conseil: 'menuConseil',
-                documents: 'menuDocuments', gallery: 'menuGallery', videos: 'menuVideos',
-                projects: 'menuProjects', dons: 'menuDons', actu: 'menuActu',
-                adherents: 'menuAdherents', contact: 'menuContact', dashboard: 'menuDashboard',
-                musee: 'menuMusee', encheres: 'menuEncheres'
-            };
-            if (map[id]) document.getElementById(map[id]).classList.add('active');
-            if (id === 'conseil' || id === 'documents') {
-                var user = getCurrentUser();
-                if (!user) {
-                    document.getElementById('conseilProtected').style.display = 'block';
-                    document.getElementById('conseilContent').style.display = 'none';
-                    document.getElementById('documentsProtected').style.display = 'block';
-                    document.getElementById('documentsContent').style.display = 'none';
-                } else {
-                    document.getElementById('conseilProtected').style.display = 'none';
-                    document.getElementById('conseilContent').style.display = 'block';
-                    document.getElementById('documentsProtected').style.display = 'none';
-                    document.getElementById('documentsContent').style.display = 'block';
-                }
-            }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.querySelectorAll('section').forEach(function(s) { s.classList.remove('active'); });
+    var target = document.getElementById(id);
+    if (target) target.classList.add('active');
+    
+    document.querySelectorAll('#mainMenu a').forEach(function(l) { l.classList.remove('active'); });
+    
+    var map = {
+        home: 'menuHome', about: 'menuAbout', betail: 'menuBetail', produits: 'menuProduits',
+        arbres: 'menuArbres', eau: 'menuEau', sagia: 'menuSagia', conseil: 'menuConseil',
+        documents: 'menuDocuments', gallery: 'menuGallery', videos: 'menuVideos',
+        projects: 'menuProjects', dons: 'menuDons', actu: 'menuActu',
+        adherents: 'menuAdherents', contact: 'menuContact', dashboard: 'menuDashboard',
+        musee: 'menuMusee', encheres: 'menuEncheres'
+    };
+    if (map[id]) document.getElementById(map[id]).classList.add('active');
+    
+    // Gestion de l'accès aux documents
+    if (id === 'documents') {
+        var user = getCurrentUser();
+        if (!user) {
+            document.getElementById('documentsProtected').style.display = 'block';
+            document.getElementById('documentsContent').style.display = 'none';
+            showAlert('Veuillez vous connecter pour accéder aux documents', 'warning');
+            return;
+        } else {
+            document.getElementById('documentsProtected').style.display = 'none';
+            document.getElementById('documentsContent').style.display = 'block';
         }
+    }
+    
+    // Gestion de l'accès au conseil
+    if (id === 'conseil') {
+        var user = getCurrentUser();
+        if (!user) {
+            document.getElementById('conseilProtected').style.display = 'block';
+            document.getElementById('conseilContent').style.display = 'none';
+            showAlert('Veuillez vous connecter pour accéder au conseil', 'warning');
+            return;
+        } else {
+            document.getElementById('conseilProtected').style.display = 'none';
+            document.getElementById('conseilContent').style.display = 'block';
+        }
+    }
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
         function showDashboardSection(type) {
             var user = getCurrentUser();
