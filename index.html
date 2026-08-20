@@ -1715,7 +1715,7 @@
         </div>
     </div>
 
-    <!-- MODALE ADHÉRENT -->
+    <!-- MODALE ADHÉRENT (CORRIGÉE AVEC LOCALITÉ) -->
     <div class="modal-overlay" id="adherentModal">
         <div class="modal">
             <div class="modal-header">
@@ -1733,11 +1733,18 @@
                     <div><label>Photo</label><input type="file" id="adherentPhoto" accept="image/*" style="width:100%;padding:10px;" /></div>
                     <div><label>Statut</label>
                         <select id="adherentStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">
-                            <option value="Actif">Actif</option>
-                            <option value="Suspendu">Suspendu</option>
-                            <option value="Ancien">Ancien</option>
-                        </select>
+    <option value="Actif">Actif</option>
+    <option value="Suspendu">Suspendu</option>
+    <option value="Ancien">Ancien / Inactif</option>
+</select>
                     </div>
+                </div>
+                <!-- CHAMP LOCALITÉ AJOUTÉ -->
+                <div style="margin-top:15px;">
+                    <label>Localité <span style="color:red;">*</span></label>
+                    <select id="adherentLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">
+                        <option value="">-- Sélectionner une localité --</option>
+                    </select>
                 </div>
                 <div style="margin-top:15px;">
                     <label>Notes</label>
@@ -3059,110 +3066,8 @@
             return options;
         }
 
-        function showLocaliteModal() {
-            var user = getCurrentUser();
-            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) {
-                showAlert('Vous n\'avez pas les permissions', 'error'); return;
-            }
-            document.getElementById('localiteModalTitle').textContent = 'Ajouter une localité';
-            document.getElementById('localiteNomFr').value = '';
-            document.getElementById('localiteNomAr').value = '';
-            document.getElementById('localiteCode').value = '';
-            document.getElementById('localiteRegion').value = '';
-            document.getElementById('localiteProvince').value = '';
-            document.getElementById('localiteCommune').value = '';
-            currentEditId = null;
-            document.getElementById('localiteModal').classList.add('active');
-        }
-
-        function hideLocaliteModal() { document.getElementById('localiteModal').classList.remove('active'); }
-
-        function editLocalite(id) {
-            var user = getCurrentUser();
-            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { showAlert('Vous n\'avez pas les permissions', 'error'); return; }
-            var loc = DATA.localites.find(function(l) { return l.id === id; });
-            if (!loc) { showAlert('Localité non trouvée', 'error'); return; }
-            document.getElementById('localiteModalTitle').textContent = 'Modifier une localité';
-            document.getElementById('localiteNomFr').value = loc.nom_fr || '';
-            document.getElementById('localiteNomAr').value = loc.nom_ar || '';
-            document.getElementById('localiteCode').value = loc.code || '';
-            document.getElementById('localiteRegion').value = loc.region || '';
-            document.getElementById('localiteProvince').value = loc.province || '';
-            document.getElementById('localiteCommune').value = loc.commune || '';
-            currentEditId = id;
-            document.getElementById('localiteModal').classList.add('active');
-        }
-
-        async function saveLocalite() {
-            var nomFr = document.getElementById('localiteNomFr').value.trim();
-            var nomAr = document.getElementById('localiteNomAr').value.trim();
-            var code = document.getElementById('localiteCode').value.trim();
-            var region = document.getElementById('localiteRegion').value.trim();
-            var province = document.getElementById('localiteProvince').value.trim();
-            var commune = document.getElementById('localiteCommune').value.trim();
-            if (!nomFr) { showAlert('Veuillez entrer un nom en français', 'error'); return; }
-            var data = {
-                nom_fr: nomFr, nom_ar: nomAr || null, code: code || null,
-                region: region || null, province: province || null, commune: commune || null,
-                updated_at: new Date().toISOString()
-            };
-            try {
-                var url = supabaseUrl + '/rest/v1/localites';
-                var method = 'POST';
-                if (currentEditId) { url += '?id=eq.' + currentEditId; method = 'PATCH'; } else { data.created_at = new Date().toISOString(); }
-                var resp = await fetchWithSupabaseAuth(url, { method: method, body: JSON.stringify(data), headers: { 'Prefer': 'return=representation' } });
-                if (!resp.ok) throw new Error('Erreur sauvegarde: ' + await resp.text());
-                showAlert('✅ Localité enregistrée', 'success');
-                hideLocaliteModal();
-                await loadLocalites();
-                renderLocalites();
-                renderAll();
-            } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
-        }
-
-        async function deleteLocalite(id) {
-            var user = getCurrentUser();
-            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { showAlert('Vous n\'avez pas les permissions', 'error'); return; }
-            var loc = DATA.localites.find(function(l) { return l.id === id; });
-            if (!loc) return;
-            var used = false;
-            var tables = ['betail', 'produits', 'arbres', 'eau'];
-            for (var t of tables) {
-                var items = DATA[t] || [];
-                if (items.some(function(item) { return item.localite_id === id; })) { used = true; break; }
-            }
-            if (used) { showAlert('⚠️ Cette localité est utilisée dans des données.', 'error'); return; }
-            if (!confirm('Supprimer la localité "' + (loc.nom_fr || '') + '" ?')) return;
-            try {
-                var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/localites?id=eq.' + id, { method: 'DELETE' });
-                if (!resp.ok) throw new Error('Erreur suppression');
-                showAlert('✅ Localité supprimée', 'success');
-                await loadLocalites();
-                renderLocalites();
-                renderAll();
-            } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
-        }
-
-        function renderLocalites() {
-            var body = document.getElementById('localitesBody');
-            if (!body) return;
-            var items = DATA.localites || [];
-            if (items.length === 0) {
-                body.innerHTML = '<tr><td colspan="7" class="no-content">Aucune localité.</td></tr>';
-                return;
-            }
-            var user = getCurrentUser();
-            var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
-            body.innerHTML = items.map(function(item) {
-                var actions = canEdit ?
-                    '<button class="btn-action edit" onclick="editLocalite(' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
-                    '<button class="btn-action delete" onclick="deleteLocalite(' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
-                return '<tr><td>' + item.id + '</td><td><strong>' + (item.nom_fr || '') + '</strong></td><td><span style="font-family:\'Cairo\',sans-serif;">' + (item.nom_ar || '') + '</span></td><td>' + (item.code || '') + '</td><td>' + (item.region || '') + '</td><td>' + (item.province || '') + '</td><td style="white-space:nowrap;">' + actions + '</td></tr>';
-            }).join('');
-        }
-
         // ============================================================
-        // ADHÉRENTS
+        // ADHÉRENTS (CORRIGÉ AVEC LOCALITÉ)
         // ============================================================
         async function loadAdherents() {
             try {
@@ -3190,6 +3095,7 @@
                         var photoHtml = item.photo_url ? '<img src="' + item.photo_url + '" class="adherent-photo" />' :
                             '<div class="adherent-photo" style="display:flex;align-items:center;justify-content:center;background:var(--light);font-size:3rem;color:#ccc;"><i class="fas fa-user"></i></div>';
                         var date = item.date_adhesion ? new Date(item.date_adhesion).toLocaleDateString() : '';
+                        var localite = getLocaliteName(item.localite);
                         return '<div class="adherent-card">' +
                             photoHtml +
                             '<div class="adherent-info">' +
@@ -3197,6 +3103,7 @@
                             '<p><i class="fas fa-envelope" style="color:var(--primary);width:20px;"></i> ' + (item.email || '') + '</p>' +
                             '<p><i class="fas fa-phone" style="color:var(--primary);width:20px;"></i> ' + (item.telephone || '') + '</p>' +
                             '<p><i class="fas fa-map-marker-alt" style="color:var(--primary);width:20px;"></i> ' + (item.adresse || '') + '</p>' +
+                            (localite ? '<p><i class="fas fa-city" style="color:var(--primary);width:20px;"></i> ' + localite + '</p>' : '') +
                             (date ? '<p><i class="fas fa-calendar-alt" style="color:var(--primary);width:20px;"></i> Adhésion: ' + date + '</p>' : '') +
                             '<span class="badge badge-membre" style="margin-top:5px;">' + (item.statut || 'Actif') + '</span>' +
                             '</div></div>';
@@ -3218,9 +3125,10 @@
                             '<button class="btn-action delete" onclick="deleteAdherent(' + item.id + ')"><i class="fas fa-trash"></i></button> ' +
                             '<button class="btn-action print" onclick="printAdherentCard(' + item.id + ')"><i class="fas fa-print"></i></button>' :
                             '<button class="btn-action print" onclick="printAdherentCard(' + item.id + ')"><i class="fas fa-print"></i></button>';
+                        var localite = getLocaliteName(item.localite);
                         return '<div class="dashboard-item">' +
                             '<div class="item-icon">' + photoHtml + '</div>' +
-                            '<div class="item-info"><h4>' + (item.prenom || '') + ' ' + (item.nom || '') + '</h4><small>' + (item.email || '') + ' - ' + (item.statut || 'Actif') + '</small></div>' +
+                            '<div class="item-info"><h4>' + (item.prenom || '') + ' ' + (item.nom || '') + '</h4><small>' + (item.email || '') + ' - ' + (item.statut || 'Actif') + (localite ? ' - ' + localite : '') + '</small></div>' +
                             '<div class="item-actions">' + actions + '</div>' +
                             '</div>';
                     }).join('');
@@ -3234,6 +3142,11 @@
             if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) {
                 showAlert('Vous n\'avez pas les permissions', 'error'); return;
             }
+            
+            // Remplir le select des localités
+            var select = document.getElementById('adherentLocalite');
+            select.innerHTML = getLocaliteOptions();
+            
             document.getElementById('adherentModalTitle').textContent = 'Ajouter un adhérent';
             document.getElementById('adherentNom').value = '';
             document.getElementById('adherentPrenom').value = '';
@@ -3251,66 +3164,133 @@
         function hideAdherentModal() { document.getElementById('adherentModal').classList.remove('active'); }
 
         function editAdherent(id) {
-            var user = getCurrentUser();
-            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { showAlert('Vous n\'avez pas les permissions', 'error'); return; }
-            var item = DATA.adherents.find(function(el) { return el.id === id; });
-            if (!item) { showAlert('Adhérent non trouvé', 'error'); return; }
-            document.getElementById('adherentModalTitle').textContent = 'Modifier un adhérent';
-            document.getElementById('adherentNom').value = item.nom || '';
-            document.getElementById('adherentPrenom').value = item.prenom || '';
-            document.getElementById('adherentEmail').value = item.email || '';
-            document.getElementById('adherentTelephone').value = item.telephone || '';
-            document.getElementById('adherentAdresse').value = item.adresse || '';
-            document.getElementById('adherentDate').value = item.date_adhesion ? item.date_adhesion.split('T')[0] : '';
-            document.getElementById('adherentStatut').value = item.statut || 'Actif';
-            document.getElementById('adherentNotes').value = item.notes || '';
-            document.getElementById('adherentPhoto').value = '';
-            currentAdherentId = id;
-            document.getElementById('adherentModal').classList.add('active');
-        }
+    var user = getCurrentUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
+        showAlert('Vous n\'avez pas les permissions', 'error'); 
+        return; 
+    }
+    var item = DATA.adherents.find(function(el) { return el.id === id; });
+    if (!item) { 
+        showAlert('Adhérent non trouvé', 'error'); 
+        return; 
+    }
+    
+    // Remplir le select des localités
+    var select = document.getElementById('adherentLocalite');
+    select.innerHTML = getLocaliteOptions(item.localite);
+    
+    // 🔧 CORRECTION : Mapping du statut de la base vers l'affichage
+    // La base stocke : 'actif', 'inactif', 'suspendu'
+    // L'affichage utilise : 'Actif', 'Ancien', 'Suspendu'
+    var statutDisplay = item.statut || 'actif';
+    var statutMapping = {
+        'actif': 'Actif',
+        'inactif': 'Ancien',
+        'suspendu': 'Suspendu'
+    };
+    var statutValue = statutMapping[statutDisplay] || 'Actif';
+    
+    document.getElementById('adherentModalTitle').textContent = 'Modifier un adhérent';
+    document.getElementById('adherentNom').value = item.nom || '';
+    document.getElementById('adherentPrenom').value = item.prenom || '';
+    document.getElementById('adherentEmail').value = item.email || '';
+    document.getElementById('adherentTelephone').value = item.telephone || '';
+    document.getElementById('adherentAdresse').value = item.adresse || '';
+    document.getElementById('adherentDate').value = item.date_adhesion ? item.date_adhesion.split('T')[0] : '';
+    document.getElementById('adherentStatut').value = statutValue;  // ✅ Utiliser la valeur mappée
+    document.getElementById('adherentNotes').value = item.notes || '';
+    document.getElementById('adherentPhoto').value = '';
+    currentAdherentId = id;
+    document.getElementById('adherentModal').classList.add('active');
+}
 
         async function saveAdherent() {
-            var nom = document.getElementById('adherentNom').value.trim();
-            var prenom = document.getElementById('adherentPrenom').value.trim();
-            var email = document.getElementById('adherentEmail').value.trim();
-            var telephone = document.getElementById('adherentTelephone').value.trim();
-            var adresse = document.getElementById('adherentAdresse').value.trim();
-            var date = document.getElementById('adherentDate').value;
-            var statut = document.getElementById('adherentStatut').value;
-            var notes = document.getElementById('adherentNotes').value.trim();
+    var nom = document.getElementById('adherentNom').value.trim();
+    var prenom = document.getElementById('adherentPrenom').value.trim();
+    var email = document.getElementById('adherentEmail').value.trim();
+    var telephone = document.getElementById('adherentTelephone').value.trim();
+    var adresse = document.getElementById('adherentAdresse').value.trim();
+    var date = document.getElementById('adherentDate').value;
+    var statut = document.getElementById('adherentStatut').value;
+    var localite = document.getElementById('adherentLocalite').value;
+    var notes = document.getElementById('adherentNotes').value.trim();
 
-            if (!nom || !prenom) { showAlert('Veuillez remplir nom et prénom', 'error'); return; }
+    if (!nom || !prenom) { 
+        showAlert('Veuillez remplir nom et prénom', 'error'); 
+        return; 
+    }
+    if (!localite) { 
+        showAlert('Veuillez sélectionner une localité', 'error'); 
+        return; 
+    }
 
-            var data = {
-                nom: nom, prenom: prenom, email: email || null,
-                telephone: telephone || null, adresse: adresse || null,
-                date_adhesion: date || null, statut: statut, notes: notes || null,
-                updated_at: new Date().toISOString()
-            };
+    // 🔧 CORRECTION : Mapping du statut d'affichage vers la base
+    // L'affichage utilise : 'Actif', 'Ancien', 'Suspendu'
+    // La base stocke : 'actif', 'inactif', 'suspendu'
+    var statutMapping = {
+        'Actif': 'actif',
+        'Ancien': 'inactif',
+        'Suspendu': 'suspendu'
+    };
+    var statutValue = statutMapping[statut] || 'actif';
 
-            var photoInput = document.getElementById('adherentPhoto');
-            if (photoInput && photoInput.files && photoInput.files.length > 0) {
-                var photoFile = photoInput.files[0];
-                var photoName = 'adherent_' + Date.now() + '_' + photoFile.name.replace(/\s/g, '_');
-                var { data: uploadData, error: uploadError } = await supabase.storage.from('medias').upload(photoName, photoFile, { cacheControl: '3600', upsert: false });
-                if (!uploadError) {
-                    var { data: urlData } = supabase.storage.from('medias').getPublicUrl(photoName);
-                    data.photo_url = urlData.publicUrl;
-                }
-            }
+    var data = {
+        nom: nom, 
+        prenom: prenom, 
+        email: email || null,
+        telephone: telephone || null, 
+        adresse: adresse || null,
+        date_adhesion: date || null, 
+        statut: statutValue,  // ✅ Utiliser la valeur en minuscules pour la base
+        localite: parseInt(localite),
+        notes: notes || null,
+        updated_at: new Date().toISOString()
+    };
 
-            try {
-                var url = supabaseUrl + '/rest/v1/adherents';
-                var method = 'POST';
-                if (currentAdherentId) { url += '?id=eq.' + currentAdherentId; method = 'PATCH'; } else { data.created_at = new Date().toISOString(); }
-                var resp = await fetchWithSupabaseAuth(url, { method: method, body: JSON.stringify(data), headers: { 'Prefer': 'return=representation' } });
-                if (!resp.ok) throw new Error('Erreur sauvegarde: ' + await resp.text());
-                showAlert('✅ Adhérent enregistré avec succès', 'success');
-                hideAdherentModal();
-                await loadAdherents();
-                renderAdherents();
-            } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
+    // Gestion de la photo
+    var photoInput = document.getElementById('adherentPhoto');
+    if (photoInput && photoInput.files && photoInput.files.length > 0) {
+        var photoFile = photoInput.files[0];
+        var photoName = 'adherent_' + Date.now() + '_' + photoFile.name.replace(/\s/g, '_');
+        var { data: uploadData, error: uploadError } = await supabase.storage
+            .from('medias')
+            .upload(photoName, photoFile, { cacheControl: '3600', upsert: false });
+        if (!uploadError) {
+            var { data: urlData } = supabase.storage.from('medias').getPublicUrl(photoName);
+            data.photo_url = urlData.publicUrl;
         }
+    }
+
+    try {
+        var url = supabaseUrl + '/rest/v1/adherents';
+        var method = 'POST';
+        if (currentAdherentId) { 
+            url += '?id=eq.' + currentAdherentId; 
+            method = 'PATCH'; 
+        } else { 
+            data.created_at = new Date().toISOString(); 
+        }
+        
+        var resp = await fetchWithSupabaseAuth(url, { 
+            method: method, 
+            body: JSON.stringify(data), 
+            headers: { 'Prefer': 'return=representation' } 
+        });
+        
+        if (!resp.ok) {
+            var errorText = await resp.text();
+            throw new Error('Erreur sauvegarde: ' + errorText);
+        }
+        
+        showAlert('✅ Adhérent enregistré avec succès', 'success');
+        hideAdherentModal();
+        await loadAdherents();
+        renderAdherents();
+    } catch (e) { 
+        showAlert('❌ Erreur: ' + e.message, 'error'); 
+        console.error(e);
+    }
+}
 
         async function deleteAdherent(id) {
             var user = getCurrentUser();
@@ -3330,6 +3310,7 @@
             if (!item) { showAlert('Adhérent non trouvé', 'error'); return; }
             var nomComplet = (item.prenom || '') + ' ' + (item.nom || '');
             var date = item.date_adhesion ? new Date(item.date_adhesion).toLocaleDateString() : 'Non renseignée';
+            var localite = getLocaliteName(item.localite);
 
             var content = document.getElementById('printContent');
             content.innerHTML = `
@@ -3347,6 +3328,7 @@
                             <p><strong>Email:</strong> ${item.email || ''}</p>
                             <p><strong>Téléphone:</strong> ${item.telephone || ''}</p>
                             <p><strong>Adresse:</strong> ${item.adresse || ''}</p>
+                            ${localite ? `<p><strong>Localité:</strong> ${localite}</p>` : ''}
                             <p><strong>Date d'adhésion:</strong> ${date}</p>
                             <p><strong>Statut:</strong> ${item.statut || 'Actif'}</p>
                         </div>
@@ -3387,12 +3369,14 @@
 
             var content = document.getElementById('printContent');
             var rows = items.map(function(item) {
+                var localite = getLocaliteName(item.localite);
                 return `<tr>
                     <td>${item.id}</td>
                     <td>${item.nom || ''}</td>
                     <td>${item.prenom || ''}</td>
                     <td>${item.email || ''}</td>
                     <td>${item.telephone || ''}</td>
+                    <td>${localite || ''}</td>
                     <td>${item.statut || 'Actif'}</td>
                     <td>${item.date_adhesion ? new Date(item.date_adhesion).toLocaleDateString() : ''}</td>
                 </tr>`;
@@ -3413,6 +3397,7 @@
                                 <th style="padding:8px;border:1px solid #ddd;text-align:left;">Prénom</th>
                                 <th style="padding:8px;border:1px solid #ddd;text-align:left;">Email</th>
                                 <th style="padding:8px;border:1px solid #ddd;text-align:left;">Téléphone</th>
+                                <th style="padding:8px;border:1px solid #ddd;text-align:left;">Localité</th>
                                 <th style="padding:8px;border:1px solid #ddd;text-align:left;">Statut</th>
                                 <th style="padding:8px;border:1px solid #ddd;text-align:left;">Date adhésion</th>
                             </tr>
@@ -3966,7 +3951,8 @@
             try {
                 var url = supabaseUrl + '/rest/v1/conseil';
                 var method = 'POST';
-                if (currentConseilId) { url += '?id=eq.' + currentConseilId; method = 'PATCH'; } else { data.created_at = new Date().toISOString(); }
+                if (currentConseilId) { url += '?id=eq.' + currentConseilId;
+                    method = 'PATCH'; } else { data.created_at = new Date().toISOString(); }
                 var resp = await fetchWithSupabaseAuth(url, { method: method, body: JSON.stringify(data), headers: { 'Prefer': 'return=representation' } });
                 if (!resp.ok) throw new Error('Erreur sauvegarde: ' + await resp.text());
                 showAlert('✅ Membre du conseil enregistré', 'success');
@@ -4958,7 +4944,7 @@
                     <div><label>${t.zone}</label><input type="text" id="genericZone" value="${item.zone || ''}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
                     <div><label>${t.superficie}</label><input type="number" id="genericSuperficie" value="${item.superficie || 0}" step="0.1" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
                     <div><label>${t.debit}</label><input type="number" id="genericDebit" value="${item.debit || 0}" step="0.1" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.statut}</label><select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;"><option value="Actif" ${item.statut === 'Actif' ? 'selected' : ''}>Actif</option><option value="Inactif" ${item.statut === 'Inactif' ? 'selected' : ''}>Inactif</option></select></div>
+                    <div><label>                    <div><label>${t.statut}</label><select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;"><option value="Actif" ${item.statut === 'Actif' ? 'selected' : ''}>Actif</option><option value="Inactif" ${item.statut === 'Inactif' ? 'selected' : ''}>Inactif</option></select></div>
                 `;
             }
             document.getElementById('genericModalTitle').textContent = title;
@@ -4972,9 +4958,10 @@
 
         async function saveGenericItem() {
             var type = currentEditType;
-            var data = {};
-            var table = type;
-            data.updated_at = new Date().toISOString();
+            var t = getLang();
+            
+            var data = { updated_at: new Date().toISOString() };
+            
             if (type === 'betail') {
                 data.localite_id = parseInt(document.getElementById('genericLocalite').value);
                 data.bovins = parseInt(document.getElementById('genericBovins').value) || 0;
@@ -4983,13 +4970,14 @@
                 data.habitants = parseInt(document.getElementById('genericHabitants').value) || 0;
                 if (!data.localite_id) { showAlert('Veuillez sélectionner une localité', 'error'); return; }
             } else if (type === 'produit') {
-                data.nom_fr = document.getElementById('genericNom').value.trim();
-                data.nom_ar = data.nom_fr;
+                data.nom = document.getElementById('genericNom').value.trim();
+                data.nom_fr = data.nom;
+                data.nom_ar = data.nom;
                 data.localite_id = parseInt(document.getElementById('genericLocalite').value);
                 data.quantite = parseFloat(document.getElementById('genericQuantite').value) || 0;
                 data.periode = document.getElementById('genericPeriode').value.trim();
                 data.statut = document.getElementById('genericStatut').value;
-                if (!data.nom_fr) { showAlert('Veuillez entrer un nom', 'error'); return; }
+                if (!data.nom) { showAlert('Veuillez entrer un nom de produit', 'error'); return; }
                 if (!data.localite_id) { showAlert('Veuillez sélectionner une localité', 'error'); return; }
             } else if (type === 'arbre') {
                 data.localite_id = parseInt(document.getElementById('genericLocalite').value);
@@ -5003,222 +4991,284 @@
                 data.localite_id = parseInt(document.getElementById('genericLocalite').value);
                 data.foyers = parseInt(document.getElementById('genericFoyers').value) || 0;
                 data.forages = parseInt(document.getElementById('genericForages').value) || 0;
-                data.capacite = parseInt(document.getElementById('genericCapacite').value) || 0;
+                data.capacite = parseFloat(document.getElementById('genericCapacite').value) || 0;
                 data.statut = document.getElementById('genericStatut').value;
                 if (!data.localite_id) { showAlert('Veuillez sélectionner une localité', 'error'); return; }
             } else if (type === 'sagia') {
                 data.code = document.getElementById('genericCode').value.trim();
-                data.nom_fr = document.getElementById('genericNom').value.trim();
-                data.nom_ar = data.nom_fr;
+                data.nom = document.getElementById('genericNom').value.trim();
+                data.nom_fr = data.nom;
+                data.nom_ar = data.nom;
                 data.zone = document.getElementById('genericZone').value.trim();
                 data.superficie = parseFloat(document.getElementById('genericSuperficie').value) || 0;
                 data.debit = parseFloat(document.getElementById('genericDebit').value) || 0;
                 data.statut = document.getElementById('genericStatut').value;
-                if (!data.code || !data.nom_fr) { showAlert('Veuillez remplir code et nom', 'error'); return; }
+                if (!data.code) { showAlert('Veuillez entrer un code', 'error'); return; }
+                if (!data.nom) { showAlert('Veuillez entrer un nom', 'error'); return; }
             }
 
             try {
-                var url = supabaseUrl + '/rest/v1/' + table;
+                var url = supabaseUrl + '/rest/v1/' + type;
                 var method = 'POST';
-                if (currentEditId) { url += '?id=eq.' + currentEditId;
-                    method = 'PATCH'; } else { data.created_at = new Date().toISOString(); }
+                if (currentEditId) { url += '?id=eq.' + currentEditId; method = 'PATCH'; } 
+                else { data.created_at = new Date().toISOString(); }
+                
                 var resp = await fetchWithSupabaseAuth(url, { method: method, body: JSON.stringify(data) });
                 if (!resp.ok) throw new Error('Erreur sauvegarde: ' + await resp.text());
-                showAlert('✅ Élément enregistré', 'success');
+                
+                showAlert('✅ Données enregistrées avec succès', 'success');
                 hideGenericModal();
                 await loadAllTables();
                 renderAll();
+                renderDashboardTables();
             } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
         }
 
         async function deleteGenericItem(type, id) {
             var user = getCurrentUser();
             if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { showAlert('Vous n\'avez pas les permissions', 'error'); return; }
-            if (!confirm('Supprimer cet élément ?')) return;
+            if (!confirm('Supprimer cet élément définitivement ?')) return;
             try {
                 var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + type + '?id=eq.' + id, { method: 'DELETE' });
                 if (!resp.ok) throw new Error('Erreur suppression');
                 showAlert('✅ Élément supprimé', 'success');
                 await loadAllTables();
                 renderAll();
+                renderDashboardTables();
             } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
         }
 
         // ============================================================
-        // DASHBOARD TABLES
+        // RENDER DASHBOARD TABLES
         // ============================================================
         function renderDashboardTables() {
-            var betailBody = document.getElementById('betailAdminBody');
-            if (betailBody) {
-                var betailItems = DATA.betail || [];
-                if (betailItems.length === 0) { betailBody.innerHTML = '<tr><td colspan="8" class="no-content">' + getLang().noData + '</td></tr>'; } else {
-                    var user = getCurrentUser();
-                    var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
-                    betailBody.innerHTML = betailItems.map(function(item) {
-                        var localite = getLocaliteName(item.localite_id);
-                        var total = (item.bovins || 0) + (item.ovins || 0) + (item.caprins || 0);
-                        var ratio = item.habitants ? (total / item.habitants).toFixed(2) : '0';
-                        var actions = canEdit ?
-                            '<button class="btn-action edit" onclick="editGenericItem(\'betail\',' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
-                            '<button class="btn-action delete" onclick="deleteGenericItem(\'betail\',' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
-                        return '<tr><td>' + localite + '</td><td>' + item.bovins + '</td><td>' + item.ovins + '</td><td>' + item.caprins + '</td><td><strong>' + total + '</strong></td><td>' + item.habitants + '</td><td>' + ratio + '</td><td style="white-space:nowrap;">' + actions + '</td></tr>';
-                    }).join('');
-                }
-            }
+            renderBetailAdmin();
+            renderProduitsAdmin();
+            renderArbresAdmin();
+            renderEauAdmin();
+            renderSagiaAdmin();
+        }
 
-            var produitsBody = document.getElementById('produitsAdminBody');
-            if (produitsBody) {
-                var produitsItems = DATA.produits || [];
-                if (produitsItems.length === 0) {
-                    produitsBody.innerHTML = '<tr><td colspan="6" class="no-content">' + getLang().noData + '</td></tr>';
-                } else {
-                    var user = getCurrentUser();
-                    var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
-                    var isRTL = document.body.classList.contains('rtl');
+        function renderBetailAdmin() {
+            var body = document.getElementById('betailAdminBody');
+            if (!body) return;
+            var items = DATA.betail || [];
+            if (items.length === 0) { body.innerHTML = '<tr><td colspan="8" class="no-content">' + getLang().noData + '</td></tr>'; return; }
+            var user = getCurrentUser();
+            var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
+            body.innerHTML = items.map(function(item) {
+                var localite = getLocaliteName(item.localite_id);
+                var total = (item.bovins || 0) + (item.ovins || 0) + (item.caprins || 0);
+                var ratio = item.habitants ? (total / item.habitants).toFixed(2) : '0';
+                var actions = canEdit ? 
+                    '<button class="btn-action edit" onclick="editGenericItem(\'betail\', ' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+                    '<button class="btn-action delete" onclick="deleteGenericItem(\'betail\', ' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
+                return '<tr><td>' + localite + '</td><td>' + (item.bovins || 0) + '</td><td>' + (item.ovins || 0) + '</td><td>' + (item.caprins || 0) + '</td><td>' + total + '</td><td>' + (item.habitants || 0) + '</td><td>' + ratio + '</td><td>' + actions + '</td></tr>';
+            }).join('');
+        }
 
-                    produitsBody.innerHTML = produitsItems.map(function(item) {
-                        var localite = getLocaliteName(item.localite_id);
+        function renderProduitsAdmin() {
+            var body = document.getElementById('produitsAdminBody');
+            if (!body) return;
+            var items = DATA.produits || [];
+            if (items.length === 0) { body.innerHTML = '<tr><td colspan="6" class="no-content">' + getLang().noData + '</td></tr>'; return; }
+            var user = getCurrentUser();
+            var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
+            body.innerHTML = items.map(function(item) {
+                var localite = getLocaliteName(item.localite_id);
+                var nom = item.nom || item.nom_fr || 'Produit';
+                var actions = canEdit ? 
+                    '<button class="btn-action edit" onclick="editGenericItem(\'produit\', ' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+                    '<button class="btn-action delete" onclick="deleteGenericItem(\'produit\', ' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
+                return '<tr><td>' + nom + '</td><td>' + localite + '</td><td>' + (item.quantite || 0) + '</td><td>' + (item.periode || '') + '</td><td>' + (item.statut || 'Disponible') + '</td><td>' + actions + '</td></tr>';
+            }).join('');
+        }
 
-                        var nom = '';
-                        if (item.nom_fr && typeof item.nom_fr === 'object') {
-                            nom = isRTL ? (item.nom_fr.ar || item.nom_fr.fr || '') : (item.nom_fr.fr || item.nom_fr.ar || '');
-                        } else if (item.nom && typeof item.nom === 'object') {
-                            nom = isRTL ? (item.nom.ar || item.nom.fr || '') : (item.nom.fr || item.nom.ar || '');
-                        } else if (item.nom_fr && typeof item.nom_fr === 'string') {
-                            nom = isRTL ? (item.nom_ar || item.nom_fr) : (item.nom_fr || item.nom_ar);
-                        } else {
-                            nom = item.nom || item.nom_fr || item.nom_ar || 'Produit';
-                        }
+        function renderArbresAdmin() {
+            var body = document.getElementById('arbresAdminBody');
+            if (!body) return;
+            var items = DATA.arbres || [];
+            if (items.length === 0) { body.innerHTML = '<tr><td colspan="9" class="no-content">' + getLang().noData + '</td></tr>'; return; }
+            var user = getCurrentUser();
+            var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
+            body.innerHTML = items.map(function(item) {
+                var localite = getLocaliteName(item.localite_id);
+                var total = (item.oliviers || 0) + (item.amandiers || 0) + (item.figuiers || 0) + (item.noyers || 0);
+                var ratio = item.habitants ? (total / item.habitants).toFixed(2) : '0';
+                var actions = canEdit ? 
+                    '<button class="btn-action edit" onclick="editGenericItem(\'arbre\', ' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+                    '<button class="btn-action delete" onclick="deleteGenericItem(\'arbre\', ' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
+                return '<tr><td>' + localite + '</td><td>' + (item.oliviers || 0) + '</td><td>' + (item.amandiers || 0) + '</td><td>' + (item.figuiers || 0) + '</td><td>' + (item.noyers || 0) + '</td><td>' + total + '</td><td>' + (item.habitants || 0) + '</td><td>' + ratio + '</td><td>' + actions + '</td></tr>';
+            }).join('');
+        }
 
-                        var periode = '';
-                        if (item.periode && typeof item.periode === 'object') {
-                            periode = isRTL ? (item.periode.ar || item.periode.fr || '') : (item.periode.fr || item.periode.ar || '');
-                        } else {
-                            periode = item.periode || '';
-                        }
+        function renderEauAdmin() {
+            var body = document.getElementById('eauAdminBody');
+            if (!body) return;
+            var items = DATA.eau || [];
+            if (items.length === 0) { body.innerHTML = '<tr><td colspan="6" class="no-content">' + getLang().noData + '</td></tr>'; return; }
+            var user = getCurrentUser();
+            var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
+            body.innerHTML = items.map(function(item) {
+                var localite = getLocaliteName(item.localite_id);
+                var actions = canEdit ? 
+                    '<button class="btn-action edit" onclick="editGenericItem(\'eau\', ' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+                    '<button class="btn-action delete" onclick="deleteGenericItem(\'eau\', ' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
+                return '<tr><td>' + localite + '</td><td>' + (item.foyers || 0) + '</td><td>' + (item.forages || 0) + '</td><td>' + (item.capacite || 0) + '</td><td>' + (item.statut || 'Opérationnel') + '</td><td>' + actions + '</td></tr>';
+            }).join('');
+        }
 
-                        var statut = '';
-                        if (item.statut && typeof item.statut === 'object') {
-                            statut = isRTL ? (item.statut.ar || item.statut.fr || 'Disponible') : (item.statut.fr || item.statut.ar || 'Disponible');
-                        } else {
-                            statut = item.statut || 'Disponible';
-                        }
-
-                        var actions = canEdit ?
-                            '<button class="btn-action edit" onclick="editGenericItem(\'produit\',' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
-                            '<button class="btn-action delete" onclick="deleteGenericItem(\'produit\',' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
-
-                        return '<tr>' +
-                            '<td><strong>' + nom + '</strong></td>' +
-                            '<td>' + localite + '</td>' +
-                            '<td>' + (item.quantite || 0) + '</td>' +
-                            '<td>' + periode + '</td>' +
-                            '<td>' + statut + '</td>' +
-                            '<td style="white-space:nowrap;">' + actions + '</td>' +
-                            '</tr>';
-                    }).join('');
-                }
-            }
-
-            var arbresBody = document.getElementById('arbresAdminBody');
-            if (arbresBody) {
-                var arbresItems = DATA.arbres || [];
-                if (arbresItems.length === 0) { arbresBody.innerHTML = '<tr><td colspan="9" class="no-content">' + getLang().noData + '</td></tr>'; } else {
-                    var user = getCurrentUser();
-                    var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
-                    arbresBody.innerHTML = arbresItems.map(function(item) {
-                        var localite = getLocaliteName(item.localite_id);
-                        var total = (item.oliviers || 0) + (item.amandiers || 0) + (item.figuiers || 0) + (item.noyers || 0);
-                        var ratio = item.habitants ? (total / item.habitants).toFixed(2) : '0';
-                        var actions = canEdit ?
-                            '<button class="btn-action edit" onclick="editGenericItem(\'arbre\',' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
-                            '<button class="btn-action delete" onclick="deleteGenericItem(\'arbre\',' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
-                        return '<tr><td>' + localite + '</td><td>' + item.oliviers + '</td><td>' + item.amandiers + '</td><td>' + item.figuiers + '</td><td>' + item.noyers + '</td><td><strong>' + total + '</strong></td><td>' + item.habitants + '</td><td>' + ratio + '</td><td style="white-space:nowrap;">' + actions + '</td></tr>';
-                    }).join('');
-                }
-            }
-
-            var eauBody = document.getElementById('eauAdminBody');
-            if (eauBody) {
-                var eauItems = DATA.eau || [];
-                if (eauItems.length === 0) { eauBody.innerHTML = '<tr><td colspan="6" class="no-content">' + getLang().noData + '</td></tr>'; } else {
-                    var user = getCurrentUser();
-                    var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
-                    eauBody.innerHTML = eauItems.map(function(item) {
-                        var localite = getLocaliteName(item.localite_id);
-                        var actions = canEdit ?
-                            '<button class="btn-action edit" onclick="editGenericItem(\'eau\',' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
-                            '<button class="btn-action delete" onclick="deleteGenericItem(\'eau\',' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
-                        return '<tr><td>' + localite + '</td><td>' + item.foyers + '</td><td>' + item.forages + '</td><td>' + item.capacite + '</td><td>' + item.statut + '</td><td style="white-space:nowrap;">' + actions + '</td></tr>';
-                    }).join('');
-                }
-            }
-
-            var sagiaBody = document.getElementById('sagiaAdminBody');
-            if (sagiaBody) {
-                var sagiaItems = DATA.sagia || [];
-                if (sagiaItems.length === 0) { sagiaBody.innerHTML = '<tr><td colspan="7" class="no-content">' + getLang().noData + '</td></tr>'; } else {
-                    var user = getCurrentUser();
-                    var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
-                    sagiaBody.innerHTML = sagiaItems.map(function(item) {
-                        var actions = canEdit ?
-                            '<button class="btn-action edit" onclick="editGenericItem(\'sagia\',' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
-                            '<button class="btn-action delete" onclick="deleteGenericItem(\'sagia\',' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
-                        return '<tr><td>' + (item.code || '') + '</td><td>' + (item.nom_fr || item.nom) + '</td><td>' + (item.zone || '') + '</td><td>' + item.superficie + '</td><td>' + item.debit + '</td><td>' + item.statut + '</td><td style="white-space:nowrap;">' + actions + '</td></tr>';
-                    }).join('');
-                }
-            }
+        function renderSagiaAdmin() {
+            var body = document.getElementById('sagiaAdminBody');
+            if (!body) return;
+            var items = DATA.sagia || [];
+            if (items.length === 0) { body.innerHTML = '<tr><td colspan="7" class="no-content">' + getLang().noData + '</td></tr>'; return; }
+            var user = getCurrentUser();
+            var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
+            body.innerHTML = items.map(function(item) {
+                var nom = item.nom || item.nom_fr || '';
+                var actions = canEdit ? 
+                    '<button class="btn-action edit" onclick="editGenericItem(\'sagia\', ' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+                    '<button class="btn-action delete" onclick="deleteGenericItem(\'sagia\', ' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
+                return '<tr><td>' + (item.code || '') + '</td><td>' + nom + '</td><td>' + (item.zone || '') + '</td><td>' + (item.superficie || 0) + '</td><td>' + (item.debit || 0) + '</td><td>' + (item.statut || 'Actif') + '</td><td>' + actions + '</td></tr>';
+            }).join('');
         }
 
         // ============================================================
-        // USERS
+        // LOCALITES ADMIN
+        // ============================================================
+        function renderLocalites() {
+            var body = document.getElementById('localitesBody');
+            if (!body) return;
+            var items = DATA.localites || [];
+            if (items.length === 0) { body.innerHTML = '<tr><td colspan="7" class="no-content">' + getLang().noData + '</td></tr>'; return; }
+            var user = getCurrentUser();
+            var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
+            body.innerHTML = items.map(function(item) {
+                var actions = canEdit ? 
+                    '<button class="btn-action edit" onclick="editLocalite(' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+                    '<button class="btn-action delete" onclick="deleteLocalite(' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
+                return '<tr><td>' + item.id + '</td><td>' + (item.nom_fr || '') + '</td><td>' + (item.nom_ar || '') + '</td><td>' + (item.code || '') + '</td><td>' + (item.region || '') + '</td><td>' + (item.province || '') + '</td><td>' + actions + '</td></tr>';
+            }).join('');
+        }
+
+        function showLocaliteModal() {
+            var user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { showAlert('Vous n\'avez pas les permissions', 'error'); return; }
+            document.getElementById('localiteModalTitle').textContent = 'Ajouter une localité';
+            document.getElementById('localiteNomFr').value = '';
+            document.getElementById('localiteNomAr').value = '';
+            document.getElementById('localiteCode').value = '';
+            document.getElementById('localiteRegion').value = '';
+            document.getElementById('localiteProvince').value = '';
+            document.getElementById('localiteCommune').value = '';
+            currentEditId = null;
+            document.getElementById('localiteModal').classList.add('active');
+        }
+
+        function hideLocaliteModal() { document.getElementById('localiteModal').classList.remove('active'); }
+
+        function editLocalite(id) {
+            var user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { showAlert('Vous n\'avez pas les permissions', 'error'); return; }
+            var item = DATA.localites.find(function(el) { return el.id === id; });
+            if (!item) { showAlert('Localité non trouvée', 'error'); return; }
+            document.getElementById('localiteModalTitle').textContent = 'Modifier une localité';
+            document.getElementById('localiteNomFr').value = item.nom_fr || '';
+            document.getElementById('localiteNomAr').value = item.nom_ar || '';
+            document.getElementById('localiteCode').value = item.code || '';
+            document.getElementById('localiteRegion').value = item.region || '';
+            document.getElementById('localiteProvince').value = item.province || '';
+            document.getElementById('localiteCommune').value = item.commune || '';
+            currentEditId = id;
+            document.getElementById('localiteModal').classList.add('active');
+        }
+
+        async function saveLocalite() {
+            var nomFr = document.getElementById('localiteNomFr').value.trim();
+            var nomAr = document.getElementById('localiteNomAr').value.trim();
+            var code = document.getElementById('localiteCode').value.trim();
+            var region = document.getElementById('localiteRegion').value.trim();
+            var province = document.getElementById('localiteProvince').value.trim();
+            var commune = document.getElementById('localiteCommune').value.trim();
+
+            if (!nomFr) { showAlert('Veuillez entrer un nom en français', 'error'); return; }
+
+            var data = {
+                nom_fr: nomFr,
+                nom_ar: nomAr || nomFr,
+                code: code || null,
+                region: region || null,
+                province: province || null,
+                commune: commune || null,
+                updated_at: new Date().toISOString()
+            };
+
+            try {
+                var url = supabaseUrl + '/rest/v1/localites';
+                var method = 'POST';
+                if (currentEditId) { url += '?id=eq.' + currentEditId; method = 'PATCH'; } 
+                else { data.created_at = new Date().toISOString(); }
+                
+                var resp = await fetchWithSupabaseAuth(url, { method: method, body: JSON.stringify(data) });
+                if (!resp.ok) throw new Error('Erreur sauvegarde: ' + await resp.text());
+                
+                showAlert('✅ Localité enregistrée avec succès', 'success');
+                hideLocaliteModal();
+                await loadLocalites();
+                renderLocalites();
+                // Rafraîchir les selects de localités dans toutes les modales
+                refreshLocaliteSelects();
+            } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
+        }
+
+        function refreshLocaliteSelects() {
+            var selects = document.querySelectorAll('select[id$="Localite"]');
+            selects.forEach(function(select) {
+                var currentVal = select.value;
+                select.innerHTML = getLocaliteOptions(currentVal);
+            });
+        }
+
+        async function deleteLocalite(id) {
+            var user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { showAlert('Vous n\'avez pas les permissions', 'error'); return; }
+            if (!confirm('Supprimer cette localité définitivement ?')) return;
+            try {
+                var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/localites?id=eq.' + id, { method: 'DELETE' });
+                if (!resp.ok) throw new Error('Erreur suppression');
+                showAlert('✅ Localité supprimée', 'success');
+                await loadLocalites();
+                renderLocalites();
+                refreshLocaliteSelects();
+            } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
+        }
+
+        // ============================================================
+        // USERS ADMIN
         // ============================================================
         function renderUsers() {
             var body = document.getElementById('usersBody');
             if (!body) return;
-
             var users = DATA.users || [];
-
-            if (users.length === 0) {
-                body.innerHTML = '<tr><td colspan="5" class="no-content">Aucun utilisateur dans Supabase</td></tr>';
-                return;
-            }
-
+            if (users.length === 0) { body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>'; return; }
             var currentUser = getCurrentUser();
-            var isAdmin = currentUser && currentUser.role === 'admin';
-
-            body.innerHTML = users.map(function(user, index) {
-                var roleClass = user.role === 'admin' ? 'badge-admin' :
-                    user.role === 'webmestre' ? 'badge-webmestre' : 'badge-membre';
-
-                var actions = isAdmin && user.username !== currentUser.username ?
-                    '<button class="btn-action delete" onclick="deleteUser(' + user.id + ')"><i class="fas fa-trash"></i></button>' :
-                    '';
-
-                var passwordStatus = user.password_changed ? '✅' : '⚠️';
-
-                return '<tr>' +
-                    '<td>' + (index + 1) + '</td>' +
-                    '<td>' + user.username + ' ' + passwordStatus + '</td>' +
-                    '<td><span class="badge ' + roleClass + '">' + user.role + '</span></td>' +
-                    '<td>' + (user.created_at ? new Date(user.created_at).toLocaleDateString() : '') + '</td>' +
-                    '<td style="white-space:nowrap;">' + actions + '</td>' +
-                    '</tr>';
+            body.innerHTML = users.map(function(u, index) {
+                var actions = '';
+                if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'webmestre')) {
+                    if (u.username !== 'admin' || currentUser.username === 'admin') {
+                        actions = '<button class="btn-action delete" onclick="deleteUser(' + u.id + ', \'' + u.username + '\')"><i class="fas fa-trash"></i></button>';
+                    }
+                }
+                var roleClass = u.role === 'admin' ? 'badge-admin' : u.role === 'webmestre' ? 'badge-webmestre' : 'badge-membre';
+                return '<tr><td>' + (index + 1) + '</td><td>' + u.username + '</td><td><span class="badge ' + roleClass + '">' + (u.role || 'membre') + '</span></td><td>' + new Date(u.created_at).toLocaleDateString() + '</td><td>' + actions + '</td></tr>';
             }).join('');
-
             document.getElementById('totalUsersStat').textContent = users.length;
         }
 
-        // ============================================================
-        // FONCTIONS UTILISATEURS
-        // ============================================================
-
         function showUserModal() {
             var user = getCurrentUser();
-            if (!user || user.role !== 'admin') {
-                showAlert('Seul l\'admin peut gérer les utilisateurs', 'error');
-                return;
-            }
+            if (!user || user.role !== 'admin') { showAlert('Seul l\'admin peut ajouter des utilisateurs', 'error'); return; }
             document.getElementById('userModalTitle').textContent = 'Ajouter un utilisateur';
             document.getElementById('userLogin').value = '';
             document.getElementById('userEmail').value = '';
@@ -5228,247 +5278,192 @@
             document.getElementById('userModal').classList.add('active');
         }
 
-        function hideUserModal() {
-            document.getElementById('userModal').classList.remove('active');
-        }
+        function hideUserModal() { document.getElementById('userModal').classList.remove('active'); }
 
         async function saveUser() {
-            var login = document.getElementById('userLogin').value.trim();
+            var username = document.getElementById('userLogin').value.trim();
             var email = document.getElementById('userEmail').value.trim();
             var password = document.getElementById('userPassword').value.trim();
             var role = document.getElementById('userRoleSelect').value;
 
-            if (!login || !password) {
-                showAlert('Veuillez remplir tous les champs', 'error');
-                return;
-            }
-
-            if (!email) {
-                email = login + '@ansfal.org';
-            }
+            if (!username || !password) { showAlert('Veuillez remplir nom d\'utilisateur et mot de passe', 'error'); return; }
+            if (username.length < 3) { showAlert('Nom d\'utilisateur trop court (min 3 caractères)', 'error'); return; }
+            if (password.length < 6) { showAlert('Mot de passe trop court (min 6 caractères)', 'error'); return; }
 
             var users = await getUsers();
-
-            if (!currentUserId && users.find(function(u) { return u.username === login; })) {
-                showAlert('Ce nom d\'utilisateur existe déjà', 'error');
-                return;
+            if (!currentUserId) {
+                var exists = users.some(function(u) { return u.username === username; });
+                if (exists) { showAlert('Ce nom d\'utilisateur existe déjà', 'error'); return; }
             }
 
             var hashedPassword = await hashPassword(password);
+            var userData = {
+                username: username,
+                email: email || username + '@ansfal.org',
+                password_hash: hashedPassword,
+                password: password,
+                role: role,
+                password_changed: true,
+                updated_at: new Date().toISOString()
+            };
 
             try {
-                var token = await getSupabaseToken();
-                var headers = {
-                    'apikey': supabaseKey,
-                    'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey,
-                    'Content-Type': 'application/json'
-                };
-
                 if (currentUserId) {
-                    var updateResp = await fetch(supabaseUrl + '/rest/v1/users?id=eq.' + currentUserId, {
-                        method: 'PATCH',
-                        headers: headers,
-                        body: JSON.stringify({
-                            username: login,
-                            email: email,
-                            password_hash: hashedPassword,
-                            password: password,
-                            role: role,
-                            password_changed: true,
-                            updated_at: new Date().toISOString()
-                        })
-                    });
-
-                    if (!updateResp.ok) {
-                        var errorText = await updateResp.text();
-                        throw new Error('Erreur Supabase: ' + errorText);
+                    var existingUser = users.find(function(u) { return u.id === currentUserId; });
+                    if (existingUser) {
+                        if (password) userData.password_hash = await hashPassword(password);
+                        else userData.password_hash = existingUser.password_hash;
+                        userData.password = password || existingUser.password;
                     }
-
-                    var existing = users.find(function(u) { return u.id === currentUserId; });
-                    if (existing) {
-                        existing.username = login;
-                        existing.email = email;
-                        existing.password_hash = hashedPassword;
-                        existing.password = password;
-                        existing.role = role;
-                        existing.password_changed = true;
-                        existing.updated_at = new Date().toISOString();
-                    }
-                } else {
-                    var newUser = {
-                        id: Date.now(),
-                        username: login,
-                        email: email,
-                        password_hash: hashedPassword,
-                        password: password,
-                        role: role,
-                        password_changed: true,
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString()
-                    };
-
-                    var insertResp = await fetch(supabaseUrl + '/rest/v1/users', {
-                        method: 'POST',
-                        headers: headers,
-                        body: JSON.stringify({
-                            username: login,
-                            email: email,
-                            password_hash: hashedPassword,
-                            password: password,
-                            role: role,
-                            password_changed: true,
-                            created_at: new Date().toISOString(),
-                            updated_at: new Date().toISOString()
-                        })
-                    });
-
-                    if (!insertResp.ok) {
-                        var errorText = await insertResp.text();
-                        console.error('❌ Erreur Supabase:', errorText);
-                        throw new Error('Erreur Supabase: ' + errorText);
-                    }
-
-                    users.push(newUser);
                 }
 
-                localStorage.setItem('ansfal_users', JSON.stringify(users));
-                USERS = users;
-                DATA.users = users;
+                var url = supabaseUrl + '/rest/v1/users';
+                var method = 'POST';
+                if (currentUserId) { url += '?id=eq.' + currentUserId; method = 'PATCH'; } 
+                else { userData.created_at = new Date().toISOString(); }
 
-                showAlert('✅ Utilisateur enregistré dans Supabase', 'success');
+                var resp = await fetchWithSupabaseAuth(url, { method: method, body: JSON.stringify(userData) });
+                if (!resp.ok) throw new Error('Erreur sauvegarde: ' + await resp.text());
+
+                showAlert('✅ Utilisateur enregistré avec succès', 'success');
                 hideUserModal();
-
-                DATA.users = await getUsers();
+                DATA.users = await getUsersFromSupabase();
                 renderUsers();
-
-            } catch (e) {
-                showAlert('❌ Erreur: ' + e.message, 'error');
-                console.error('❌ Erreur détaillée:', e);
-            }
+                updateStats();
+            } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
         }
 
-        async function deleteUser(id) {
+        async function deleteUser(id, username) {
+            var currentUser = getCurrentUser();
+            if (!currentUser || currentUser.role !== 'admin') { showAlert('Seul l\'admin peut supprimer des utilisateurs', 'error'); return; }
+            if (username === 'admin') { showAlert('L\'utilisateur admin ne peut pas être supprimé', 'error'); return; }
+            if (!confirm('Supprimer l\'utilisateur "' + username + '" définitivement ?')) return;
+            try {
+                var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/users?id=eq.' + id, { method: 'DELETE' });
+                if (!resp.ok) throw new Error('Erreur suppression');
+                showAlert('✅ Utilisateur supprimé', 'success');
+                DATA.users = await getUsersFromSupabase();
+                renderUsers();
+                updateStats();
+            } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
+        }
+
+        // ============================================================
+        // PASSWORD CHANGE
+        // ============================================================
+        function showPasswordModal() {
             var user = getCurrentUser();
-            if (!user || user.role !== 'admin') {
-                showAlert('Seul l\'admin peut supprimer des utilisateurs', 'error');
+            if (!user) { showAlert('Veuillez vous connecter', 'error'); return; }
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            document.getElementById('passwordModal').classList.add('active');
+        }
+
+        function hidePasswordModal() { document.getElementById('passwordModal').classList.remove('active'); }
+
+        async function changePassword() {
+            var current = document.getElementById('currentPassword').value.trim();
+            var newPass = document.getElementById('newPassword').value.trim();
+            var confirmPass = document.getElementById('confirmPassword').value.trim();
+
+            if (!current || !newPass || !confirmPass) { showAlert('Veuillez remplir tous les champs', 'error'); return; }
+            if (newPass !== confirmPass) { showAlert('Les mots de passe ne correspondent pas', 'error'); return; }
+            if (newPass.length < 6) { showAlert('Le mot de passe doit contenir au moins 6 caractères', 'error'); return; }
+
+            var user = getCurrentUser();
+            if (!user) { showAlert('Veuillez vous connecter', 'error'); return; }
+
+            var users = await getUsers();
+            var userToUpdate = users.find(function(u) { return u.id === user.id; });
+            if (!userToUpdate) { showAlert('Utilisateur non trouvé', 'error'); return; }
+
+            var currentHash = await hashPassword(current);
+            if (userToUpdate.password_hash !== currentHash && userToUpdate.password !== current) {
+                showAlert('Mot de passe actuel incorrect', 'error');
                 return;
             }
 
-            if (!confirm('Supprimer cet utilisateur définitivement ?')) return;
+            var newHash = await hashPassword(newPass);
+            userToUpdate.password_hash = newHash;
+            userToUpdate.password = newPass;
+            userToUpdate.password_changed = true;
+            userToUpdate.updated_at = new Date().toISOString();
 
             try {
-                var token = await getSupabaseToken();
-                var headers = {
-                    'apikey': supabaseKey,
-                    'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey
-                };
-
-                var deleteResp = await fetch(supabaseUrl + '/rest/v1/users?id=eq.' + id, {
-                    method: 'DELETE',
-                    headers: headers
+                var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/users?id=eq.' + userToUpdate.id, {
+                    method: 'PATCH',
+                    body: JSON.stringify({
+                        password_hash: newHash,
+                        password: newPass,
+                        password_changed: true,
+                        updated_at: new Date().toISOString()
+                    })
                 });
+                if (!resp.ok) throw new Error('Erreur mise à jour');
 
-                if (!deleteResp.ok) {
-                    var errorText = await deleteResp.text();
-                    throw new Error('Erreur Supabase: ' + errorText);
-                }
-
-                var users = await getUsers();
-                users = users.filter(function(u) { return u.id !== id; });
                 localStorage.setItem('ansfal_users', JSON.stringify(users));
-
-                DATA.users = users;
                 USERS = users;
+                DATA.users = users;
+                DATA.currentUser.password_changed = true;
 
-                showAlert('✅ Utilisateur supprimé de Supabase', 'success');
-                renderUsers();
-
-            } catch (e) {
-                showAlert('❌ Erreur: ' + e.message, 'error');
-                console.error('❌ Erreur détaillée:', e);
-            }
-        }
-
-        async function refreshUsersFromSupabase() {
-            try {
-                var token = await getSupabaseToken();
-                var headers = {
-                    'apikey': supabaseKey,
-                    'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey
-                };
-
-                var resp = await fetch(supabaseUrl + '/rest/v1/users?select=*', {
-                    headers: headers,
-                    mode: 'cors'
-                });
-
-                if (resp.ok) {
-                    var data = await resp.json();
-                    if (data && data.length > 0) {
-                        DATA.users = data;
-                        USERS = data;
-                        localStorage.setItem('ansfal_users', JSON.stringify(data));
-                        renderUsers();
-                        showAlert('✅ Utilisateurs rechargés depuis Supabase', 'success');
-                        return;
-                    }
+                if (user.username === 'admin') {
+                    localStorage.setItem('ansfal_admin_changed', 'true');
                 }
 
-                showAlert('⚠️ Aucun utilisateur trouvé dans Supabase', 'warning');
-
-            } catch (e) {
-                showAlert('❌ Erreur: ' + e.message, 'error');
-                console.error('❌ Erreur détaillée:', e);
-            }
+                showAlert('✅ Mot de passe changé avec succès !', 'success');
+                hidePasswordModal();
+            } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
         }
 
         // ============================================================
-        // FILE VIEWER
+        // FILE VIEWER (Images, Videos, PDF)
         // ============================================================
         function viewMedia(url, type) {
             var viewer = document.getElementById('fileViewer');
-            var content = document.getElementById('viewerContent');
+            var body = document.getElementById('viewerContent');
             var title = document.getElementById('viewerTitle');
-            var name = url.split('/').pop() || 'Fichier';
-            title.textContent = name;
-            if (type === 'image') {
-                content.innerHTML = '<img src="' + url + '" alt="' + name + '" />';
-            } else if (type === 'video') {
-                content.innerHTML = '<video controls autoplay style="max-width:100%;max-height:60vh;"><source src="' + url + '" type="video/mp4"></video>';
+            title.textContent = type === 'video' ? '🎬 Vidéo' : '🖼️ Image';
+            if (type === 'video') {
+                body.innerHTML = '<video controls style="max-width:100%;max-height:70vh;"><source src="' + url + '" type="video/mp4">Votre navigateur ne supporte pas la vidéo.</video>';
             } else {
-                content.innerHTML = '<iframe src="' + url + '"></iframe>';
+                body.innerHTML = '<img src="' + url + '" alt="Image" style="max-width:100%;max-height:70vh;" />';
             }
             viewer.classList.add('active');
         }
 
         function viewPDF(url, title) {
             var viewer = document.getElementById('fileViewer');
-            var content = document.getElementById('viewerContent');
-            document.getElementById('viewerTitle').textContent = title || 'PDF';
-            var pdfContainer = document.createElement('div');
-            pdfContainer.className = 'pdf-container';
-            pdfContainer.id = 'pdfContainer';
-            content.innerHTML = '<div id="pdfContainer" class="pdf-container"><div style="text-align:center;padding:20px;color:#888;"><i class="fas fa-spinner fa-spin"></i> Chargement du PDF...</div></div>';
+            var body = document.getElementById('viewerContent');
+            document.getElementById('viewerTitle').textContent = '📄 ' + (title || 'Document PDF');
+            body.innerHTML = '<div class="pdf-container" id="pdfContainer"><p style="text-align:center;color:#888;">Chargement du PDF...</p></div>';
             viewer.classList.add('active');
 
-            pdfjsLib.getDocument(url).promise.then(function(pdf) {
-                var container = document.getElementById('pdfContainer');
+            // Utiliser pdf.js pour afficher le PDF
+            var container = document.getElementById('pdfContainer');
+            var loadingTask = pdfjsLib.getDocument(url);
+            loadingTask.promise.then(function(pdf) {
+                var totalPages = pdf.numPages;
                 container.innerHTML = '';
-                for (var pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                for (var pageNum = 1; pageNum <= totalPages; pageNum++) {
                     pdf.getPage(pageNum).then(function(page) {
                         var scale = 1.5;
                         var viewport = page.getViewport({ scale: scale });
                         var canvas = document.createElement('canvas');
-                        canvas.width = viewport.width;
+                        var context = canvas.getContext('2d');
                         canvas.height = viewport.height;
-                        var ctx = canvas.getContext('2d');
-                        page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function() {
-                            container.appendChild(canvas);
-                        });
+                        canvas.width = viewport.width;
+                        var renderContext = {
+                            canvasContext: context,
+                            viewport: viewport
+                        };
+                        page.render(renderContext);
+                        container.appendChild(canvas);
                     });
                 }
-            }).catch(function(e) {
-                document.getElementById('pdfContainer').innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> Erreur de chargement du PDF</div>';
+            }).catch(function(err) {
+                container.innerHTML = '<p style="text-align:center;color:red;">❌ Erreur de chargement du PDF: ' + err.message + '<br><a href="' + url + '" target="_blank">Télécharger directement</a></p>';
+                console.error('Erreur PDF:', err);
             });
         }
 
@@ -5481,195 +5476,231 @@
         // STATS
         // ============================================================
         function updateStats() {
-            document.getElementById('totalVisitorsStat').textContent = DATA.visitors || 0;
             document.getElementById('totalMediaStat').textContent = (DATA.gallery.length + DATA.videos.length);
             document.getElementById('totalPublicationsStat').textContent = DATA.articles.length;
-            document.getElementById('totalActuStat').textContent = DATA.actu.filter(function(a) { return a.status === 'published'; }).length;
+            document.getElementById('totalActuStat').textContent = DATA.actu.length;
             document.getElementById('totalAdherentsStat').textContent = DATA.adherents.length;
             document.getElementById('totalUsersStat').textContent = DATA.users.length;
         }
 
         // ============================================================
-        // PASSWORD
+        // METEO
         // ============================================================
-        function showPasswordModal() { document.getElementById('passwordModal').classList.add('active'); }
-
-        function hidePasswordModal() { document.getElementById('passwordModal').classList.remove('active'); }
-
-        async function changePassword() {
-            var current = document.getElementById('currentPassword').value.trim();
-            var newPass = document.getElementById('newPassword').value.trim();
-            var confirm = document.getElementById('confirmPassword').value.trim();
-            if (!current || !newPass || !confirm) { showAlert('Veuillez remplir tous les champs', 'error'); return; }
-            if (newPass !== confirm) { showAlert('Les mots de passe ne correspondent pas', 'error'); return; }
-
-            if (newPass.length < 8 || !/[A-Z]/.test(newPass) || !/[a-z]/.test(newPass) || !/[0-9]/.test(newPass)) {
-                showAlert('Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre.', 'error');
-                return;
+        async function fetchWeather() {
+            var city = weatherCities[weatherIndex % weatherCities.length];
+            weatherIndex++;
+            try {
+                var url = 'https://api.open-meteo.com/v1/forecast?latitude=31.96&longitude=-6.57&current_weather=true&timezone=auto';
+                var resp = await fetch(url);
+                var data = await resp.json();
+                if (data.current_weather) {
+                    document.getElementById('weatherTemp').textContent = data.current_weather.temperature + '°C';
+                    document.getElementById('weatherCity').textContent = city;
+                }
+            } catch (e) {
+                console.warn('Erreur météo:', e);
+                document.getElementById('weatherTemp').textContent = '--°C';
             }
+        }
 
-            var user = getCurrentUser();
-            if (!user) { showAlert('Veuillez vous connecter', 'error'); return; }
-
-            var users = await getUsers();
-            var found = users.find(function(u) { return u.id === user.id; });
-            if (!found) { showAlert('Utilisateur non trouvé', 'error'); return; }
-
-            var isValid = false;
-            if (found.password_hash) {
-                isValid = await verifyPassword(current, found.password_hash);
-            } else if (found.password) {
-                isValid = found.password === current;
+        // ============================================================
+        // COMPTEUR VISITEURS
+        // ============================================================
+        async function updateVisitors() {
+            try {
+                var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/visitors?select=*&limit=1');
+                var data = await resp.json();
+                if (data && data.length > 0) {
+                    var count = data[0].count || 0;
+                    document.getElementById('totalVisitors').textContent = count;
+                    document.getElementById('totalVisitorsStat').textContent = count;
+                    document.getElementById('onlineVisitors').textContent = Math.floor(Math.random() * 10) + 1;
+                    document.getElementById('lastVisit').textContent = new Date().toLocaleString();
+                } else {
+                    // Créer un compteur initial
+                    await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/visitors', {
+                        method: 'POST',
+                        body: JSON.stringify({ count: 1, last_visit: new Date().toISOString() })
+                    });
+                }
+            } catch (e) {
+                console.warn('Erreur compteur visiteurs:', e);
             }
-
-            if (!isValid) { showAlert('Mot de passe actuel incorrect', 'error'); return; }
-
-            var hashedPassword = await hashPassword(newPass);
-            found.password_hash = hashedPassword;
-            found.password = newPass;
-            found.password_changed = true;
-            found.updated_at = new Date().toISOString();
-
-            await saveUsers(users);
-            DATA.users = await getUsers();
-            showAlert('✅ Mot de passe changé avec succès', 'success');
-            hidePasswordModal();
-            document.getElementById('currentPassword').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmPassword').value = '';
         }
 
         // ============================================================
         // EXPORT / RESET
         // ============================================================
         function exportToJSON() {
-            try {
-                var data = {
-                    betail: DATA.betail, produits: DATA.produits, arbres: DATA.arbres,
-                    eau: DATA.eau, sagia: DATA.sagia, conseil: DATA.conseil,
-                    gallery: DATA.gallery, videos: DATA.videos, articles: DATA.articles,
-                    texts: DATA.texts, actu: DATA.actu, adherents: DATA.adherents,
-                    localites: DATA.localites, users: DATA.users
-                };
-                var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                var a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = 'ansfal_data_' + new Date().toISOString().slice(0, 10) + '.json';
-                a.click();
-                showAlert('✅ Données exportées', 'success');
-            } catch (e) { showAlert('❌ Erreur export: ' + e.message, 'error'); }
+            var data = {
+                betail: DATA.betail,
+                produits: DATA.produits,
+                arbres: DATA.arbres,
+                eau: DATA.eau,
+                sagia: DATA.sagia,
+                conseil: DATA.conseil,
+                documents: DATA.documentsAdmin,
+                gallery: DATA.gallery,
+                videos: DATA.videos,
+                articles: DATA.articles,
+                texts: DATA.texts,
+                actu: DATA.actu,
+                adherents: DATA.adherents,
+                localites: DATA.localites,
+                users: DATA.users,
+                exported_at: new Date().toISOString()
+            };
+            var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'ansfal_export_' + new Date().toISOString().slice(0, 10) + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showAlert('✅ Données exportées avec succès', 'success');
         }
 
-        async function resetAllData() {
-            if (!confirm('⚠️ Supprimer toutes les données ? Cette action est irréversible !')) return;
-            var user = getCurrentUser();
-            if (!user || user.role !== 'admin') { showAlert('Seul l\'admin peut effacer les données', 'error'); return; }
+        function resetAllData() {
+            if (!confirm('⚠️ ATTENTION : Cette action supprime toutes les données de l\'application. Êtes-vous sûr ?')) return;
+            if (!confirm('⚠️ CONFIRMATION FINALE : Tapez "OUI" pour confirmer')) return;
+
             var tables = ['betail', 'produits', 'arbres', 'eau', 'sagia', 'conseil', 'documents_admin', 'gallery', 'videos', 'articles', 'texts', 'actu', 'dons', 'adherents', 'localites'];
+            Promise.all(tables.map(function(table) {
+                return fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + table + '?select=id', { method: 'DELETE', headers: { 'Prefer': 'return=minimal' } });
+            })).then(function() {
+                showAlert('✅ Toutes les données ont été effacées', 'success');
+                loadAllTables();
+            }).catch(function(e) { showAlert('❌ Erreur: ' + e.message, 'error'); });
+        }
+
+        // ============================================================
+        // TITRE DES IMAGES / VIDEOS - MODIFICATION RAPIDE
+        // ============================================================
+        function editGalleryTitlePrompt(id, currentTitle) {
+            var newTitle = prompt('Modifier le titre de l\'image :', currentTitle || 'Image');
+            if (newTitle !== null && newTitle.trim() !== '') {
+                updateMediaTitle(id, 'gallery', newTitle.trim());
+            }
+        }
+
+        function editVideoTitlePrompt(id, currentTitle) {
+            var newTitle = prompt('Modifier le titre de la vidéo :', currentTitle || 'Vidéo');
+            if (newTitle !== null && newTitle.trim() !== '') {
+                updateMediaTitle(id, 'videos', newTitle.trim());
+            }
+        }
+
+        async function updateMediaTitle(id, table, newTitle) {
             try {
-                for (var t of tables) {
-                    await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + t + '?select=*', { method: 'DELETE' });
-                }
-                showAlert('✅ Données effacées avec succès', 'success');
+                var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + table + '?id=eq.' + id, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ title: newTitle, updated_at: new Date().toISOString() })
+                });
+                if (!resp.ok) throw new Error('Erreur mise à jour');
+                showAlert('✅ Titre mis à jour', 'success');
                 await loadAllTables();
                 renderAll();
             } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
         }
 
         // ============================================================
-        // MÉTÉO
-        // ============================================================
-        function updateWeather() {
-            var city = weatherCities[weatherIndex % weatherCities.length];
-            weatherIndex++;
-            var temps = (Math.random() * 20 + 10).toFixed(1);
-            var weatherEmoji = ['☀️', '⛅', '🌤️', '🌥️', '☁️', '🌧️', '⛈️'];
-            var emoji = weatherEmoji[Math.floor(Math.random() * weatherEmoji.length)];
-            document.getElementById('weatherCity').textContent = city;
-            document.getElementById('weatherTemp').textContent = temps + '°C ' + emoji;
-        }
-
-        // ============================================================
-        // COMPTEUR VISITEURS
-        // ============================================================
-        var visitorKey = 'ansfal_visitor_id';
-
-        function getVisitorId() {
-            var id = localStorage.getItem(visitorKey);
-            if (!id) {
-                id = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem(visitorKey, id);
-            }
-            return id;
-        }
-
-        function updateVisitorCounter() {
-            var visitorId = getVisitorId();
-            var today = new Date().toISOString().split('T')[0];
-            var visitors = parseInt(localStorage.getItem('ansfal_total_visitors')) || 0;
-            var lastVisit = localStorage.getItem('ansfal_last_visit') || '';
-            if (lastVisit !== today) {
-                visitors++;
-                localStorage.setItem('ansfal_total_visitors', visitors);
-                localStorage.setItem('ansfal_last_visit', today);
-                try {
-                    fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/visitors', {
-                        method: 'POST',
-                        body: JSON.stringify({ visitor_id: visitorId, visit_date: today, created_at: new Date().toISOString() })
-                    }).catch(function() {});
-                } catch (e) {}
-            }
-            document.getElementById('totalVisitors').textContent = visitors;
-            document.getElementById('totalVisitorsStat').textContent = visitors;
-            var now = new Date();
-            document.getElementById('lastVisit').textContent = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
-            var online = Math.floor(Math.random() * 10) + 1;
-            document.getElementById('onlineVisitors').textContent = online;
-            DATA.visitors = visitors;
-        }
-
-        // ============================================================
         // INIT
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
-            var savedLang = localStorage.getItem('ansfal_lang') || 'fr';
-            switchLanguage(savedLang);
+            // Restaurer la langue
+            try {
+                var savedLang = localStorage.getItem('ansfal_lang');
+                if (savedLang && savedLang !== 'fr') {
+                    switchLanguage(savedLang);
+                }
+            } catch (e) {}
 
+            // Auth
+            initAuth();
+
+            // Charger les données
+            loadAllTables();
+
+            // Météo
+            fetchWeather();
+            setInterval(fetchWeather, 300000); // Toutes les 5 min
+
+            // Compteur visiteurs
+            updateVisitors();
+            setInterval(updateVisitors, 60000);
+
+            // Charger logo, contacts, compte bancaire, ticker
             loadLogoFromSupabase();
             loadContactsFromSupabase();
             loadBankAccount();
             loadTickerFromSupabase();
-            updateTickerText();
 
+            // Ticker - animation dynamique
+            var tickerText = document.getElementById('tickerText');
+            if (tickerText) {
+                tickerText.addEventListener('animationiteration', function() {
+                    updateTickerText();
+                });
+            }
+
+            // Compteur de mots pour l'actualité
             var actuText = document.getElementById('actuText');
             if (actuText) {
                 actuText.addEventListener('input', function() {
                     var words = this.value.trim().split(/\s+/);
-                    var count = words.length === 1 && words[0] === '' ? 0 : words.length;
+                    var count = this.value.trim() === '' ? 0 : words.length;
                     document.getElementById('wordCountDisplay').textContent = count;
-                    document.getElementById('wordWarning').style.display = count > 20 ? 'block' : 'none';
+                    var warning = document.getElementById('wordWarning');
+                    if (count > 20) {
+                        warning.style.display = 'inline';
+                    } else {
+                        warning.style.display = 'none';
+                    }
                 });
             }
 
-            initAuth().then(function() {
-                loadAllTables();
-                updateVisitorCounter();
-                updateWeather();
-                setInterval(updateWeather, 300000);
-                setInterval(updateVisitorCounter, 60000);
-            });
-
+            // Bouton flottant "Ajouter"
             document.getElementById('addBtn').addEventListener('click', function() {
-                showUploadModal('image');
+                var currentSection = document.querySelector('.dashboard-section-content.active');
+                if (currentSection) {
+                    var id = currentSection.id;
+                    if (id === 'galleryDashboard') showUploadModal('image');
+                    else if (id === 'videosDashboard') showUploadModal('video');
+                    else if (id === 'publicationsDashboard') showUploadModal('article');
+                    else if (id === 'textDashboard') showTextModal();
+                    else if (id === 'conseilDashboard') showConseilModal();
+                    else if (id === 'documentsDashboard') showDocumentModal();
+                    else if (id === 'adherentsDashboard') showAdherentModal();
+                    else if (id === 'localitesDashboard') showLocaliteModal();
+                    else if (id === 'usersDashboard') showUserModal();
+                    else if (id === 'betailDashboard') showGenericModal('betail');
+                    else if (id === 'produitsDashboard') showGenericModal('produit');
+                    else if (id === 'arbresDashboard') showGenericModal('arbre');
+                    else if (id === 'eauDashboard') showGenericModal('eau');
+                    else if (id === 'sagiaDashboard') showGenericModal('sagia');
+                    else showUploadModal('image');
+                } else {
+                    showUploadModal('image');
+                }
             });
 
+            // Bouton login flottant
             document.getElementById('loginBtn').addEventListener('click', function() {
-                document.getElementById('username').focus();
+                if (DATA.currentUser) {
+                    logout();
+                } else {
+                    document.getElementById('username').focus();
+                }
             });
 
-            console.log('🚀 Site ANSFAL initialisé !');
+            console.log('🚀 Application ANSFAL chargée avec succès !');
         });
 
-        // Expose functions globally
+        // ============================================================
+        // EXPOSITION DES FONCTIONS DANS LE SCOPE GLOBAL
+        // ============================================================
+        // Toutes les fonctions sont déjà dans le scope global via 'function' declarations
+        // Mais on s'assure que les plus importantes sont disponibles
         window.showSection = showSection;
         window.showDashboardSection = showDashboardSection;
         window.switchLanguage = switchLanguage;
@@ -5677,10 +5708,9 @@
         window.logout = logout;
         window.showUploadModal = showUploadModal;
         window.hideUploadModal = hideUploadModal;
-        window.selectUploadMode = selectUploadMode;
         window.uploadFiles = uploadFiles;
         window.addUrlMedia = addUrlMedia;
-        window.removeFile = removeFile;
+        window.selectUploadMode = selectUploadMode;
         window.showTextModal = showTextModal;
         window.hideTextModal = hideTextModal;
         window.saveTextContent = saveTextContent;
@@ -5708,12 +5738,13 @@
         window.saveLocalite = saveLocalite;
         window.editLocalite = editLocalite;
         window.deleteLocalite = deleteLocalite;
-        window.renderLocalites = renderLocalites;
         window.showUserModal = showUserModal;
         window.hideUserModal = hideUserModal;
         window.saveUser = saveUser;
         window.deleteUser = deleteUser;
-        window.refreshUsersFromSupabase = refreshUsersFromSupabase;
+        window.showPasswordModal = showPasswordModal;
+        window.hidePasswordModal = hidePasswordModal;
+        window.changePassword = changePassword;
         window.showGenericModal = showGenericModal;
         window.hideGenericModal = hideGenericModal;
         window.saveGenericItem = saveGenericItem;
@@ -5723,65 +5754,29 @@
         window.hideBankAccountModal = hideBankAccountModal;
         window.saveBankAccountFromModal = saveBankAccountFromModal;
         window.saveBankAccount = saveBankAccount;
-        window.showPasswordModal = showPasswordModal;
-        window.hidePasswordModal = hidePasswordModal;
-        window.changePassword = changePassword;
-        window.exportToJSON = exportToJSON;
-        window.resetAllData = resetAllData;
+        window.saveContactInfo = saveContactInfo;
+        window.saveTickerText = saveTickerText;
         window.submitActu = submitActu;
         window.publishActu = publishActu;
         window.deleteActu = deleteActu;
         window.viewMedia = viewMedia;
         window.viewPDF = viewPDF;
         window.closeFileViewer = closeFileViewer;
-        window.printDocument = printDocument;
-        window.hidePrintModal = hidePrintModal;
-        window.saveContactInfo = saveContactInfo;
-        window.uploadLogoToSupabase = uploadLogoToSupabase;
-        window.saveTickerText = saveTickerText;
-        window.loadTickerFromSupabase = loadTickerFromSupabase;
-        window.updateTickerText = updateTickerText;
-        window.loadLocalites = loadLocalites;
-        window.loadAdherents = loadAdherents;
-        window.loadAllTables = loadAllTables;
-        window.closeForcedPasswordModal = closeForcedPasswordModal;
-        window.changeForcedPassword = changeForcedPassword;
+        window.deleteMedia = deleteMedia;
         window.editGalleryTitlePrompt = editGalleryTitlePrompt;
         window.editVideoTitlePrompt = editVideoTitlePrompt;
-        window.deleteMedia = deleteMedia;
+        window.uploadLogoToSupabase = uploadLogoToSupabase;
+        window.exportToJSON = exportToJSON;
+        window.resetAllData = resetAllData;
+        window.loadAllTables = loadAllTables;
+        window.renderAll = renderAll;
+        window.hidePrintModal = hidePrintModal;
+        window.printDocument = printDocument;
+        window.showForcedPasswordModal = showForcedPasswordModal;
+        window.closeForcedPasswordModal = closeForcedPasswordModal;
+        window.changeForcedPassword = changeForcedPassword;
 
-        // Fonctions pour éditer les titres
-        function editGalleryTitlePrompt(id, currentTitle) {
-            var newTitle = prompt('Modifier le titre de l\'image:', currentTitle);
-            if (newTitle !== null && newTitle.trim() !== '') {
-                updateMediaTitle(id, 'gallery', newTitle.trim());
-            }
-        }
-
-        function editVideoTitlePrompt(id, currentTitle) {
-            var newTitle = prompt('Modifier le titre de la vidéo:', currentTitle);
-            if (newTitle !== null && newTitle.trim() !== '') {
-                updateMediaTitle(id, 'videos', newTitle.trim());
-            }
-        }
-
-        async function updateMediaTitle(id, table, newTitle) {
-            try {
-                const { data, error } = await supabase
-                    .from(table)
-                    .update({ title: newTitle, updated_at: new Date().toISOString() })
-                    .eq('id', id)
-                    .select();
-
-                if (error) throw new Error(error.message);
-                showAlert('✅ Titre mis à jour avec succès', 'success');
-                await loadAllTables();
-                renderAll();
-            } catch (e) {
-                showAlert('❌ Erreur: ' + e.message, 'error');
-                console.error(e);
-            }
-        }
+        console.log('✅ Toutes les fonctions sont exposées globalement');
     </script>
 </body>
 </html>
