@@ -77,10 +77,11 @@
         .container { width: 90%; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
         .hidden { display: none !important; }
 
-        /* Visitor Counter */
+        /* Visitor Counter - Déplacé en bas de page */
         .visitor-counter {
             background: var(--info); color: white; padding: 6px 0; font-size: 0.8rem;
-            text-align: center; position: fixed; width: 100%; top: 0; left: 0; z-index: 1000;
+            text-align: center; width: 100%; bottom: 45px; left: 0; z-index: 1000;
+            position: fixed; border-top: 2px solid rgba(255,255,255,0.2);
         }
         .visitor-counter .container {
             display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap;
@@ -89,7 +90,7 @@
             font-weight: bold; background: rgba(255,255,255,0.2); padding: 2px 12px; border-radius: 10px;
         }
 
-        /* Language Switcher */
+        /* Language Switcher - Décalé vers le bas pour ne pas couvrir la barre d'auth */
         .language-switcher {
             position: fixed; top: 48px; right: 15px; z-index: 1001; display: flex; gap: 5px;
         }
@@ -101,9 +102,9 @@
         .lang-btn.active { background: var(--dark); box-shadow: 0 0 0 2px var(--accent); }
         .lang-btn:hover { background: var(--secondary); transform: scale(1.05); }
 
-        /* Auth Bar */
+        /* Auth Bar - en haut comme avant */
         .auth-bar {
-            position: fixed; top: 38px; left: 0; width: 100%;
+            position: fixed; top: 0; left: 0; width: 100%;
             background: linear-gradient(135deg, var(--sidebar-bg), #4a6491);
             color: var(--sidebar-text); padding: 8px 30px;
             display: flex; justify-content: space-between; align-items: center; z-index: 999;
@@ -131,10 +132,10 @@
         }
         .logout-btn:hover { background: #c0392b; }
 
-        /* Header */
+        /* Header - décalé pour la barre d'auth */
         header {
             background: var(--white); box-shadow: var(--shadow); position: fixed;
-            width: 100%; top: 85px; z-index: 998;
+            width: 100%; top: 38px; z-index: 998;
         }
         .header-container {
             display: flex; justify-content: space-between; align-items: center; padding: 10px 0; flex-wrap: wrap;
@@ -161,11 +162,11 @@
             content: ''; display: block; width: 60px; height: 4px; background: var(--accent); margin: 10px auto 0;
         }
 
-        /* Hero */
+        /* Hero - ajusté pour la barre d'auth */
         .hero {
             background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80');
             background-size: cover; background-position: center; color: var(--white);
-            text-align: center; padding: 170px 0 80px; margin-top: 85px;
+            text-align: center; padding: 130px 0 80px; margin-top: 38px;
         }
         .hero-content { padding: 20px 15px; }
         .hero h2 { font-size: clamp(2rem, 8vw, 3.5rem); color: var(--white); margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
@@ -193,45 +194,46 @@
         .data-table tr:hover { background: var(--light); }
         .table-container { overflow-x: auto; margin-top: 20px; }
 
-        /* Cards */
-        .cards-container {
-            display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; margin-bottom: 40px;
+        /* Payment - section simplifiée (RIB uniquement) */
+        .payment-section {
+            padding: 60px 0;
         }
-        .card-item {
-            width: 120px; padding: 20px 10px; background: white; border-radius: 15px;
-            box-shadow: var(--shadow); text-align: center; cursor: pointer;
-            transition: all 0.3s; border: 3px solid transparent;
+        .payment-section .rib-box {
+            text-align: center;
+            background: var(--light);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid var(--primary);
+            max-width: 700px;
+            margin: 0 auto;
         }
-        .card-item:hover { transform: translateY(-10px); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
-        .card-item.active { border-color: var(--primary); background: var(--light); }
-        .card-item .card-name { font-size: 0.75rem; font-weight: 600; color: var(--dark); }
-        .card-item .card-name i { font-size: 1.5rem; display: block; margin-bottom: 5px; }
-        .card-item.visa .card-name i { color: #1a1f71; }
-        .card-item.mastercard .card-name i { color: #eb001b; }
-        .card-item.amex .card-name i { color: #2e77d0; }
-        .card-item.cmi .card-name i { color: #e67e22; }
-
-        /* Payment */
-        .payment-form {
-            max-width: 500px; margin: 0 auto; background: white; padding: 30px;
-            border-radius: 15px; box-shadow: var(--shadow);
+        .payment-section .rib-box i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 15px;
         }
-        .payment-form .form-group { margin-bottom: 18px; }
-        .payment-form label { display: block; font-weight: 600; color: var(--dark); margin-bottom: 5px; }
-        .payment-form input, .payment-form select {
-            width: 100%; padding: 12px 15px; border: 2px solid #ddd; border-radius: 8px;
-            font-size: 1rem; transition: border-color 0.3s;
+        .payment-section .rib-box h3 {
+            color: var(--dark);
+            margin-bottom: 10px;
         }
-        .payment-form input:focus, .payment-form select:focus { border-color: var(--primary); outline: none; }
-        .payment-form .form-row { display: flex; gap: 15px; }
-        .payment-form .form-row .form-group { flex: 1; }
-        .payment-form .btn-payment {
-            width: 100%; padding: 14px; background: var(--success); color: white;
-            border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 600;
-            cursor: pointer; transition: all 0.3s;
+        .payment-section .rib-box .rib-number {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--primary);
+            background: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            display: inline-block;
+            border: 2px dashed var(--primary);
+            margin: 10px 0;
+            font-family: monospace;
+            letter-spacing: 2px;
         }
-        .payment-form .btn-payment:hover { background: #219653; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(76,175,80,0.3); }
-        .payment-form .btn-payment i { margin-right: 8px; }
+        .payment-section .rib-box .rib-note {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
 
         /* Gallery & Videos */
         #galleryContainer {
@@ -309,10 +311,10 @@
         .btn-actu-submit:hover { background: var(--dark); transform: translateY(-2px); }
 
         /* Dashboard */
-        .dashboard-section { background: #f5f5f5; min-height: 100vh; padding-top: 85px; }
+        .dashboard-section { background: #f5f5f5; min-height: 100vh; padding-top: 38px; }
         .dashboard-container {
             display: grid; grid-template-columns: 220px 1fr; gap: 25px;
-            min-height: calc(100vh - 85px); padding: 0 20px; max-width: 1400px; margin: 0 auto;
+            min-height: calc(100vh - 38px); padding: 20px; max-width: 1400px; margin: 0 auto;
         }
         .dashboard-sidebar {
             background: var(--sidebar-bg); color: var(--sidebar-text);
@@ -505,7 +507,7 @@
 
         /* Alert */
         .alert {
-            position: fixed; top: 140px; right: 20px; padding: 12px 20px; border-radius: 8px;
+            position: fixed; top: 100px; right: 20px; padding: 12px 20px; border-radius: 8px;
             z-index: 9999; max-width: 320px; font-weight: 500; animation: slideIn 0.3s ease;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px;
         }
@@ -728,7 +730,7 @@
             .header-container { flex-direction: column; gap: 8px; }
             nav ul { gap: 4px; }
             nav a { font-size: 0.8rem; padding: 3px 8px; }
-            .hero { padding: 130px 0 50px; margin-top: 85px; }
+            .hero { padding: 120px 0 50px; margin-top: 80px; }
             .hero h2 { font-size: 2rem; }
             .hero h3 { font-size: 1.2rem; }
             .dashboard-container { grid-template-columns: 1fr; padding: 0 10px; }
@@ -740,7 +742,7 @@
             .footer-container { grid-template-columns: 1fr; text-align: center; }
             .upload-choice { grid-template-columns: 1fr; }
             .modal-body { padding: 18px; }
-            .language-switcher { top: 88px; right: 8px; }
+            .language-switcher { top: 80px; right: 8px; }
             body.rtl .language-switcher { right: auto; left: 8px; }
             .lang-btn { padding: 3px 10px; font-size: 0.7rem; }
             .items-grid { grid-template-columns: 1fr; }
@@ -750,12 +752,7 @@
             .ticker-text { font-size: 0.75rem; animation-duration: 35s !important; }
             .weather-box { font-size: 0.7rem; padding: 2px 10px; min-width: 100px; }
             footer { margin-bottom: 85px; }
-            .cards-container { gap: 15px; }
-            .card-item { width: 90px; padding: 15px 8px; }
-            .payment-form { padding: 20px; }
-            .payment-form .form-row { flex-direction: column; gap: 0; }
-            .actu-container { padding: 0 10px; }
-            .actu-item .actu-meta { flex-direction: column; align-items: flex-start; gap: 5px; }
+            .payment-section .rib-box .rib-number { font-size: 1rem; padding: 8px 15px; }
             .logo-upload-wrapper { flex-direction: column; align-items: center; }
             .logo-upload-wrapper .logo-actions { align-items: center; }
             .data-table { font-size: 0.8rem; }
@@ -767,9 +764,9 @@
         @media (max-width: 480px) {
             .stats-grid { grid-template-columns: 1fr; }
             .ticker-text { font-size: 0.65rem; animation-duration: 30s !important; }
-            .card-item { width: 70px; padding: 10px 5px; }
-            .card-item .card-name { font-size: 0.6rem; }
             .actu-form { padding: 15px; }
+            .payment-section .rib-box { padding: 20px; }
+            .payment-section .rib-box .rib-number { font-size: 0.85rem; padding: 6px 12px; letter-spacing: 1px; }
         }
 
         /* Modale changement mot de passe obligatoire */
@@ -845,15 +842,6 @@
     </style>
 </head>
 <body>
-    <!-- ========== COMPTEUR VISITEURS ========== -->
-    <div class="visitor-counter">
-        <div class="container">
-            <span><i class="fas fa-users"></i> <span class="visitor-count" id="totalVisitors">0</span></span>
-            <span><i class="fas fa-circle" style="color:#4caf50;"></i> <span class="visitor-count" id="onlineVisitors">0</span></span>
-            <span><i class="fas fa-clock"></i> <span id="lastVisit">--/--/---- --:--:--</span></span>
-        </div>
-    </div>
-
     <!-- ========== BARRE D'AUTH ========== -->
     <div id="authBar" class="auth-bar">
         <div id="loginForm" class="auth-form">
@@ -1104,64 +1092,20 @@
         </div>
     </section>
 
-    <!-- ========== DONS ========== -->
+    <!-- ========== DONS (RIB UNIQUEMENT) ========== -->
     <section id="dons" class="payment-section">
         <div class="container">
             <h2 id="donsTitle"><i class="fas fa-hand-holding-heart"></i> Faire un don</h2>
-            <p style="text-align:center;color:#666;margin-bottom:30px;" id="donsSubtitle">Choisissez votre moyen de paiement et soutenez nos actions</p>
+            <p style="text-align:center;color:#666;margin-bottom:30px;" id="donsSubtitle">Soutenez nos actions par virement bancaire</p>
 
-            <div style="text-align:center;background:var(--light);padding:15px;border-radius:10px;margin-bottom:30px;border:2px solid var(--primary);">
-                <i class="fas fa-university" style="font-size:2rem;color:var(--primary);"></i>
-                <h3 style="color:var(--dark);">Compte Crédit Agricole</h3>
-                <p style="font-size:1.2rem;font-weight:bold;color:var(--primary);" id="bankAccount">RIB: 225070014712363651011109</p>
-                <button id="bankAccountEditBtn" class="btn-import" onclick="showBankAccountModal()" style="background:var(--info);margin-top:5px;">
-                    <i class="fas fa-edit"></i> Modifier le compte
+            <div class="rib-box">
+                <i class="fas fa-university"></i>
+                <h3>Compte Crédit Agricole</h3>
+                <div class="rib-number" id="bankAccount">225070014712363651011109</div>
+                <p class="rib-note"><i class="fas fa-info-circle"></i> Veuillez utiliser ce RIB pour vos dons par virement bancaire.</p>
+                <button id="bankAccountEditBtn" class="btn-import" onclick="showBankAccountModal()" style="background:var(--info);margin-top:15px;">
+                    <i class="fas fa-edit"></i> Modifier le compte (admin)
                 </button>
-            </div>
-
-            <div class="cards-container">
-                <div class="card-item visa" onclick="selectCard('visa')" data-card="visa">
-                    <div class="card-name"><i class="fab fa-cc-visa"></i> Visa</div>
-                </div>
-                <div class="card-item mastercard" onclick="selectCard('mastercard')" data-card="mastercard">
-                    <div class="card-name"><i class="fab fa-cc-mastercard"></i> MasterCard</div>
-                </div>
-                <div class="card-item amex" onclick="selectCard('amex')" data-card="amex">
-                    <div class="card-name"><i class="fab fa-cc-amex"></i> American Express</div>
-                </div>
-                <div class="card-item cmi" onclick="selectCard('cmi')" data-card="cmi">
-                    <div class="card-name"><i class="fas fa-credit-card"></i> CMI</div>
-                </div>
-            </div>
-
-            <div class="payment-form">
-                <form id="paymentForm" onsubmit="processPayment(event)">
-                    <div class="form-group">
-                        <label for="cardNumber" id="labelCardNumber"><i class="fas fa-credit-card"></i> Numéro de carte</label>
-                        <input type="text" id="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19" required />
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="expiryDate" id="labelExpiryDate"><i class="fas fa-calendar-alt"></i> Date d'expiration</label>
-                            <input type="text" id="expiryDate" placeholder="MM/AA" maxlength="5" required />
-                        </div>
-                        <div class="form-group">
-                            <label for="cvv" id="labelCvv"><i class="fas fa-lock"></i> Code de sécurité</label>
-                            <input type="text" id="cvv" placeholder="CVV" maxlength="4" required />
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="cardName" id="labelCardName"><i class="fas fa-user"></i> Nom sur la carte</label>
-                        <input type="text" id="cardName" placeholder="Nom complet" required />
-                    </div>
-                    <div class="form-group">
-                        <label for="amount" id="labelAmount"><i class="fas fa-coins"></i> Montant (MAD)</label>
-                        <input type="number" id="amount" placeholder="100" min="10" required />
-                    </div>
-                    <button type="submit" class="btn-payment" id="btnPayment">
-                        <i class="fas fa-heart"></i> <span id="btnPaymentText">Faire un don</span>
-                    </button>
-                </form>
             </div>
         </div>
     </section>
@@ -1528,6 +1472,15 @@
         </div>
     </div>
 
+    <!-- ========== COMPTEUR VISITEURS (DÉPLACÉ EN BAS) ========== -->
+    <div class="visitor-counter">
+        <div class="container">
+            <span><i class="fas fa-users"></i> <span class="visitor-count" id="totalVisitors">0</span></span>
+            <span><i class="fas fa-circle" style="color:#4caf50;"></i> <span class="visitor-count" id="onlineVisitors">0</span></span>
+            <span><i class="fas fa-clock"></i> <span id="lastVisit">--/--/---- --:--:--</span></span>
+        </div>
+    </div>
+
     <!-- ========== BOUTONS FLOTTANTS ========== -->
     <a href="https://wa.me/212625931318" class="whatsapp-float" id="whatsappBtn" target="_blank"><i class="fab fa-whatsapp"></i></a>
     <button class="btn-add-float admin-only" id="addBtn"><i class="fas fa-plus"></i></button>
@@ -1807,6 +1760,7 @@
             </div>
             <div class="modal-body">
                 <div style="margin-bottom:15px;"><label>Nom d'utilisateur <span style="color:red;">*</span></label><input type="text" id="userLogin" placeholder="Nom d'utilisateur" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                <div style="margin-bottom:15px;"><label>Email <span style="color:red;">*</span></label><input type="email" id="userEmail" placeholder="email@exemple.com" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
                 <div style="margin-bottom:15px;"><label>Mot de passe <span style="color:red;">*</span></label><input type="password" id="userPassword" placeholder="Mot de passe" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
                 <div style="margin-bottom:15px;">
                     <label>Rôle <span style="color:red;">*</span></label>
@@ -1915,48 +1869,6 @@
             </div>
         </div>
     </div>
-<!-- MODALE UTILISATEUR -->
-<div class="modal-overlay" id="userModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h3 class="modal-title"><i class="fas fa-user-plus"></i> <span id="userModalTitle">Ajouter un utilisateur</span></h3>
-            <button class="close-modal" onclick="hideUserModal()">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div style="margin-bottom:15px;">
-                <label>Nom d'utilisateur <span style="color:red;">*</span></label>
-                <input type="text" id="userLogin" placeholder="Nom d'utilisateur" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" />
-            </div>
-            <!-- AJOUTEZ CE CHAMP EMAIL -->
-            <div style="margin-bottom:15px;">
-                <label>Email <span style="color:red;">*</span></label>
-                <input type="email" id="userEmail" placeholder="email@exemple.com" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" />
-                <small style="color:#888;">Si vide, l'email sera: nom_utilisateur@ansfal.org</small>
-            </div>
-            <div style="margin-bottom:15px;">
-                <label>Mot de passe <span style="color:red;">*</span></label>
-                <input type="password" id="userPassword" placeholder="Mot de passe" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" />
-            </div>
-            <div style="margin-bottom:15px;">
-                <label>Rôle <span style="color:red;">*</span></label>
-                <select id="userRoleSelect" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">
-                    <option value="admin">Admin</option>
-                    <option value="webmestre">Webmestre</option>
-                    <option value="membre">Membre</option>
-                </select>
-            </div>
-            <div class="upload-actions">
-                <button class="btn-browse" onclick="hideUserModal()" style="background:var(--danger);">
-                    <i class="fas fa-times"></i> Annuler
-                </button>
-                <button class="btn-browse" onclick="saveUser()" style="background:var(--success);">
-                    <i class="fas fa-save"></i> Enregistrer
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
 
     <!-- MODALE GÉNÉRIQUE -->
     <div class="modal-overlay" id="genericModal">
@@ -2030,7 +1942,6 @@
         };
 
         var currentLang = 'fr';
-        var selectedCard = 'visa';
         var currentEditType = null;
         var currentEditId = null;
         var selectedFiles = [];
@@ -2052,7 +1963,6 @@
         // ============================================================
         // FONCTIONS CRYPTO POUR HACHAGE
         // ============================================================
-        // Fonction de hachage SHA-256 simple (utilise l'API Crypto)
         async function hashPassword(password) {
             const encoder = new TextEncoder();
             const data = encoder.encode(password);
@@ -2061,7 +1971,6 @@
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        // Vérifier si un mot de passe correspond à un hash
         async function verifyPassword(password, hash) {
             const hashedInput = await hashPassword(password);
             return hashedInput === hash;
@@ -2070,129 +1979,110 @@
         // ============================================================
         // UTILISATEURS
         // ============================================================
-        // Utilisateur admin par défaut (haché en SHA-256)
-        // Mot de passe par défaut: "Admin123!" (haché)
         var DEFAULT_ADMIN = {
-    id: 1,
-    username: 'admin',
-    email: 'admin@ansfal.org',
-    password_hash: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9',
-    password: 'admin123',
-    role: 'admin',
-    password_changed: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-};
+            id: 1,
+            username: 'admin',
+            email: 'admin@ansfal.org',
+            password_hash: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9',
+            password: 'admin123',
+            role: 'admin',
+            password_changed: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
 
-        // Tableau des utilisateurs (chargé depuis Supabase ou localStorage)
         var USERS = [DEFAULT_ADMIN];
 
         async function getUsers() {
-    // Essayer de charger depuis Supabase d'abord
-    var supabaseUsers = await getUsersFromSupabase();
-    if (supabaseUsers && supabaseUsers.length > 0) {
-        USERS = supabaseUsers;
-        return USERS;
-    }
-    
-    // Fallback: localStorage
-    try { 
-        var saved = localStorage.getItem('ansfal_users'); 
-        if (saved) { 
-            var parsed = JSON.parse(saved); 
-            if (parsed && parsed.length > 0) {
-                USERS = parsed;
-                return USERS;
-            }
-        } 
-    } catch (e) {}
-    
-    // Si rien, retourner le default admin
-    if (!USERS || USERS.length === 0) {
-        USERS = [DEFAULT_ADMIN];
-    }
-    return USERS;
-}
+            try {
+                var saved = localStorage.getItem('ansfal_users');
+                if (saved) {
+                    var parsed = JSON.parse(saved);
+                    if (parsed && parsed.length > 0) {
+                        USERS = parsed;
+                        return USERS;
+                    }
+                }
+            } catch (e) {}
+            USERS = [DEFAULT_ADMIN];
+            return USERS;
+        }
 
         async function saveUsers(users) {
-    try {
-        localStorage.setItem('ansfal_users', JSON.stringify(users));
-        
-        for (var u of users) {
-            var token = await getSupabaseToken();
-            var headers = { 
-                'apikey': supabaseKey, 
-                'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey, 
-                'Content-Type': 'application/json' 
-            };
-            
-            var checkResp = await fetch(supabaseUrl + '/rest/v1/users?username=eq.' + u.username, { 
-                headers: headers,
-                mode: 'cors'
-            });
-            var existing = await checkResp.json();
-            
-            var userData = {
-                username: u.username,
-                email: u.email || u.username + '@ansfal.org',
-                password_hash: u.password_hash || u.password,
-                password: u.password || 'admin123',
-                role: u.role || 'membre',
-                password_changed: u.password_changed || false,
-                updated_at: new Date().toISOString()
-            };
-            
-            if (existing && existing.length > 0) {
-                await fetch(supabaseUrl + '/rest/v1/users?id=eq.' + existing[0].id, {
-                    method: 'PATCH', 
-                    headers: headers,
-                    body: JSON.stringify(userData)
-                });
-            } else {
-                userData.created_at = new Date().toISOString();
-                await fetch(supabaseUrl + '/rest/v1/users', {
-                    method: 'POST', 
-                    headers: headers,
-                    body: JSON.stringify(userData)
-                });
+            try {
+                localStorage.setItem('ansfal_users', JSON.stringify(users));
+                for (var u of users) {
+                    var token = await getSupabaseToken();
+                    var headers = {
+                        'apikey': supabaseKey,
+                        'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey,
+                        'Content-Type': 'application/json'
+                    };
+                    var checkResp = await fetch(supabaseUrl + '/rest/v1/users?username=eq.' + u.username, { headers: headers, mode: 'cors' });
+                    var existing = await checkResp.json();
+                    var userData = {
+                        username: u.username,
+                        email: u.email || u.username + '@ansfal.org',
+                        password_hash: u.password_hash || u.password,
+                        password: u.password || 'admin123',
+                        role: u.role || 'membre',
+                        password_changed: u.password_changed || false,
+                        updated_at: new Date().toISOString()
+                    };
+                    if (existing && existing.length > 0) {
+                        await fetch(supabaseUrl + '/rest/v1/users?id=eq.' + existing[0].id, {
+                            method: 'PATCH',
+                            headers: headers,
+                            body: JSON.stringify(userData)
+                        });
+                    } else {
+                        userData.created_at = new Date().toISOString();
+                        await fetch(supabaseUrl + '/rest/v1/users', {
+                            method: 'POST',
+                            headers: headers,
+                            body: JSON.stringify(userData)
+                        });
+                    }
+                }
+                USERS = users;
+                DATA.users = users;
+            } catch (e) {
+                console.warn('⚠️ Erreur sauvegarde utilisateurs:', e);
+                localStorage.setItem('ansfal_users', JSON.stringify(users));
             }
         }
-        USERS = users;
-        DATA.users = users;
-    } catch (e) { 
-        console.warn('⚠️ Erreur sauvegarde utilisateurs:', e); 
-        localStorage.setItem('ansfal_users', JSON.stringify(users));
-    }
-}
 
         // ============================================================
         // AUTH
         // ============================================================
         async function loginSupabase(email, password) {
-            try { 
-                const { data, error } = await supabase.auth.signInWithPassword({ email: email, password: password }); 
-                if (error) throw error; 
-                return data; 
-            } catch (e) { 
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({ email: email, password: password });
+                if (error) throw error;
+                return data;
+            } catch (e) {
                 console.warn('⚠️ Erreur login Supabase:', e.message);
-                return null; 
+                return null;
             }
         }
-        async function logoutSupabase() { 
-            try { await supabase.auth.signOut(); return true; } 
-            catch (e) { return false; } 
+
+        async function logoutSupabase() {
+            try { await supabase.auth.signOut(); return true; } catch (e) { return false; }
         }
-        async function getSupabaseSession() { 
-            try { 
-                const { data, error } = await supabase.auth.getSession(); 
-                if (error) throw error; 
-                return data.session; 
-            } catch (e) { return null; } 
+
+        async function getSupabaseSession() {
+            try {
+                const { data, error } = await supabase.auth.getSession();
+                if (error) throw error;
+                return data.session;
+            } catch (e) { return null; }
         }
-        async function getSupabaseToken() { 
-            var session = await getSupabaseSession(); 
-            return session?.access_token || null; 
+
+        async function getSupabaseToken() {
+            var session = await getSupabaseSession();
+            return session?.access_token || null;
         }
+
         async function fetchWithSupabaseAuth(url, options = {}) {
             var token = await getSupabaseToken();
             var headers = { 'apikey': supabaseKey, 'Content-Type': 'application/json', ...options.headers };
@@ -2201,114 +2091,97 @@
             return fetch(url, { ...options, headers: headers });
         }
 
-        // Fonction pour initialiser l'utilisateur admin par défaut dans Supabase
-       async function initializeAdminUser() {
-    try {
-        var users = await getUsersFromSupabase();
-        var hasAdmin = users.some(function(u) { return u.username === 'admin'; });
-        
-        if (!hasAdmin) {
-            console.log('📝 Création de l\'utilisateur admin par défaut...');
-            
-            var token = await getSupabaseToken();
-            var headers = { 
-                'apikey': supabaseKey, 
-                'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey, 
-                'Content-Type': 'application/json' 
-            };
-            
-            var newAdmin = {
-                username: 'admin',
-                email: 'admin@ansfal.org',
-                password_hash: DEFAULT_ADMIN.password_hash,
-                password: 'admin123',
-                role: 'admin',
-                password_changed: false,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-            };
-            
-            await fetch(supabaseUrl + '/rest/v1/users', {
-                method: 'POST',
-                headers: headers,
-                body: JSON.stringify(newAdmin)
-            });
-            
-            console.log('✅ Utilisateur admin créé avec succès');
-        }
-    } catch (e) {
-        console.error('❌ Erreur lors de l\'initialisation de l\'admin:', e);
-    }
-}
-async function login() {
-    var t = getLang();
-    var user = document.getElementById('username').value.trim();
-    var pass = document.getElementById('password').value.trim();
-    if (!user || !pass) { showAlert(t.alertFillFields, 'error'); return; }
-
-    showAlert('Connexion en cours...', 'info');
-
-    // Récupérer les utilisateurs
-    var users = await getUsers();
-    console.log('👥 Utilisateurs chargés:', users);
-    
-    var found = null;
-    for (var u of users) {
-        if (u.username === user) {
-            var isValid = false;
-            
-            // Vérifier avec le hash
-            if (u.password_hash) {
-                var hashedInput = await hashPassword(pass);
-                console.log('🔑 Hash saisi:', hashedInput);
-                console.log('🔑 Hash stocké:', u.password_hash);
-                isValid = (hashedInput === u.password_hash);
-            }
-            
-            // Compatibilité avec l'ancien format
-            if (!isValid && u.password) {
-                isValid = (u.password === pass);
-            }
-            
-            // Fallback pour admin123
-            if (!isValid && user === 'admin' && pass === 'admin123' && !u.password_changed) {
-                isValid = true;
-                console.log('⚠️ Connexion avec le mot de passe par défaut');
-            }
-            
-            if (isValid) {
-                found = u;
-                break;
+        async function initializeAdminUser() {
+            try {
+                var users = await getUsersFromSupabase();
+                var hasAdmin = users.some(function(u) { return u.username === 'admin'; });
+                if (!hasAdmin) {
+                    console.log('📝 Création de l\'utilisateur admin par défaut...');
+                    var token = await getSupabaseToken();
+                    var headers = {
+                        'apikey': supabaseKey,
+                        'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey,
+                        'Content-Type': 'application/json'
+                    };
+                    var newAdmin = {
+                        username: 'admin',
+                        email: 'admin@ansfal.org',
+                        password_hash: DEFAULT_ADMIN.password_hash,
+                        password: 'admin123',
+                        role: 'admin',
+                        password_changed: false,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    };
+                    await fetch(supabaseUrl + '/rest/v1/users', {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify(newAdmin)
+                    });
+                    console.log('✅ Utilisateur admin créé avec succès');
+                }
+            } catch (e) {
+                console.error('❌ Erreur lors de l\'initialisation de l\'admin:', e);
             }
         }
-    }
 
-    if (found) {
-        DATA.isAdmin = found.role === 'admin' || found.role === 'webmestre';
-        DATA.currentUser = found;
-        DATA.userRole = found.role;
-        
-        // Vérifier si le mot de passe doit être changé
-        // IMPORTANT: Vérifier aussi dans localStorage
-        var adminChanged = localStorage.getItem('ansfal_admin_changed') === 'true';
-        
-        if (found.username === 'admin' && !found.password_changed && !adminChanged) {
-            DATA.forcePasswordChange = true;
-            forcedUserData = found;
-            showForcedPasswordModal(found.username);
-            showAlert('⚠️ Vous devez changer votre mot de passe', 'warning');
-            return;
+        async function login() {
+            var t = getLang();
+            var user = document.getElementById('username').value.trim();
+            var pass = document.getElementById('password').value.trim();
+            if (!user || !pass) { showAlert(t.alertFillFields, 'error'); return; }
+
+            showAlert('Connexion en cours...', 'info');
+
+            var users = await getUsers();
+            console.log('👥 Utilisateurs chargés:', users);
+
+            var found = null;
+            for (var u of users) {
+                if (u.username === user) {
+                    var isValid = false;
+                    if (u.password_hash) {
+                        var hashedInput = await hashPassword(pass);
+                        isValid = (hashedInput === u.password_hash);
+                    }
+                    if (!isValid && u.password) {
+                        isValid = (u.password === pass);
+                    }
+                    if (!isValid && user === 'admin' && pass === 'admin123' && !u.password_changed) {
+                        isValid = true;
+                        console.log('⚠️ Connexion avec le mot de passe par défaut');
+                    }
+                    if (isValid) {
+                        found = u;
+                        break;
+                    }
+                }
+            }
+
+            if (found) {
+                DATA.isAdmin = found.role === 'admin' || found.role === 'webmestre';
+                DATA.currentUser = found;
+                DATA.userRole = found.role;
+
+                var adminChanged = localStorage.getItem('ansfal_admin_changed') === 'true';
+
+                if (found.username === 'admin' && !found.password_changed && !adminChanged) {
+                    DATA.forcePasswordChange = true;
+                    forcedUserData = found;
+                    showForcedPasswordModal(found.username);
+                    showAlert('⚠️ Vous devez changer votre mot de passe', 'warning');
+                    return;
+                }
+
+                showAlert(t.alertLoginSuccess + ' (' + found.role + ')', 'success');
+                completeLogin(found);
+                await loadAllTables();
+                renderAll();
+                showSection('dashboard');
+            } else {
+                showAlert('❌ ' + t.alertInvalidCredentials, 'error');
+            }
         }
-
-        showAlert(t.alertLoginSuccess + ' (' + found.role + ')', 'success');
-        completeLogin(found);
-        await loadAllTables();
-        renderAll();
-        showSection('dashboard');
-    } else {
-        showAlert('❌ ' + t.alertInvalidCredentials, 'error');
-    }
-}
 
         function showForcedPasswordModal(username) {
             var modal = document.getElementById('forcedPasswordModal');
@@ -2320,134 +2193,104 @@ async function login() {
         }
 
         function closeForcedPasswordModal() {
-            // Ne pas permettre de fermer la modale sans changer le mot de passe
             showAlert('⚠️ Vous devez changer votre mot de passe pour continuer', 'error');
         }
 
         async function changeForcedPassword() {
-    var newPass = document.getElementById('forcedNewPassword').value.trim();
-    var confirmPass = document.getElementById('forcedConfirmPassword').value.trim();
-    var errorEl = document.getElementById('forcedPasswordError');
-    errorEl.style.display = 'none';
+            var newPass = document.getElementById('forcedNewPassword').value.trim();
+            var confirmPass = document.getElementById('forcedConfirmPassword').value.trim();
+            var errorEl = document.getElementById('forcedPasswordError');
+            errorEl.style.display = 'none';
 
-    // Vérifications
-    if (!newPass || newPass.length < 8) {
-        errorEl.textContent = '⚠️ Le mot de passe doit contenir au moins 8 caractères.';
-        errorEl.style.display = 'block';
-        return;
-    }
-
-    if (!/[A-Z]/.test(newPass)) {
-        errorEl.textContent = '⚠️ Le mot de passe doit contenir au moins une majuscule.';
-        errorEl.style.display = 'block';
-        return;
-    }
-
-    if (!/[a-z]/.test(newPass)) {
-        errorEl.textContent = '⚠️ Le mot de passe doit contenir au moins une minuscule.';
-        errorEl.style.display = 'block';
-        return;
-    }
-
-    if (!/[0-9]/.test(newPass)) {
-        errorEl.textContent = '⚠️ Le mot de passe doit contenir au moins un chiffre.';
-        errorEl.style.display = 'block';
-        return;
-    }
-
-    if (newPass !== confirmPass) {
-        errorEl.textContent = '⚠️ Les mots de passe ne correspondent pas.';
-        errorEl.style.display = 'block';
-        return;
-    }
-
-    try {
-        showAlert('Mise à jour du mot de passe en cours...', 'info');
-
-        // Hacher le nouveau mot de passe
-        var hashedPassword = await hashPassword(newPass);
-        console.log('🔑 Nouveau hash:', hashedPassword);
-
-        // Récupérer les utilisateurs actuels
-        var users = await getUsersFromSupabase();
-        console.log('👥 Utilisateurs avant mise à jour:', users);
-        
-        // Trouver l'utilisateur admin
-        var userToUpdate = users.find(function(u) { 
-            return u.username === 'admin' || u.id === forcedUserData.id; 
-        });
-        
-        if (userToUpdate) {
-            // Mettre à jour les données
-            userToUpdate.password_hash = hashedPassword;
-            userToUpdate.password = newPass;
-            userToUpdate.password_changed = true;
-            userToUpdate.updated_at = new Date().toISOString();
-            
-            console.log('📝 Utilisateur mis à jour:', userToUpdate);
-            
-            // === SAUVEGARDE FORCÉE DANS SUPABASE ===
-            var token = await getSupabaseToken();
-            var headers = { 
-                'apikey': supabaseKey, 
-                'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey, 
-                'Content-Type': 'application/json' 
-            };
-            
-            // Mettre à jour dans Supabase
-            var updateResp = await fetch(supabaseUrl + '/rest/v1/users?id=eq.' + userToUpdate.id, {
-                method: 'PATCH',
-                headers: headers,
-                body: JSON.stringify({
-                    password_hash: hashedPassword,
-                    password: newPass,
-                    password_changed: true,
-                    updated_at: new Date().toISOString()
-                })
-            });
-            
-            if (!updateResp.ok) {
-                var errorText = await updateResp.text();
-                throw new Error('Erreur Supabase: ' + errorText);
+            if (!newPass || newPass.length < 8) {
+                errorEl.textContent = '⚠️ Le mot de passe doit contenir au moins 8 caractères.';
+                errorEl.style.display = 'block';
+                return;
             }
-            
-            console.log('✅ Mise à jour Supabase réussie');
-            
-            // === SAUVEGARDE DANS LOCALSTORAGE ===
-            localStorage.setItem('ansfal_users', JSON.stringify(users));
-            localStorage.setItem('ansfal_admin_changed', 'true');
-            
-            // Mettre à jour les variables globales
-            USERS = users;
-            DATA.users = users;
-            
-            console.log('✅ Sauvegarde terminée');
+            if (!/[A-Z]/.test(newPass)) {
+                errorEl.textContent = '⚠️ Le mot de passe doit contenir au moins une majuscule.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            if (!/[a-z]/.test(newPass)) {
+                errorEl.textContent = '⚠️ Le mot de passe doit contenir au moins une minuscule.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            if (!/[0-9]/.test(newPass)) {
+                errorEl.textContent = '⚠️ Le mot de passe doit contenir au moins un chiffre.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            if (newPass !== confirmPass) {
+                errorEl.textContent = '⚠️ Les mots de passe ne correspondent pas.';
+                errorEl.style.display = 'block';
+                return;
+            }
 
-            // Fermer la modale
-            document.getElementById('forcedPasswordModal').classList.remove('active');
-            DATA.forcePasswordChange = false;
+            try {
+                showAlert('Mise à jour du mot de passe en cours...', 'info');
 
-            // Recharger l'utilisateur
-            var updatedUser = users.find(function(u) { return u.id === userToUpdate.id; });
-            
-            showAlert('✅ Mot de passe changé avec succès !', 'success');
-            
-            // Connecter l'utilisateur
-            completeLogin(updatedUser);
-            await loadAllTables();
-            renderAll();
-            showSection('dashboard');
-            
-        } else {
-            errorEl.textContent = '❌ Utilisateur non trouvé';
-            errorEl.style.display = 'block';
+                var hashedPassword = await hashPassword(newPass);
+                var users = await getUsersFromSupabase();
+                var userToUpdate = users.find(function(u) { return u.username === 'admin' || u.id === forcedUserData.id; });
+
+                if (userToUpdate) {
+                    userToUpdate.password_hash = hashedPassword;
+                    userToUpdate.password = newPass;
+                    userToUpdate.password_changed = true;
+                    userToUpdate.updated_at = new Date().toISOString();
+
+                    var token = await getSupabaseToken();
+                    var headers = {
+                        'apikey': supabaseKey,
+                        'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey,
+                        'Content-Type': 'application/json'
+                    };
+
+                    var updateResp = await fetch(supabaseUrl + '/rest/v1/users?id=eq.' + userToUpdate.id, {
+                        method: 'PATCH',
+                        headers: headers,
+                        body: JSON.stringify({
+                            password_hash: hashedPassword,
+                            password: newPass,
+                            password_changed: true,
+                            updated_at: new Date().toISOString()
+                        })
+                    });
+
+                    if (!updateResp.ok) {
+                        var errorText = await updateResp.text();
+                        throw new Error('Erreur Supabase: ' + errorText);
+                    }
+
+                    localStorage.setItem('ansfal_users', JSON.stringify(users));
+                    localStorage.setItem('ansfal_admin_changed', 'true');
+
+                    USERS = users;
+                    DATA.users = users;
+
+                    document.getElementById('forcedPasswordModal').classList.remove('active');
+                    DATA.forcePasswordChange = false;
+
+                    var updatedUser = users.find(function(u) { return u.id === userToUpdate.id; });
+
+                    showAlert('✅ Mot de passe changé avec succès !', 'success');
+                    completeLogin(updatedUser);
+                    await loadAllTables();
+                    renderAll();
+                    showSection('dashboard');
+
+                } else {
+                    errorEl.textContent = '❌ Utilisateur non trouvé';
+                    errorEl.style.display = 'block';
+                }
+            } catch (e) {
+                errorEl.textContent = '❌ Erreur: ' + e.message;
+                errorEl.style.display = 'block';
+                console.error('❌ Erreur détaillée:', e);
+            }
         }
-    } catch (e) {
-        errorEl.textContent = '❌ Erreur: ' + e.message;
-        errorEl.style.display = 'block';
-        console.error('❌ Erreur détaillée:', e);
-    }
-}
 
         function completeLogin(user) {
             var t = getLang();
@@ -2468,13 +2311,13 @@ async function login() {
             document.getElementById('conseilContent').style.display = 'block';
             document.getElementById('documentsProtected').style.display = 'none';
             document.getElementById('documentsContent').style.display = 'block';
-            
+
             if (user.role === 'admin' || user.role === 'webmestre') {
                 document.getElementById('contactEditForm').style.display = 'block';
             } else {
                 document.getElementById('contactEditForm').style.display = 'none';
             }
-            
+
             if (user.role === 'membre') {
                 document.querySelectorAll('.admin-only').forEach(function(el) { el.style.display = 'none'; });
             }
@@ -2482,23 +2325,23 @@ async function login() {
             setCurrentUser(user);
         }
 
-        function getUsersLocal() { 
-            try { 
-                var saved = localStorage.getItem('ansfal_users'); 
-                if (saved) { 
-                    var parsed = JSON.parse(saved); 
-                    if (parsed && parsed.length > 0) return parsed; 
-                } 
-            } catch (e) {} 
-            return USERS; 
+        function getUsersLocal() {
+            try {
+                var saved = localStorage.getItem('ansfal_users');
+                if (saved) {
+                    var parsed = JSON.parse(saved);
+                    if (parsed && parsed.length > 0) return parsed;
+                }
+            } catch (e) {}
+            return USERS;
         }
 
         async function logout() {
             var t = getLang();
             if (!confirm(t.alertLogout + ' ?')) return;
             await logoutSupabase();
-            DATA.isAdmin = false; 
-            DATA.currentUser = null; 
+            DATA.isAdmin = false;
+            DATA.currentUser = null;
             DATA.userRole = null;
             DATA.forcePasswordChange = false;
             document.getElementById('loginForm').classList.remove('hidden');
@@ -2519,76 +2362,67 @@ async function login() {
             showSection('home');
         }
 
-        function getCurrentUser() { 
-            try { 
-                var saved = localStorage.getItem('ansfal_current_user'); 
-                if (saved) return JSON.parse(saved); 
-            } catch (e) {} 
-            return null; 
-        }
-        function setCurrentUser(user) { 
-            try { localStorage.setItem('ansfal_current_user', JSON.stringify(user)); } 
-            catch (e) {} 
+        function getCurrentUser() {
+            try {
+                var saved = localStorage.getItem('ansfal_current_user');
+                if (saved) return JSON.parse(saved);
+            } catch (e) {}
+            return null;
         }
 
-        
-async function initAuth() {
-    // Initialiser l'utilisateur admin par défaut
-    await initializeAdminUser();
-    
-    // Déboguer les utilisateurs
-    await debugUsers();
+        function setCurrentUser(user) {
+            try { localStorage.setItem('ansfal_current_user', JSON.stringify(user)); } catch (e) {}
+        }
 
-    var session = await getSupabaseSession();
-    if (session) {
-        var username = session.user.email.replace('@ansfal.org', '');
-        try {
-            var users = await getUsers();
-            var found = users.find(function(u) { return u.username === username; });
-            if (found) {
-                if (found.username === 'admin' && !found.password_changed) {
-                    DATA.forcePasswordChange = true;
-                    forcedUserData = found;
-                    showForcedPasswordModal(found.username);
-                    return;
+        async function initAuth() {
+            await initializeAdminUser();
+            var session = await getSupabaseSession();
+            if (session) {
+                var username = session.user.email.replace('@ansfal.org', '');
+                try {
+                    var users = await getUsers();
+                    var found = users.find(function(u) { return u.username === username; });
+                    if (found) {
+                        if (found.username === 'admin' && !found.password_changed) {
+                            DATA.forcePasswordChange = true;
+                            forcedUserData = found;
+                            showForcedPasswordModal(found.username);
+                            return;
+                        }
+                        completeLogin(found);
+                    }
+                } catch (e) { console.warn('⚠️ Erreur récupération utilisateur:', e); }
+            } else {
+                document.getElementById('bankAccountEditBtn').style.display = 'none';
+            }
+        }
+
+        async function getUsersFromSupabase() {
+            try {
+                var token = await getSupabaseToken();
+                var headers = {
+                    'apikey': supabaseKey,
+                    'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey
+                };
+                var resp = await fetch(supabaseUrl + '/rest/v1/users?select=*', { headers: headers });
+                if (resp.ok) {
+                    var data = await resp.json();
+                    if (data && data.length > 0) {
+                        return data;
+                    }
                 }
-                completeLogin(found);
+            } catch (e) {
+                console.warn('⚠️ Erreur chargement depuis Supabase:', e);
             }
-        } catch (e) { console.warn('⚠️ Erreur récupération utilisateur:', e); }
-    } else {
-        document.getElementById('bankAccountEditBtn').style.display = 'none';
-    }
-}
-async function getUsersFromSupabase() {
-    try {
-        var token = await getSupabaseToken();
-        var headers = { 
-            'apikey': supabaseKey, 
-            'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey 
-        };
-        var resp = await fetch(supabaseUrl + '/rest/v1/users?select=*', { headers: headers });
-        if (resp.ok) { 
-            var data = await resp.json(); 
-            if (data && data.length > 0) {
-                return data;
-            }
+            try {
+                var saved = localStorage.getItem('ansfal_users');
+                if (saved) {
+                    var parsed = JSON.parse(saved);
+                    if (parsed && parsed.length > 0) return parsed;
+                }
+            } catch (e) {}
+            return [DEFAULT_ADMIN];
         }
-    } catch (e) { 
-        console.warn('⚠️ Erreur chargement depuis Supabase:', e); 
-    }
-    
-    // Fallback: localStorage
-    try { 
-        var saved = localStorage.getItem('ansfal_users'); 
-        if (saved) { 
-            var parsed = JSON.parse(saved); 
-            if (parsed && parsed.length > 0) return parsed; 
-        } 
-    } catch (e) {}
-    
-    // Fallback: utilisateur par défaut
-    return [DEFAULT_ADMIN];
-}
 
         // ============================================================
         // LOGO
@@ -2694,7 +2528,7 @@ async function getUsersFromSupabase() {
                 var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/site_config?key=eq.bank_account');
                 var data = await resp.json();
                 if (data && data.length > 0 && data[0].value) {
-                    document.getElementById('bankAccount').textContent = 'RIB: ' + data[0].value;
+                    document.getElementById('bankAccount').textContent = data[0].value;
                     document.getElementById('bankAccountInput').value = data[0].value;
                     document.getElementById('footerBankAccount').textContent = data[0].value;
                 }
@@ -2702,28 +2536,32 @@ async function getUsersFromSupabase() {
         }
 
         function showBankAccountModal() {
-            var current = document.getElementById('bankAccount').textContent.replace('RIB: ', '');
-            document.getElementById('bankAccountEdit').value = current || '225070014712363651011109';
+            var current = document.getElementById('bankAccount').textContent || '225070014712363651011109';
+            document.getElementById('bankAccountEdit').value = current;
             document.getElementById('bankAccountModal').classList.add('active');
         }
+
         function hideBankAccountModal() { document.getElementById('bankAccountModal').classList.remove('active'); }
+
         async function saveBankAccountFromModal() {
             var account = document.getElementById('bankAccountEdit').value.trim();
             if (!account) { showAlert('Veuillez entrer un numéro de compte', 'error'); return; }
             await saveBankAccountToSupabase(account);
             hideBankAccountModal();
         }
+
         async function saveBankAccount() {
             var account = document.getElementById('bankAccountInput').value.trim();
             if (!account) { showAlert('Veuillez entrer un numéro de compte', 'error'); return; }
             await saveBankAccountToSupabase(account);
         }
+
         async function saveBankAccountToSupabase(account) {
             try {
                 await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/site_config?key=eq.bank_account', {
                     method: 'PATCH', body: JSON.stringify({ value: account })
                 });
-                document.getElementById('bankAccount').textContent = 'RIB: ' + account;
+                document.getElementById('bankAccount').textContent = account;
                 document.getElementById('bankAccountInput').value = account;
                 document.getElementById('footerBankAccount').textContent = account;
                 showAlert('✅ Compte bancaire mis à jour', 'success');
@@ -2881,7 +2719,7 @@ async function getUsersFromSupabase() {
                 conseilTitle: 'Conseil de l\'association', conseilSubtitle: 'Composition du bureau et des membres du conseil d\'administration',
                 documentsTitle: 'Documents association', documentsSubtitle: 'Consultez les documents officiels de l\'association',
                 galleryTitle: 'Galerie Photos', videosTitle: 'Vidéos', projectsTitle: 'Nos Projets',
-                donsTitle: 'Faire un don', donsSubtitle: 'Choisissez votre moyen de paiement et soutenez nos actions',
+                donsTitle: 'Faire un don', donsSubtitle: 'Soutenez nos actions par virement bancaire',
                 actuTitle: 'Actualité ANSFAL', actuSubtitle: 'Partagez votre avis en 20 mots maximum',
                 actuFormTitle: 'Laisser un commentaire', actuSubmitText: 'Publier',
                 adherentsTitle: 'Nos Adhérents', adherentsSubtitle: 'Liste des membres de l\'association',
@@ -2925,9 +2763,6 @@ async function getUsersFromSupabase() {
                 passwordModalHeaderText: 'Changer le mot de passe', currentPasswordLabelText: 'Mot de passe actuel',
                 newPasswordLabelText: 'Nouveau mot de passe', confirmPasswordLabelText: 'Confirmer le nouveau mot de passe',
                 passwordCancelBtnText: 'Annuler', passwordSaveBtnText: 'Enregistrer',
-                labelCardNumber: 'Numéro de carte', labelExpiryDate: 'Date d\'expiration',
-                labelCvv: 'Code de sécurité', labelCardName: 'Nom sur la carte',
-                labelAmount: 'Montant (MAD)', btnPaymentText: 'Faire un don',
                 galleryAddBtnText: 'Ajouter des images', videosAddBtnText: 'Ajouter des vidéos',
                 publicationsAddBtnText: 'Nouvelle publication', textAddBtnText: 'Ajouter un texte',
                 viewerTitle: 'Fichier', usernamePlaceholder: 'Nom d\'utilisateur',
@@ -2993,7 +2828,7 @@ async function getUsersFromSupabase() {
                 conseilTitle: 'مجلس الجمعية', conseilSubtitle: 'تكوين المكتب وأعضاء المجلس الإداري',
                 documentsTitle: 'وثائق الجمعية', documentsSubtitle: 'استعرض الوثائق الرسمية للجمعية',
                 galleryTitle: 'معرض الصور', videosTitle: 'الفيديوهات', projectsTitle: 'مشاريعنا',
-                donsTitle: 'تبرع الآن', donsSubtitle: 'اختر وسيلة الدفع وادعم أعمالنا',
+                donsTitle: 'تبرع الآن', donsSubtitle: 'ادعم أعمالنا عن طريق التحويل البنكي',
                 actuTitle: 'أخبار أنسفال', actuSubtitle: 'شارك رأيك في 20 كلمة كحد أقصى',
                 actuFormTitle: 'اترك تعليقاً', actuSubmitText: 'نشر',
                 adherentsTitle: 'أعضاؤنا', adherentsSubtitle: 'قائمة أعضاء الجمعية',
@@ -3037,9 +2872,6 @@ async function getUsersFromSupabase() {
                 passwordModalHeaderText: 'تغيير كلمة المرور', currentPasswordLabelText: 'كلمة المرور الحالية',
                 newPasswordLabelText: 'كلمة المرور الجديدة', confirmPasswordLabelText: 'تأكيد كلمة المرور الجديدة',
                 passwordCancelBtnText: 'إلغاء', passwordSaveBtnText: 'حفظ',
-                labelCardNumber: 'رقم البطاقة', labelExpiryDate: 'تاريخ الانتهاء',
-                labelCvv: 'رمز الأمان', labelCardName: 'الاسم على البطاقة',
-                labelAmount: 'المبلغ (درهم)', btnPaymentText: 'تبرع الآن',
                 galleryAddBtnText: 'إضافة صور', videosAddBtnText: 'إضافة فيديوهات',
                 publicationsAddBtnText: 'منشور جديد', textAddBtnText: 'إضافة نص',
                 viewerTitle: 'ملف', usernamePlaceholder: 'اسم المستخدم',
@@ -3146,9 +2978,6 @@ async function getUsersFromSupabase() {
                 'settingsTitle': 'settingsTitle',
                 'statVisitors': 'statVisitors', 'statMedia': 'statMedia', 'statPublications': 'statPublications',
                 'statActu': 'statActu', 'statAdherents': 'statAdherents', 'statUsers': 'statUsers',
-                'labelCardNumber': 'labelCardNumber', 'labelExpiryDate': 'labelExpiryDate',
-                'labelCvv': 'labelCvv', 'labelCardName': 'labelCardName', 'labelAmount': 'labelAmount',
-                'btnPaymentText': 'btnPaymentText',
                 'galleryAddBtnText': 'galleryAddBtnText', 'videosAddBtnText': 'videosAddBtnText',
                 'publicationsAddBtnText': 'publicationsAddBtnText', 'textAddBtnText': 'textAddBtnText'
             };
@@ -3352,7 +3181,7 @@ async function getUsersFromSupabase() {
             var container = document.getElementById('adherentsContainer');
             var list = document.getElementById('adherentsList');
             var items = DATA.adherents || [];
-            
+
             if (container) {
                 if (items.length === 0) {
                     container.innerHTML = '<div class="no-content">' + getLang().noData + '</div>';
@@ -3501,7 +3330,7 @@ async function getUsersFromSupabase() {
             if (!item) { showAlert('Adhérent non trouvé', 'error'); return; }
             var nomComplet = (item.prenom || '') + ' ' + (item.nom || '');
             var date = item.date_adhesion ? new Date(item.date_adhesion).toLocaleDateString() : 'Non renseignée';
-            
+
             var content = document.getElementById('printContent');
             content.innerHTML = `
                 <div class="header">
@@ -3549,12 +3378,13 @@ async function getUsersFromSupabase() {
         }
 
         function hidePrintModal() { document.getElementById('printModal').classList.remove('active'); }
+
         function printDocument() { window.print(); }
 
         function exportAdherents() {
             var items = DATA.adherents || [];
             if (items.length === 0) { showAlert('Aucun adhérent à exporter', 'error'); return; }
-            
+
             var content = document.getElementById('printContent');
             var rows = items.map(function(item) {
                 return `<tr>
@@ -3567,7 +3397,7 @@ async function getUsersFromSupabase() {
                     <td>${item.date_adhesion ? new Date(item.date_adhesion).toLocaleDateString() : ''}</td>
                 </tr>`;
             }).join('');
-            
+
             content.innerHTML = `
                 <div class="header">
                     <h1>Association ANSFAL</h1>
@@ -3665,7 +3495,8 @@ async function getUsersFromSupabase() {
         // RENDER FUNCTIONS (Betail, Produits, Arbres, Eau, Sagia)
         // ============================================================
         function renderBetail() {
-            var items = DATA.betail || [], body = document.getElementById('betailBody');
+            var items = DATA.betail || [],
+                body = document.getElementById('betailBody');
             if (!body) return;
             if (items.length === 0) { body.innerHTML = '<tr><td colspan="7" class="no-content">' + getLang().noData + '</td></tr>'; return; }
             body.innerHTML = items.map(function(item) {
@@ -3676,59 +3507,57 @@ async function getUsersFromSupabase() {
             }).join('');
         }
 
-       function renderProduits() {
-    var items = DATA.produits || [];
-    var body = document.getElementById('produitsBody');
-    if (!body) return;
-    
-    if (items.length === 0) { 
-        body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>'; 
-        return; 
-    }
-    
-    var isRTL = document.body.classList.contains('rtl');
-    
-    body.innerHTML = items.map(function(item) {
-        // === Extraction correcte du nom ===
-        var nom = '';
-        if (item.nom_fr && typeof item.nom_fr === 'object') {
-            nom = isRTL ? (item.nom_fr.ar || item.nom_fr.fr || '') : (item.nom_fr.fr || item.nom_fr.ar || '');
-        } else if (item.nom && typeof item.nom === 'object') {
-            nom = isRTL ? (item.nom.ar || item.nom.fr || '') : (item.nom.fr || item.nom.ar || '');
-        } else {
-            nom = item.nom_fr || item.nom || item.nom_ar || 'Produit';
+        function renderProduits() {
+            var items = DATA.produits || [];
+            var body = document.getElementById('produitsBody');
+            if (!body) return;
+
+            if (items.length === 0) {
+                body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>';
+                return;
+            }
+
+            var isRTL = document.body.classList.contains('rtl');
+
+            body.innerHTML = items.map(function(item) {
+                var nom = '';
+                if (item.nom_fr && typeof item.nom_fr === 'object') {
+                    nom = isRTL ? (item.nom_fr.ar || item.nom_fr.fr || '') : (item.nom_fr.fr || item.nom_fr.ar || '');
+                } else if (item.nom && typeof item.nom === 'object') {
+                    nom = isRTL ? (item.nom.ar || item.nom.fr || '') : (item.nom.fr || item.nom.ar || '');
+                } else {
+                    nom = item.nom_fr || item.nom || item.nom_ar || 'Produit';
+                }
+
+                var localite = getLocaliteName(item.localite_id);
+
+                var periode = '';
+                if (item.periode && typeof item.periode === 'object') {
+                    periode = isRTL ? (item.periode.ar || item.periode.fr || '') : (item.periode.fr || item.periode.ar || '');
+                } else {
+                    periode = item.periode || '';
+                }
+
+                var statut = '';
+                if (item.statut && typeof item.statut === 'object') {
+                    statut = isRTL ? (item.statut.ar || item.statut.fr || 'Disponible') : (item.statut.fr || item.statut.ar || 'Disponible');
+                } else {
+                    statut = item.statut || 'Disponible';
+                }
+
+                return '<tr>' +
+                    '<td><strong>' + nom + '</strong></td>' +
+                    '<td>' + localite + '</td>' +
+                    '<td>' + (item.quantite || 0) + '</td>' +
+                    '<td>' + periode + '</td>' +
+                    '<td>' + statut + '</td>' +
+                    '</tr>';
+            }).join('');
         }
-        
-        var localite = getLocaliteName(item.localite_id);
-        
-        // === Période ===
-        var periode = '';
-        if (item.periode && typeof item.periode === 'object') {
-            periode = isRTL ? (item.periode.ar || item.periode.fr || '') : (item.periode.fr || item.periode.ar || '');
-        } else {
-            periode = item.periode || '';
-        }
-        
-        // === Statut ===
-        var statut = '';
-        if (item.statut && typeof item.statut === 'object') {
-            statut = isRTL ? (item.statut.ar || item.statut.fr || 'Disponible') : (item.statut.fr || item.statut.ar || 'Disponible');
-        } else {
-            statut = item.statut || 'Disponible';
-        }
-        
-        return '<tr>' +
-            '<td><strong>' + nom + '</strong></td>' +
-            '<td>' + localite + '</td>' +
-            '<td>' + (item.quantite || 0) + '</td>' +
-            '<td>' + periode + '</td>' +
-            '<td>' + statut + '</td>' +
-            '</tr>';
-    }).join('');
-}
 
         function renderArbres() {
-            var items = DATA.arbres || [], body = document.getElementById('arbresBody');
+            var items = DATA.arbres || [],
+                body = document.getElementById('arbresBody');
             if (!body) return;
             if (items.length === 0) { body.innerHTML = '<tr><td colspan="8" class="no-content">' + getLang().noData + '</td></tr>'; return; }
             body.innerHTML = items.map(function(item) {
@@ -3740,7 +3569,8 @@ async function getUsersFromSupabase() {
         }
 
         function renderEau() {
-            var items = DATA.eau || [], body = document.getElementById('eauBody');
+            var items = DATA.eau || [],
+                body = document.getElementById('eauBody');
             if (!body) return;
             if (items.length === 0) { body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>'; return; }
             body.innerHTML = items.map(function(item) {
@@ -3751,7 +3581,8 @@ async function getUsersFromSupabase() {
         }
 
         function renderSagia() {
-            var items = DATA.sagia || [], body = document.getElementById('sagiaBody');
+            var items = DATA.sagia || [],
+                body = document.getElementById('sagiaBody');
             if (!body) return;
             if (items.length === 0) { body.innerHTML = '<tr><td colspan="6" class="no-content">' + getLang().noData + '</td></tr>'; return; }
             body.innerHTML = items.map(function(item) {
@@ -3766,7 +3597,8 @@ async function getUsersFromSupabase() {
         // CONSEIL
         // ============================================================
         function renderConseil() {
-            var items = DATA.conseil || [], grid = document.getElementById('conseilGrid');
+            var items = DATA.conseil || [],
+                grid = document.getElementById('conseilGrid');
             if (!grid) return;
             if (items.length === 0) { grid.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; return; }
             items.sort(function(a, b) { return (a.ordre || 0) - (b.ordre || 0); });
@@ -3799,7 +3631,8 @@ async function getUsersFromSupabase() {
         // DOCUMENTS
         // ============================================================
         function renderDocuments() {
-            var items = DATA.documentsAdmin || [], grid = document.getElementById('documentsGrid');
+            var items = DATA.documentsAdmin || [],
+                grid = document.getElementById('documentsGrid');
             if (!grid) return;
             if (items.length === 0) { grid.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; return; }
             var isRTL = document.body.classList.contains('rtl');
@@ -3814,12 +3647,17 @@ async function getUsersFromSupabase() {
                 var type = isRTL && typeMap[item.type] ? typeMap[item.type] : (item.type || '');
                 var icon = item.type && (item.type.includes('Bon') || item.type.includes('Réception') || item.type.includes('Retour') || item.type.includes('Commande') || item.type.includes('Caisse') || item.type.includes('Dépense')) ? 'fa-file-invoice' : 'fa-file-pdf';
                 var color = icon === 'fa-file-invoice' ? '#2b579a' : '#e74c3c';
-                var viewer = item.url && item.url.toLowerCase().endsWith('.pdf') ? 'onclick="viewPDF(\'' + item.url + '\', \'' + title + '\')"' : 'onclick="window.open(\'' + item.url + '\', \'_blank\')"';
+                var url = '';
+                if (item.description && typeof item.description === 'object' && item.description.url) {
+                    url = item.description.url;
+                }
+                var viewer = url && url.toLowerCase().endsWith('.pdf') ? 'onclick="viewPDF(\'' + url + '\', \'' + title + '\')"' : (url ? 'onclick="window.open(\'' + url + '\', \'_blank\')"' : '');
+                var downloadBtn = url ? '<button class="btn-action view" onclick="event.stopPropagation();window.open(\'' + url + '\', \'_blank\')"><i class="fas fa-download"></i></button>' : '';
+                var viewBtn = url ? '<button class="btn-action view" onclick="event.stopPropagation();' + (url.toLowerCase().endsWith('.pdf') ? 'viewPDF(\'' + url + '\', \'' + title + '\')' : 'window.open(\'' + url + '\', \'_blank\')') + '"><i class="fas fa-eye"></i></button>' : '';
                 return '<div class="document-item" ' + viewer + '>' +
                     '<div class="doc-icon"><i class="fas ' + icon + '" style="color:' + color + ';"></i></div>' +
                     '<div class="doc-info"><h4>' + title + '</h4><small>' + type + '</small></div>' +
-                    '<div class="doc-actions"><button class="btn-action view" onclick="event.stopPropagation();viewPDF(\'' + item.url + '\', \'' + title + '\')"><i class="fas fa-eye"></i></button>' +
-                    '<button class="btn-action view" onclick="event.stopPropagation();window.open(\'' + item.url + '\', \'_blank\')"><i class="fas fa-download"></i></button></div></div>';
+                    '<div class="doc-actions">' + viewBtn + downloadBtn + '</div></div>';
             }).join('');
         }
 
@@ -3827,7 +3665,8 @@ async function getUsersFromSupabase() {
         // GALERIE & VIDEOS
         // ============================================================
         function renderGallery() {
-            var items = DATA.gallery || [], container = document.getElementById('galleryContainer');
+            var items = DATA.gallery || [],
+                container = document.getElementById('galleryContainer');
             if (!container) return;
             if (items.length === 0) { container.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; return; }
             container.innerHTML = items.map(function(item) {
@@ -3840,7 +3679,8 @@ async function getUsersFromSupabase() {
         }
 
         function renderVideos() {
-            var items = DATA.videos || [], container = document.getElementById('videosContainer');
+            var items = DATA.videos || [],
+                container = document.getElementById('videosContainer');
             if (!container) return;
             if (items.length === 0) { container.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; return; }
             container.innerHTML = items.map(function(item) {
@@ -3854,7 +3694,8 @@ async function getUsersFromSupabase() {
         // ARTICLES / PUBLICATIONS
         // ============================================================
         function renderArticles() {
-            var items = DATA.articles || [], container = document.getElementById('articlesContainer');
+            var items = DATA.articles || [],
+                container = document.getElementById('articlesContainer');
             if (!container) return;
             if (items.length === 0) { container.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; return; }
             container.innerHTML = items.map(function(item) {
@@ -4104,7 +3945,6 @@ async function getUsersFromSupabase() {
                 updated_at: new Date().toISOString()
             };
 
-            // Upload photo
             if (conseilPhotoFile) {
                 var photoName = 'conseil_' + Date.now() + '_' + conseilPhotoFile.name.replace(/\s/g, '_');
                 var { data: uploadData, error: uploadError } = await supabase.storage.from('medias').upload(photoName, conseilPhotoFile, { cacheControl: '3600', upsert: false });
@@ -4114,7 +3954,6 @@ async function getUsersFromSupabase() {
                 }
             }
 
-            // Upload signature
             if (conseilSignatureFile) {
                 var sigName = 'signature_' + Date.now() + '_' + conseilSignatureFile.name.replace(/\s/g, '_');
                 var { data: uploadData, error: uploadError } = await supabase.storage.from('medias').upload(sigName, conseilSignatureFile, { cacheControl: '3600', upsert: false });
@@ -4155,9 +3994,9 @@ async function getUsersFromSupabase() {
         // ============================================================
         function showDocumentModal() {
             var user = getCurrentUser();
-            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
-                showAlert('Vous n\'avez pas les permissions', 'error'); 
-                return; 
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) {
+                showAlert('Vous n\'avez pas les permissions', 'error');
+                return;
             }
             document.getElementById('documentTitre').value = '';
             document.getElementById('documentType').value = 'Statuts';
@@ -4166,63 +4005,62 @@ async function getUsersFromSupabase() {
             document.getElementById('documentModal').classList.add('active');
         }
 
-        function hideDocumentModal() { 
-            document.getElementById('documentModal').classList.remove('active'); 
+        function hideDocumentModal() {
+            document.getElementById('documentModal').classList.remove('active');
         }
 
         async function saveDocument() {
             var titre = document.getElementById('documentTitre').value.trim();
             var type = document.getElementById('documentType').value;
             var fileInput = document.getElementById('documentFile');
-            
-            if (!titre) { 
-                showAlert('Veuillez entrer un titre', 'error'); 
-                return; 
+
+            if (!titre) {
+                showAlert('Veuillez entrer un titre', 'error');
+                return;
             }
-            
-            if (!fileInput.files || fileInput.files.length === 0) { 
-                showAlert('Veuillez sélectionner un fichier PDF', 'error'); 
-                return; 
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showAlert('Veuillez sélectionner un fichier PDF', 'error');
+                return;
             }
-            
+
             var file = fileInput.files[0];
             if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-                showAlert('Veuillez sélectionner un fichier PDF', 'error'); 
-                return; 
+                showAlert('Veuillez sélectionner un fichier PDF', 'error');
+                return;
             }
-            
+
             if (file.size > 10 * 1024 * 1024) {
                 showAlert('Le fichier ne doit pas dépasser 10MB', 'error');
                 return;
             }
-            
+
             try {
                 showAlert('Upload du document en cours...', 'info');
-                
+
                 var fileName = 'doc_' + Date.now() + '_' + file.name.replace(/\s/g, '_');
-                
+
                 var { data: uploadData, error: uploadError } = await supabase.storage
                     .from('documents')
-                    .upload(fileName, file, { 
-                        cacheControl: '3600', 
+                    .upload(fileName, file, {
+                        cacheControl: '3600',
                         upsert: false
                     });
-                
+
                 if (uploadError) {
                     console.error('❌ Erreur upload documents:', uploadError);
-                    
                     showAlert('Tentative avec le bucket "medias"...', 'info');
                     var { data: uploadData2, error: uploadError2 } = await supabase.storage
                         .from('medias')
-                        .upload(fileName, file, { 
-                            cacheControl: '3600', 
+                        .upload(fileName, file, {
+                            cacheControl: '3600',
                             upsert: false
                         });
-                    
+
                     if (uploadError2) {
                         throw new Error('Erreur upload: ' + uploadError2.message);
                     }
-                    
+
                     var { data: urlData2 } = supabase.storage.from('medias').getPublicUrl(fileName);
                     var documentUrl = urlData2.publicUrl;
                     showAlert('✅ Document uploadé vers "medias"', 'success');
@@ -4235,8 +4073,8 @@ async function getUsersFromSupabase() {
                 var titreObj = { fr: titre, ar: titre };
                 var descriptionObj = { fr: 'Document ' + type + ' - ' + titre, ar: 'وثيقة ' + type + ' - ' + titre };
                 var beneficiaireObj = { nom: 'Association ANSFAL', type: 'association' };
-                
-                var data = { 
+
+                var data = {
                     type: type,
                     type_label: type,
                     titre: titreObj,
@@ -4248,68 +4086,68 @@ async function getUsersFromSupabase() {
                     date: new Date().toISOString().split('T')[0],
                     color: '#1a6d2c',
                     icon: 'fa-file-pdf',
-                    updated_at: new Date().toISOString() 
+                    updated_at: new Date().toISOString()
                 };
-                
+
                 data.description = {
                     fr: 'Document ' + type + ' - ' + titre,
                     ar: 'وثيقة ' + type + ' - ' + titre,
                     url: documentUrl
                 };
-                
+
                 var url = supabaseUrl + '/rest/v1/documents_admin';
                 var method = 'POST';
-                if (currentEditId) { 
-                    url += '?id=eq.' + currentEditId; 
-                    method = 'PATCH'; 
-                } else { 
-                    data.created_at = new Date().toISOString(); 
+                if (currentEditId) {
+                    url += '?id=eq.' + currentEditId;
+                    method = 'PATCH';
+                } else {
+                    data.created_at = new Date().toISOString();
                 }
-                
-                var resp = await fetchWithSupabaseAuth(url, { 
-                    method: method, 
-                    body: JSON.stringify(data) 
+
+                var resp = await fetchWithSupabaseAuth(url, {
+                    method: method,
+                    body: JSON.stringify(data)
                 });
-                
+
                 if (!resp.ok) {
                     var errorText = await resp.text();
                     throw new Error('Erreur sauvegarde: ' + errorText);
                 }
-                
+
                 showAlert('✅ Document ajouté avec succès', 'success');
                 hideDocumentModal();
                 document.getElementById('documentFile').value = '';
                 await loadAllTables();
                 renderAll();
-                
-            } catch (e) { 
-                showAlert('❌ Erreur: ' + e.message, 'error'); 
+
+            } catch (e) {
+                showAlert('❌ Erreur: ' + e.message, 'error');
                 console.error(e);
             }
         }
 
         async function deleteDocument(id) {
             var user = getCurrentUser();
-            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
-                showAlert('Vous n\'avez pas les permissions', 'error'); 
-                return; 
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) {
+                showAlert('Vous n\'avez pas les permissions', 'error');
+                return;
             }
-            
+
             if (!confirm('Supprimer ce document définitivement ?')) return;
-            
+
             try {
-                var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/documents_admin?id=eq.' + id, { 
-                    method: 'DELETE' 
+                var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/documents_admin?id=eq.' + id, {
+                    method: 'DELETE'
                 });
-                
+
                 if (!resp.ok) throw new Error('Erreur suppression');
-                
+
                 showAlert('✅ Document supprimé avec succès', 'success');
                 await loadAllTables();
                 renderAll();
-                
-            } catch (e) { 
-                showAlert('❌ Erreur: ' + e.message, 'error'); 
+
+            } catch (e) {
+                showAlert('❌ Erreur: ' + e.message, 'error');
                 console.error(e);
             }
         }
@@ -4317,16 +4155,16 @@ async function getUsersFromSupabase() {
         function renderDocumentsAdminList() {
             var list = document.getElementById('documentsAdminList');
             if (!list) return;
-            
+
             var items = DATA.documentsAdmin || [];
-            if (items.length === 0) { 
-                list.innerHTML = ''; 
-                return; 
+            if (items.length === 0) {
+                list.innerHTML = '';
+                return;
             }
-            
+
             var user = getCurrentUser();
             var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
-            
+
             list.innerHTML = items.map(function(item) {
                 var title = '';
                 if (item.titre && typeof item.titre === 'object') {
@@ -4338,32 +4176,32 @@ async function getUsersFromSupabase() {
                 } else {
                     title = 'Document';
                 }
-                
+
                 var url = '';
                 if (item.description && typeof item.description === 'object' && item.description.url) {
                     url = item.description.url;
                 }
-                
+
                 var type = item.type || item.type_label || '';
                 var icon = 'fa-file-pdf';
                 var color = '#e74c3c';
-                
-                if (type && (type.includes('Bon') || type.includes('Réception') || type.includes('Retour') || 
-                    type.includes('Commande') || type.includes('Caisse') || type.includes('Dépense'))) {
+
+                if (type && (type.includes('Bon') || type.includes('Réception') || type.includes('Retour') ||
+                        type.includes('Commande') || type.includes('Caisse') || type.includes('Dépense'))) {
                     icon = 'fa-file-invoice';
                     color = '#2b579a';
                 }
-                
+
                 var actions = canEdit ?
                     '<button class="btn-action delete" onclick="deleteDocument(' + item.id + ')"><i class="fas fa-trash"></i></button>' :
                     '';
-                
-                var viewer = url ? 
-                    (url.toLowerCase().endsWith('.pdf') ? 
-                        'onclick="viewPDF(\'' + url + '\', \'' + title + '\')"' : 
+
+                var viewer = url ?
+                    (url.toLowerCase().endsWith('.pdf') ?
+                        'onclick="viewPDF(\'' + url + '\', \'' + title + '\')"' :
                         'onclick="window.open(\'' + url + '\', \'_blank\')"') :
                     '';
-                
+
                 return '<div class="dashboard-item" ' + viewer + '>' +
                     '<div class="item-icon"><i class="fas ' + icon + '" style="color:' + color + ';font-size:1.8rem;"></i></div>' +
                     '<div class="item-info"><h4>' + title + '</h4><small>' + type + '</small></div>' +
@@ -4378,16 +4216,16 @@ async function getUsersFromSupabase() {
         function renderGalleryAdmin() {
             var list = document.getElementById('galleryList');
             if (!list) return;
-            
+
             var items = DATA.gallery || [];
-            if (items.length === 0) { 
-                list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; 
-                return; 
+            if (items.length === 0) {
+                list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>';
+                return;
             }
-            
+
             var uniqueItems = [];
             var seenUrls = {};
-            
+
             for (var item of items) {
                 var url = item.url || item.image_url || '';
                 if (!seenUrls[url]) {
@@ -4395,37 +4233,37 @@ async function getUsersFromSupabase() {
                     uniqueItems.push(item);
                 }
             }
-            
+
             var user = getCurrentUser();
             var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
-            
+
             uniqueItems.sort(function(a, b) {
                 return new Date(b.created_at) - new Date(a.created_at);
             });
-            
+
             list.innerHTML = uniqueItems.map(function(item) {
                 var url = item.url || item.image_url || '';
                 var title = item.title || 'Image';
                 var fileType = item.type || 'image';
                 var size = item.file_size ? (item.file_size / 1024).toFixed(1) + ' KB' : '';
-                
+
                 var icon = fileType === 'video' ? 'fa-video' : 'fa-image';
                 var color = fileType === 'video' ? '#e74c3c' : 'var(--primary)';
-                
+
                 var actions = canEdit ?
                     '<button class="btn-action edit" onclick="event.stopPropagation(); editGalleryTitlePrompt(' + item.id + ', \'' + title.replace(/'/g, "\\'") + '\')" title="Modifier le titre"><i class="fas fa-edit"></i></button> ' +
                     '<button class="btn-action delete" onclick="event.stopPropagation(); deleteMedia(' + item.id + ', \'gallery\')" title="Supprimer"><i class="fas fa-trash"></i></button>' :
                     '';
-                
+
                 return '<div class="dashboard-item" onclick="viewMedia(\'' + url + '\', \'' + fileType + '\')">' +
                     '<div class="item-icon">' +
-                        (fileType === 'video' ? 
-                            '<i class="fas fa-video" style="color:' + color + ';font-size:1.8rem;"></i>' :
-                            '<img src="' + url + '" style="width:45px;height:45px;object-fit:cover;border-radius:10px;" />') +
+                    (fileType === 'video' ?
+                        '<i class="fas fa-video" style="color:' + color + ';font-size:1.8rem;"></i>' :
+                        '<img src="' + url + '" style="width:45px;height:45px;object-fit:cover;border-radius:10px;" />') +
                     '</div>' +
                     '<div class="item-info">' +
-                        '<h4>' + title + '</h4>' +
-                        '<small>' + fileType + (size ? ' - ' + size : '') + '</small>' +
+                    '<h4>' + title + '</h4>' +
+                    '<small>' + fileType + (size ? ' - ' + size : '') + '</small>' +
                     '</div>' +
                     '<div class="item-actions" onclick="event.stopPropagation();">' + actions + '</div>' +
                     '</div>';
@@ -4434,42 +4272,42 @@ async function getUsersFromSupabase() {
 
         async function deleteMedia(id, table) {
             var user = getCurrentUser();
-            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
-                showAlert('Vous n\'avez pas les permissions', 'error'); 
-                return; 
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) {
+                showAlert('Vous n\'avez pas les permissions', 'error');
+                return;
             }
-            
+
             try {
                 const { data: item, error: fetchError } = await supabase
                     .from(table)
                     .select('title, url')
                     .eq('id', id)
                     .single();
-                
+
                 if (fetchError) {
                     console.warn('Impossible de récupérer le titre:', fetchError);
                 }
-                
+
                 var title = item?.title || 'cet élément';
-                
+
                 if (!confirm(`⚠️ Supprimer définitivement "${title}" ?\nCette action est irréversible !`)) {
                     return;
                 }
-                
+
                 const { data, error } = await supabase
                     .from(table)
                     .delete()
                     .eq('id', id)
                     .select();
-                
+
                 if (error) throw new Error(error.message);
-                
+
                 showAlert(`✅ "${title}" supprimé avec succès`, 'success');
                 await loadAllTables();
                 renderAll();
-                
-            } catch (e) { 
-                showAlert('❌ Erreur: ' + e.message, 'error'); 
+
+            } catch (e) {
+                showAlert('❌ Erreur: ' + e.message, 'error');
                 console.error(e);
             }
         }
@@ -4477,16 +4315,16 @@ async function getUsersFromSupabase() {
         function renderVideosAdmin() {
             var list = document.getElementById('videosList');
             if (!list) return;
-            
+
             var items = DATA.videos || [];
-            if (items.length === 0) { 
-                list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; 
-                return; 
+            if (items.length === 0) {
+                list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>';
+                return;
             }
-            
+
             var uniqueItems = [];
             var seenUrls = {};
-            
+
             for (var item of items) {
                 var url = item.video_url || item.url || '';
                 if (!seenUrls[url]) {
@@ -4494,31 +4332,31 @@ async function getUsersFromSupabase() {
                     uniqueItems.push(item);
                 }
             }
-            
+
             var user = getCurrentUser();
             var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
-            
+
             uniqueItems.sort(function(a, b) {
                 return new Date(b.created_at) - new Date(a.created_at);
             });
-            
+
             list.innerHTML = uniqueItems.map(function(item) {
                 var url = item.video_url || item.url || '';
                 var title = item.title || 'Vidéo';
                 var size = item.file_size ? (item.file_size / 1024).toFixed(1) + ' KB' : '';
-                
+
                 var actions = canEdit ?
                     '<button class="btn-action edit" onclick="event.stopPropagation(); editVideoTitlePrompt(' + item.id + ', \'' + title.replace(/'/g, "\\'") + '\')" title="Modifier le titre"><i class="fas fa-edit"></i></button> ' +
                     '<button class="btn-action delete" onclick="event.stopPropagation(); deleteMedia(' + item.id + ', \'videos\')" title="Supprimer"><i class="fas fa-trash"></i></button>' :
                     '';
-                
+
                 return '<div class="dashboard-item" onclick="viewMedia(\'' + url + '\', \'video\')">' +
                     '<div class="item-icon">' +
-                        '<i class="fas fa-video" style="color:#e74c3c;font-size:1.8rem;"></i>' +
+                    '<i class="fas fa-video" style="color:#e74c3c;font-size:1.8rem;"></i>' +
                     '</div>' +
                     '<div class="item-info">' +
-                        '<h4>' + title + '</h4>' +
-                        '<small>' + (size ? size : 'Vidéo') + '</small>' +
+                    '<h4>' + title + '</h4>' +
+                    '<small>' + (size ? size : 'Vidéo') + '</small>' +
                     '</div>' +
                     '<div class="item-actions" onclick="event.stopPropagation();">' + actions + '</div>' +
                     '</div>';
@@ -4567,22 +4405,22 @@ async function getUsersFromSupabase() {
             var list = document.getElementById('textList');
             var published = document.getElementById('publishedTexts');
             if (!list) return;
-            
+
             var items = DATA.texts || [];
-            if (items.length === 0) { 
-                list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; 
+            if (items.length === 0) {
+                list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>';
                 if (published) published.innerHTML = '<p class="no-content">Aucun texte publié.</p>';
-                return; 
+                return;
             }
-            
+
             var user = getCurrentUser();
             var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
             var isRTL = document.body.classList.contains('rtl');
-            
+
             items.sort(function(a, b) {
                 return new Date(b.created_at) - new Date(a.created_at);
             });
-            
+
             list.innerHTML = items.map(function(item) {
                 var title = '';
                 if (item.title && typeof item.title === 'object') {
@@ -4590,37 +4428,37 @@ async function getUsersFromSupabase() {
                 } else {
                     title = item.title || 'Sans titre';
                 }
-                
+
                 var content = '';
                 if (item.content && typeof item.content === 'object') {
                     content = isRTL ? (item.content.ar || item.content.fr || '') : (item.content.fr || item.content.ar || '');
                 } else {
                     content = item.content || '';
                 }
-                
+
                 var actions = canEdit ?
                     '<button class="btn-action edit" onclick="editText(' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
                     '<button class="btn-action delete" onclick="deleteText(' + item.id + ')"><i class="fas fa-trash"></i></button>' :
                     '';
-                
+
                 var status = item.published ? '✅ Publié' : '📝 Brouillon';
                 var preview = content.length > 80 ? content.substring(0, 80) + '...' : content;
-                
+
                 return '<div class="dashboard-item">' +
                     '<div class="item-icon"><i class="fas fa-file-alt" style="color:var(--primary);"></i></div>' +
                     '<div class="item-info">' +
-                        '<h4>' + title + '</h4>' +
-                        '<small>' + preview + ' - ' + new Date(item.created_at).toLocaleDateString() + ' ' + status + '</small>' +
+                    '<h4>' + title + '</h4>' +
+                    '<small>' + preview + ' - ' + new Date(item.created_at).toLocaleDateString() + ' ' + status + '</small>' +
                     '</div>' +
                     '<div class="item-actions">' + actions + '</div>' +
                     '</div>';
             }).join('');
-            
+
             if (published) {
                 var publishedItems = items.filter(function(item) { return item.published; });
-                if (publishedItems.length === 0) { 
-                    published.innerHTML = '<p class="no-content">Aucun texte publié.</p>'; 
-                    return; 
+                if (publishedItems.length === 0) {
+                    published.innerHTML = '<p class="no-content">Aucun texte publié.</p>';
+                    return;
                 }
                 published.innerHTML = publishedItems.map(function(item) {
                     var title = '';
@@ -4629,14 +4467,14 @@ async function getUsersFromSupabase() {
                     } else {
                         title = item.title || 'Sans titre';
                     }
-                    
+
                     var content = '';
                     if (item.content && typeof item.content === 'object') {
                         content = isRTL ? (item.content.ar || item.content.fr || '') : (item.content.fr || item.content.ar || '');
                     } else {
                         content = item.content || '';
                     }
-                    
+
                     return '<div style="margin:10px 0;padding:15px;background:white;border-radius:8px;border-left:4px solid var(--primary);box-shadow:var(--shadow);">' +
                         '<h4 style="color:var(--primary);margin:0 0 5px 0;">' + title + '</h4>' +
                         '<p style="white-space:pre-wrap;margin:5px 0;">' + content + '</p>' +
@@ -4664,7 +4502,7 @@ async function getUsersFromSupabase() {
             if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { showAlert('Vous n\'avez pas les permissions', 'error'); return; }
             var item = DATA.texts.find(function(el) { return el.id === id; });
             if (!item) { showAlert('Texte non trouvé', 'error'); return; }
-            
+
             var isRTL = document.body.classList.contains('rtl');
             var title = '';
             if (item.title && typeof item.title === 'object') {
@@ -4672,14 +4510,14 @@ async function getUsersFromSupabase() {
             } else {
                 title = item.title || '';
             }
-            
+
             var content = '';
             if (item.content && typeof item.content === 'object') {
                 content = isRTL ? (item.content.ar || item.content.fr || '') : (item.content.fr || item.content.ar || '');
             } else {
                 content = item.content || '';
             }
-            
+
             document.getElementById('textTitle').value = title;
             document.getElementById('textContent').value = content;
             document.getElementById('publishText').checked = item.published || false;
@@ -4692,24 +4530,25 @@ async function getUsersFromSupabase() {
             var title = document.getElementById('textTitle').value.trim();
             var content = document.getElementById('textContent').value.trim();
             var published = document.getElementById('publishText').checked;
-            
+
             if (!title || !content) { showAlert('Veuillez remplir titre et contenu', 'error'); return; }
-            
+
             var isRTL = document.body.classList.contains('rtl');
             var titleObj = { fr: title, ar: title };
             var contentObj = { fr: content, ar: content };
-            
+
             var data = {
                 title: titleObj,
                 content: contentObj,
                 published: published,
                 updated_at: new Date().toISOString()
             };
-            
+
             try {
                 var url = supabaseUrl + '/rest/v1/texts';
                 var method = 'POST';
-                if (currentEditId) { url += '?id=eq.' + currentEditId; method = 'PATCH'; } else { data.created_at = new Date().toISOString(); }
+                if (currentEditId) { url += '?id=eq.' + currentEditId;
+                    method = 'PATCH'; } else { data.created_at = new Date().toISOString(); }
                 var resp = await fetchWithSupabaseAuth(url, { method: method, body: JSON.stringify(data) });
                 if (!resp.ok) throw new Error('Erreur sauvegarde: ' + await resp.text());
                 showAlert('✅ Texte enregistré', 'success');
@@ -4862,11 +4701,11 @@ async function getUsersFromSupabase() {
         }
 
         function uploadFiles() {
-            if (selectedFiles.length === 0) { 
-                showAlert(getLang().alertNoFile, 'error'); 
-                return; 
+            if (selectedFiles.length === 0) {
+                showAlert(getLang().alertNoFile, 'error');
+                return;
             }
-            
+
             var progress = document.getElementById('uploadProgress');
             var fill = document.getElementById('progressFill');
             var text = document.getElementById('progressText');
@@ -4891,89 +4730,89 @@ async function getUsersFromSupabase() {
 
                 var table = currentUploadType === 'video' ? 'videos' : 'gallery';
                 var prefix = currentUploadType === 'video' ? 'video_' : 'gallery_';
-                
+
                 var fileName = prefix + Date.now() + '_' + index + '_' + file.name.replace(/\s/g, '_');
                 var folder = 'medias';
-                
+
                 console.log('📤 Upload du fichier:', fileName, 'Taille:', (file.size / 1024).toFixed(1), 'KB');
                 console.log('📁 Table cible:', table);
-                
-                supabase.storage.from(folder).upload(fileName, file, { 
-                    cacheControl: '3600', 
-                    upsert: false 
+
+                supabase.storage.from(folder).upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: false
                 })
-                .then(function(result) {
-                    if (result.error) {
-                        console.error('❌ Erreur upload storage:', result.error);
-                        throw new Error('Storage: ' + result.error.message);
-                    }
-                    console.log('✅ Fichier uploadé vers storage');
-                    return supabase.storage.from(folder).getPublicUrl(fileName);
-                })
-                .then(function(urlResult) {
-                    var publicUrl = urlResult.data.publicUrl;
-                    console.log('📎 URL publique:', publicUrl);
-                    
-                    var fileType = 'image';
-                    if (file.type.startsWith('video/')) {
-                        fileType = 'video';
-                    } else if (file.type === 'application/pdf') {
-                        fileType = 'pdf';
-                    }
-                    
-                    var cleanTitle = file.name
-                        .replace(/\.[^/.]+$/, '')
-                        .replace(/[_-]/g, ' ')
-                        .replace(/\s+/g, ' ')
-                        .trim();
-                    
-                    if (!cleanTitle || cleanTitle.length < 2) {
-                        cleanTitle = (fileType === 'video' ? 'Vidéo ' : 'Image ') + (index + 1);
-                    }
-                    cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
-                    
-                    var data = { 
-                        url: publicUrl,
-                        title: cleanTitle,
-                        file_name: file.name,
-                        file_size: file.size,
-                        date: new Date().toISOString(),
-                        type: fileType,
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString(),
-                        publisher: 'admin'
-                    };
-                    
-                    console.log('💾 Sauvegarde dans la table:', table, data);
-                    
-                    return supabase
-                        .from(table)
-                        .insert(data)
-                        .select();
-                })
-                .then(function(result) {
-                    if (result.error) {
-                        console.error('❌ Erreur insertion DB:', result.error);
-                        throw new Error('DB: ' + result.error.message);
-                    }
-                    console.log('✅ Enregistré en base:', result.data);
-                    uploaded++;
-                    updateProgress(uploaded, total, fill, text);
-                    
-                    if (uploaded === total) {
-                        finishUpload(errors, progress);
-                    }
-                })
-                .catch(function(e) {
-                    console.error('❌ Erreur complète:', e);
-                    errors.push(file.name + ': ' + e.message);
-                    uploaded++;
-                    updateProgress(uploaded, total, fill, text);
-                    
-                    if (uploaded === total) {
-                        finishUpload(errors, progress);
-                    }
-                });
+                    .then(function(result) {
+                        if (result.error) {
+                            console.error('❌ Erreur upload storage:', result.error);
+                            throw new Error('Storage: ' + result.error.message);
+                        }
+                        console.log('✅ Fichier uploadé vers storage');
+                        return supabase.storage.from(folder).getPublicUrl(fileName);
+                    })
+                    .then(function(urlResult) {
+                        var publicUrl = urlResult.data.publicUrl;
+                        console.log('📎 URL publique:', publicUrl);
+
+                        var fileType = 'image';
+                        if (file.type.startsWith('video/')) {
+                            fileType = 'video';
+                        } else if (file.type === 'application/pdf') {
+                            fileType = 'pdf';
+                        }
+
+                        var cleanTitle = file.name
+                            .replace(/\.[^/.]+$/, '')
+                            .replace(/[_-]/g, ' ')
+                            .replace(/\s+/g, ' ')
+                            .trim();
+
+                        if (!cleanTitle || cleanTitle.length < 2) {
+                            cleanTitle = (fileType === 'video' ? 'Vidéo ' : 'Image ') + (index + 1);
+                        }
+                        cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
+
+                        var data = {
+                            url: publicUrl,
+                            title: cleanTitle,
+                            file_name: file.name,
+                            file_size: file.size,
+                            date: new Date().toISOString(),
+                            type: fileType,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            publisher: 'admin'
+                        };
+
+                        console.log('💾 Sauvegarde dans la table:', table, data);
+
+                        return supabase
+                            .from(table)
+                            .insert(data)
+                            .select();
+                    })
+                    .then(function(result) {
+                        if (result.error) {
+                            console.error('❌ Erreur insertion DB:', result.error);
+                            throw new Error('DB: ' + result.error.message);
+                        }
+                        console.log('✅ Enregistré en base:', result.data);
+                        uploaded++;
+                        updateProgress(uploaded, total, fill, text);
+
+                        if (uploaded === total) {
+                            finishUpload(errors, progress);
+                        }
+                    })
+                    .catch(function(e) {
+                        console.error('❌ Erreur complète:', e);
+                        errors.push(file.name + ': ' + e.message);
+                        uploaded++;
+                        updateProgress(uploaded, total, fill, text);
+
+                        if (uploaded === total) {
+                            finishUpload(errors, progress);
+                        }
+                    });
             });
         }
 
@@ -4986,7 +4825,7 @@ async function getUsersFromSupabase() {
         function finishUpload(errors, progress) {
             if (progress) progress.style.display = 'none';
             document.getElementById('actionButtons').style.display = 'flex';
-            
+
             if (errors.length > 0) {
                 showAlert('⚠️ ' + errors.length + ' erreur(s): ' + errors.join('; '), 'error');
             } else {
@@ -5058,7 +4897,7 @@ async function getUsersFromSupabase() {
                 `;
             }
             document.getElementById('genericModalTitle').textContent = title;
-            document.getElementById('genericModalBody').innerHTML = fields + 
+            document.getElementById('genericModalBody').innerHTML = fields +
                 `<div class="upload-actions" style="margin-top:15px;">
                     <button class="btn-browse" onclick="hideGenericModal()" style="background:var(--danger);"><i class="fas fa-times"></i> Annuler</button>
                     <button class="btn-browse" onclick="saveGenericItem()" style="background:var(--success);"><i class="fas fa-save"></i> Enregistrer</button>
@@ -5123,7 +4962,7 @@ async function getUsersFromSupabase() {
                 `;
             }
             document.getElementById('genericModalTitle').textContent = title;
-            document.getElementById('genericModalBody').innerHTML = fields + 
+            document.getElementById('genericModalBody').innerHTML = fields +
                 `<div class="upload-actions" style="margin-top:15px;">
                     <button class="btn-browse" onclick="hideGenericModal()" style="background:var(--danger);"><i class="fas fa-times"></i> Annuler</button>
                     <button class="btn-browse" onclick="saveGenericItem()" style="background:var(--success);"><i class="fas fa-save"></i> Enregistrer</button>
@@ -5181,7 +5020,8 @@ async function getUsersFromSupabase() {
             try {
                 var url = supabaseUrl + '/rest/v1/' + table;
                 var method = 'POST';
-                if (currentEditId) { url += '?id=eq.' + currentEditId; method = 'PATCH'; } else { data.created_at = new Date().toISOString(); }
+                if (currentEditId) { url += '?id=eq.' + currentEditId;
+                    method = 'PATCH'; } else { data.created_at = new Date().toISOString(); }
                 var resp = await fetchWithSupabaseAuth(url, { method: method, body: JSON.stringify(data) });
                 if (!resp.ok) throw new Error('Erreur sauvegarde: ' + await resp.text());
                 showAlert('✅ Élément enregistré', 'success');
@@ -5211,8 +5051,7 @@ async function getUsersFromSupabase() {
             var betailBody = document.getElementById('betailAdminBody');
             if (betailBody) {
                 var betailItems = DATA.betail || [];
-                if (betailItems.length === 0) { betailBody.innerHTML = '<tr><td colspan="8" class="no-content">' + getLang().noData + '</td></tr>'; }
-                else {
+                if (betailItems.length === 0) { betailBody.innerHTML = '<tr><td colspan="8" class="no-content">' + getLang().noData + '</td></tr>'; } else {
                     var user = getCurrentUser();
                     var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
                     betailBody.innerHTML = betailItems.map(function(item) {
@@ -5230,49 +5069,45 @@ async function getUsersFromSupabase() {
             var produitsBody = document.getElementById('produitsAdminBody');
             if (produitsBody) {
                 var produitsItems = DATA.produits || [];
-                if (produitsItems.length === 0) { 
-                    produitsBody.innerHTML = '<tr><td colspan="6" class="no-content">' + getLang().noData + '</td></tr>'; 
-                }
-                else {
+                if (produitsItems.length === 0) {
+                    produitsBody.innerHTML = '<tr><td colspan="6" class="no-content">' + getLang().noData + '</td></tr>';
+                } else {
                     var user = getCurrentUser();
                     var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
                     var isRTL = document.body.classList.contains('rtl');
-                    
+
                     produitsBody.innerHTML = produitsItems.map(function(item) {
                         var localite = getLocaliteName(item.localite_id);
-                        
+
                         var nom = '';
                         if (item.nom_fr && typeof item.nom_fr === 'object') {
                             nom = isRTL ? (item.nom_fr.ar || item.nom_fr.fr || '') : (item.nom_fr.fr || item.nom_fr.ar || '');
-                        } 
-                        else if (item.nom && typeof item.nom === 'object') {
+                        } else if (item.nom && typeof item.nom === 'object') {
                             nom = isRTL ? (item.nom.ar || item.nom.fr || '') : (item.nom.fr || item.nom.ar || '');
-                        } 
-                        else if (item.nom_fr && typeof item.nom_fr === 'string') {
+                        } else if (item.nom_fr && typeof item.nom_fr === 'string') {
                             nom = isRTL ? (item.nom_ar || item.nom_fr) : (item.nom_fr || item.nom_ar);
-                        } 
-                        else {
+                        } else {
                             nom = item.nom || item.nom_fr || item.nom_ar || 'Produit';
                         }
-                        
+
                         var periode = '';
                         if (item.periode && typeof item.periode === 'object') {
                             periode = isRTL ? (item.periode.ar || item.periode.fr || '') : (item.periode.fr || item.periode.ar || '');
                         } else {
                             periode = item.periode || '';
                         }
-                        
+
                         var statut = '';
                         if (item.statut && typeof item.statut === 'object') {
                             statut = isRTL ? (item.statut.ar || item.statut.fr || 'Disponible') : (item.statut.fr || item.statut.ar || 'Disponible');
                         } else {
                             statut = item.statut || 'Disponible';
                         }
-                        
+
                         var actions = canEdit ?
                             '<button class="btn-action edit" onclick="editGenericItem(\'produit\',' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
                             '<button class="btn-action delete" onclick="deleteGenericItem(\'produit\',' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
-                        
+
                         return '<tr>' +
                             '<td><strong>' + nom + '</strong></td>' +
                             '<td>' + localite + '</td>' +
@@ -5288,8 +5123,7 @@ async function getUsersFromSupabase() {
             var arbresBody = document.getElementById('arbresAdminBody');
             if (arbresBody) {
                 var arbresItems = DATA.arbres || [];
-                if (arbresItems.length === 0) { arbresBody.innerHTML = '<tr><td colspan="9" class="no-content">' + getLang().noData + '</td></tr>'; }
-                else {
+                if (arbresItems.length === 0) { arbresBody.innerHTML = '<tr><td colspan="9" class="no-content">' + getLang().noData + '</td></tr>'; } else {
                     var user = getCurrentUser();
                     var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
                     arbresBody.innerHTML = arbresItems.map(function(item) {
@@ -5307,8 +5141,7 @@ async function getUsersFromSupabase() {
             var eauBody = document.getElementById('eauAdminBody');
             if (eauBody) {
                 var eauItems = DATA.eau || [];
-                if (eauItems.length === 0) { eauBody.innerHTML = '<tr><td colspan="6" class="no-content">' + getLang().noData + '</td></tr>'; }
-                else {
+                if (eauItems.length === 0) { eauBody.innerHTML = '<tr><td colspan="6" class="no-content">' + getLang().noData + '</td></tr>'; } else {
                     var user = getCurrentUser();
                     var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
                     eauBody.innerHTML = eauItems.map(function(item) {
@@ -5324,8 +5157,7 @@ async function getUsersFromSupabase() {
             var sagiaBody = document.getElementById('sagiaAdminBody');
             if (sagiaBody) {
                 var sagiaItems = DATA.sagia || [];
-                if (sagiaItems.length === 0) { sagiaBody.innerHTML = '<tr><td colspan="7" class="no-content">' + getLang().noData + '</td></tr>'; }
-                else {
+                if (sagiaItems.length === 0) { sagiaBody.innerHTML = '<tr><td colspan="7" class="no-content">' + getLang().noData + '</td></tr>'; } else {
                     var user = getCurrentUser();
                     var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
                     sagiaBody.innerHTML = sagiaItems.map(function(item) {
@@ -5341,299 +5173,254 @@ async function getUsersFromSupabase() {
         // ============================================================
         // USERS
         // ============================================================
-       function renderUsers() {
-    var body = document.getElementById('usersBody');
-    if (!body) return;
-    
-    var users = DATA.users || [];
-    
-    if (users.length === 0) { 
-        body.innerHTML = '<tr><td colspan="5" class="no-content">Aucun utilisateur dans Supabase</td></tr>'; 
-        return; 
-    }
-    
-    var currentUser = getCurrentUser();
-    var isAdmin = currentUser && currentUser.role === 'admin';
-    
-    body.innerHTML = users.map(function(user, index) {
-        var roleClass = user.role === 'admin' ? 'badge-admin' : 
-                        user.role === 'webmestre' ? 'badge-webmestre' : 'badge-membre';
-        
-        var actions = isAdmin && user.username !== currentUser.username ?
-            '<button class="btn-action delete" onclick="deleteUser(' + user.id + ')"><i class="fas fa-trash"></i></button>' :
-            '';
-        
-        var passwordStatus = user.password_changed ? '✅' : '⚠️';
-        
-        return '<tr>' +
-            '<td>' + (index + 1) + '</td>' +
-            '<td>' + user.username + ' ' + passwordStatus + '</td>' +
-            '<td><span class="badge ' + roleClass + '">' + user.role + '</span></td>' +
-            '<td>' + (user.created_at ? new Date(user.created_at).toLocaleDateString() : '') + '</td>' +
-            '<td style="white-space:nowrap;">' + actions + '</td>' +
-            '</tr>';
-    }).join('');
-    
-    document.getElementById('totalUsersStat').textContent = users.length;
-}
+        function renderUsers() {
+            var body = document.getElementById('usersBody');
+            if (!body) return;
 
-        // ============================================================
-// FONCTIONS UTILISATEURS
-// ============================================================
+            var users = DATA.users || [];
 
-function showUserModal() {
-    var user = getCurrentUser();
-    if (!user || user.role !== 'admin') { 
-        showAlert('Seul l\'admin peut gérer les utilisateurs', 'error'); 
-        return; 
-    }
-    document.getElementById('userModalTitle').textContent = 'Ajouter un utilisateur';
-    document.getElementById('userLogin').value = '';
-    document.getElementById('userEmail').value = '';
-    document.getElementById('userPassword').value = '';
-    document.getElementById('userRoleSelect').value = 'membre';
-    currentUserId = null;
-    document.getElementById('userModal').classList.add('active');
-}
-
-function hideUserModal() {
-    document.getElementById('userModal').classList.remove('active');
-}
-
-async function saveUser() {
-    var login = document.getElementById('userLogin').value.trim();
-    var email = document.getElementById('userEmail').value.trim();
-    var password = document.getElementById('userPassword').value.trim();
-    var role = document.getElementById('userRoleSelect').value;
-    
-    if (!login || !password) { 
-        showAlert('Veuillez remplir tous les champs', 'error'); 
-        return; 
-    }
-    
-    // Si email vide, générer automatiquement
-    if (!email) {
-        email = login + '@ansfal.org';
-    }
-    
-    var users = await getUsers();
-    
-    if (!currentUserId && users.find(function(u) { return u.username === login; })) {
-        showAlert('Ce nom d\'utilisateur existe déjà', 'error'); 
-        return;
-    }
-    
-    var hashedPassword = await hashPassword(password);
-    
-    try {
-        var token = await getSupabaseToken();
-        var headers = { 
-            'apikey': supabaseKey, 
-            'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey, 
-            'Content-Type': 'application/json' 
-        };
-        
-        if (currentUserId) {
-            var updateResp = await fetch(supabaseUrl + '/rest/v1/users?id=eq.' + currentUserId, {
-                method: 'PATCH',
-                headers: headers,
-                body: JSON.stringify({
-                    username: login,
-                    email: email,
-                    password_hash: hashedPassword,
-                    password: password,
-                    role: role,
-                    password_changed: true,
-                    updated_at: new Date().toISOString()
-                })
-            });
-            
-            if (!updateResp.ok) {
-                var errorText = await updateResp.text();
-                throw new Error('Erreur Supabase: ' + errorText);
-            }
-            
-            var existing = users.find(function(u) { return u.id === currentUserId; });
-            if (existing) {
-                existing.username = login;
-                existing.email = email;
-                existing.password_hash = hashedPassword;
-                existing.password = password;
-                existing.role = role;
-                existing.password_changed = true;
-                existing.updated_at = new Date().toISOString();
-            }
-        } else {
-            var newUser = { 
-                id: Date.now(),
-                username: login,
-                email: email,
-                password_hash: hashedPassword,
-                password: password,
-                role: role,
-                password_changed: true,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-            };
-            
-            var insertResp = await fetch(supabaseUrl + '/rest/v1/users', {
-                method: 'POST',
-                headers: headers,
-                body: JSON.stringify({
-                    username: login,
-                    email: email,
-                    password_hash: hashedPassword,
-                    password: password,
-                    role: role,
-                    password_changed: true,
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                })
-            });
-            
-            if (!insertResp.ok) {
-                var errorText = await insertResp.text();
-                console.error('❌ Erreur Supabase:', errorText);
-                throw new Error('Erreur Supabase: ' + errorText);
-            }
-            
-            users.push(newUser);
-        }
-        
-        localStorage.setItem('ansfal_users', JSON.stringify(users));
-        USERS = users;
-        DATA.users = users;
-        
-        showAlert('✅ Utilisateur enregistré dans Supabase', 'success');
-        hideUserModal();
-        
-        DATA.users = await getUsers();
-        renderUsers();
-        
-    } catch (e) { 
-        showAlert('❌ Erreur: ' + e.message, 'error'); 
-        console.error('❌ Erreur détaillée:', e);
-    }
-}
-
-async function deleteUser(id) {
-    var user = getCurrentUser();
-    if (!user || user.role !== 'admin') { 
-        showAlert('Seul l\'admin peut supprimer des utilisateurs', 'error'); 
-        return; 
-    }
-    
-    if (!confirm('Supprimer cet utilisateur définitivement ?')) return;
-    
-    try {
-        var token = await getSupabaseToken();
-        var headers = { 
-            'apikey': supabaseKey, 
-            'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey 
-        };
-        
-        var deleteResp = await fetch(supabaseUrl + '/rest/v1/users?id=eq.' + id, {
-            method: 'DELETE',
-            headers: headers
-        });
-        
-        if (!deleteResp.ok) {
-            var errorText = await deleteResp.text();
-            throw new Error('Erreur Supabase: ' + errorText);
-        }
-        
-        var users = await getUsers();
-        users = users.filter(function(u) { return u.id !== id; });
-        localStorage.setItem('ansfal_users', JSON.stringify(users));
-        
-        DATA.users = users;
-        USERS = users;
-        
-        showAlert('✅ Utilisateur supprimé de Supabase', 'success');
-        renderUsers();
-        
-    } catch (e) { 
-        showAlert('❌ Erreur: ' + e.message, 'error'); 
-        console.error('❌ Erreur détaillée:', e);
-    }
-}
-
-async function refreshUsersFromSupabase() {
-    try {
-        var token = await getSupabaseToken();
-        var headers = { 
-            'apikey': supabaseKey, 
-            'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey 
-        };
-        
-        var resp = await fetch(supabaseUrl + '/rest/v1/users?select=*', { 
-            headers: headers,
-            mode: 'cors'
-        });
-        
-        if (resp.ok) { 
-            var data = await resp.json(); 
-            if (data && data.length > 0) {
-                DATA.users = data;
-                USERS = data;
-                localStorage.setItem('ansfal_users', JSON.stringify(data));
-                renderUsers();
-                showAlert('✅ Utilisateurs rechargés depuis Supabase', 'success');
+            if (users.length === 0) {
+                body.innerHTML = '<tr><td colspan="5" class="no-content">Aucun utilisateur dans Supabase</td></tr>';
                 return;
             }
+
+            var currentUser = getCurrentUser();
+            var isAdmin = currentUser && currentUser.role === 'admin';
+
+            body.innerHTML = users.map(function(user, index) {
+                var roleClass = user.role === 'admin' ? 'badge-admin' :
+                    user.role === 'webmestre' ? 'badge-webmestre' : 'badge-membre';
+
+                var actions = isAdmin && user.username !== currentUser.username ?
+                    '<button class="btn-action delete" onclick="deleteUser(' + user.id + ')"><i class="fas fa-trash"></i></button>' :
+                    '';
+
+                var passwordStatus = user.password_changed ? '✅' : '⚠️';
+
+                return '<tr>' +
+                    '<td>' + (index + 1) + '</td>' +
+                    '<td>' + user.username + ' ' + passwordStatus + '</td>' +
+                    '<td><span class="badge ' + roleClass + '">' + user.role + '</span></td>' +
+                    '<td>' + (user.created_at ? new Date(user.created_at).toLocaleDateString() : '') + '</td>' +
+                    '<td style="white-space:nowrap;">' + actions + '</td>' +
+                    '</tr>';
+            }).join('');
+
+            document.getElementById('totalUsersStat').textContent = users.length;
         }
-        
-        showAlert('⚠️ Aucun utilisateur trouvé dans Supabase', 'warning');
-        
-    } catch (e) { 
-        showAlert('❌ Erreur: ' + e.message, 'error'); 
-        console.error('❌ Erreur détaillée:', e);
-    }
-}
+
+        // ============================================================
+        // FONCTIONS UTILISATEURS
+        // ============================================================
+
+        function showUserModal() {
+            var user = getCurrentUser();
+            if (!user || user.role !== 'admin') {
+                showAlert('Seul l\'admin peut gérer les utilisateurs', 'error');
+                return;
+            }
+            document.getElementById('userModalTitle').textContent = 'Ajouter un utilisateur';
+            document.getElementById('userLogin').value = '';
+            document.getElementById('userEmail').value = '';
+            document.getElementById('userPassword').value = '';
+            document.getElementById('userRoleSelect').value = 'membre';
+            currentUserId = null;
+            document.getElementById('userModal').classList.add('active');
+        }
+
+        function hideUserModal() {
+            document.getElementById('userModal').classList.remove('active');
+        }
+
+        async function saveUser() {
+            var login = document.getElementById('userLogin').value.trim();
+            var email = document.getElementById('userEmail').value.trim();
+            var password = document.getElementById('userPassword').value.trim();
+            var role = document.getElementById('userRoleSelect').value;
+
+            if (!login || !password) {
+                showAlert('Veuillez remplir tous les champs', 'error');
+                return;
+            }
+
+            if (!email) {
+                email = login + '@ansfal.org';
+            }
+
+            var users = await getUsers();
+
+            if (!currentUserId && users.find(function(u) { return u.username === login; })) {
+                showAlert('Ce nom d\'utilisateur existe déjà', 'error');
+                return;
+            }
+
+            var hashedPassword = await hashPassword(password);
+
+            try {
+                var token = await getSupabaseToken();
+                var headers = {
+                    'apikey': supabaseKey,
+                    'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey,
+                    'Content-Type': 'application/json'
+                };
+
+                if (currentUserId) {
+                    var updateResp = await fetch(supabaseUrl + '/rest/v1/users?id=eq.' + currentUserId, {
+                        method: 'PATCH',
+                        headers: headers,
+                        body: JSON.stringify({
+                            username: login,
+                            email: email,
+                            password_hash: hashedPassword,
+                            password: password,
+                            role: role,
+                            password_changed: true,
+                            updated_at: new Date().toISOString()
+                        })
+                    });
+
+                    if (!updateResp.ok) {
+                        var errorText = await updateResp.text();
+                        throw new Error('Erreur Supabase: ' + errorText);
+                    }
+
+                    var existing = users.find(function(u) { return u.id === currentUserId; });
+                    if (existing) {
+                        existing.username = login;
+                        existing.email = email;
+                        existing.password_hash = hashedPassword;
+                        existing.password = password;
+                        existing.role = role;
+                        existing.password_changed = true;
+                        existing.updated_at = new Date().toISOString();
+                    }
+                } else {
+                    var newUser = {
+                        id: Date.now(),
+                        username: login,
+                        email: email,
+                        password_hash: hashedPassword,
+                        password: password,
+                        role: role,
+                        password_changed: true,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    };
+
+                    var insertResp = await fetch(supabaseUrl + '/rest/v1/users', {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify({
+                            username: login,
+                            email: email,
+                            password_hash: hashedPassword,
+                            password: password,
+                            role: role,
+                            password_changed: true,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        })
+                    });
+
+                    if (!insertResp.ok) {
+                        var errorText = await insertResp.text();
+                        console.error('❌ Erreur Supabase:', errorText);
+                        throw new Error('Erreur Supabase: ' + errorText);
+                    }
+
+                    users.push(newUser);
+                }
+
+                localStorage.setItem('ansfal_users', JSON.stringify(users));
+                USERS = users;
+                DATA.users = users;
+
+                showAlert('✅ Utilisateur enregistré dans Supabase', 'success');
+                hideUserModal();
+
+                DATA.users = await getUsers();
+                renderUsers();
+
+            } catch (e) {
+                showAlert('❌ Erreur: ' + e.message, 'error');
+                console.error('❌ Erreur détaillée:', e);
+            }
+        }
 
         async function deleteUser(id) {
-    var user = getCurrentUser();
-    if (!user || user.role !== 'admin') { 
-        showAlert('Seul l\'admin peut supprimer des utilisateurs', 'error'); 
-        return; 
-    }
-    
-    if (!confirm('Supprimer cet utilisateur définitivement ?')) return;
-    
-    try {
-        var token = await getSupabaseToken();
-        var headers = { 
-            'apikey': supabaseKey, 
-            'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey 
-        };
-        
-        // Supprimer dans Supabase
-        var deleteResp = await fetch(supabaseUrl + '/rest/v1/users?id=eq.' + id, {
-            method: 'DELETE',
-            headers: headers
-        });
-        
-        if (!deleteResp.ok) {
-            var errorText = await deleteResp.text();
-            throw new Error('Erreur Supabase: ' + errorText);
+            var user = getCurrentUser();
+            if (!user || user.role !== 'admin') {
+                showAlert('Seul l\'admin peut supprimer des utilisateurs', 'error');
+                return;
+            }
+
+            if (!confirm('Supprimer cet utilisateur définitivement ?')) return;
+
+            try {
+                var token = await getSupabaseToken();
+                var headers = {
+                    'apikey': supabaseKey,
+                    'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey
+                };
+
+                var deleteResp = await fetch(supabaseUrl + '/rest/v1/users?id=eq.' + id, {
+                    method: 'DELETE',
+                    headers: headers
+                });
+
+                if (!deleteResp.ok) {
+                    var errorText = await deleteResp.text();
+                    throw new Error('Erreur Supabase: ' + errorText);
+                }
+
+                var users = await getUsers();
+                users = users.filter(function(u) { return u.id !== id; });
+                localStorage.setItem('ansfal_users', JSON.stringify(users));
+
+                DATA.users = users;
+                USERS = users;
+
+                showAlert('✅ Utilisateur supprimé de Supabase', 'success');
+                renderUsers();
+
+            } catch (e) {
+                showAlert('❌ Erreur: ' + e.message, 'error');
+                console.error('❌ Erreur détaillée:', e);
+            }
         }
-        
-        // Supprimer dans localStorage
-        var users = await getUsers();
-        users = users.filter(function(u) { return u.id !== id; });
-        localStorage.setItem('ansfal_users', JSON.stringify(users));
-        
-        DATA.users = users;
-        USERS = users;
-        
-        showAlert('✅ Utilisateur supprimé de Supabase', 'success');
-        renderUsers();
-        
-    } catch (e) { 
-        showAlert('❌ Erreur: ' + e.message, 'error'); 
-        console.error('❌ Erreur détaillée:', e);
-    }
-}
+
+        async function refreshUsersFromSupabase() {
+            try {
+                var token = await getSupabaseToken();
+                var headers = {
+                    'apikey': supabaseKey,
+                    'Authorization': token ? 'Bearer ' + token : 'Bearer ' + supabaseKey
+                };
+
+                var resp = await fetch(supabaseUrl + '/rest/v1/users?select=*', {
+                    headers: headers,
+                    mode: 'cors'
+                });
+
+                if (resp.ok) {
+                    var data = await resp.json();
+                    if (data && data.length > 0) {
+                        DATA.users = data;
+                        USERS = data;
+                        localStorage.setItem('ansfal_users', JSON.stringify(data));
+                        renderUsers();
+                        showAlert('✅ Utilisateurs rechargés depuis Supabase', 'success');
+                        return;
+                    }
+                }
+
+                showAlert('⚠️ Aucun utilisateur trouvé dans Supabase', 'warning');
+
+            } catch (e) {
+                showAlert('❌ Erreur: ' + e.message, 'error');
+                console.error('❌ Erreur détaillée:', e);
+            }
+        }
 
         // ============================================================
         // FILE VIEWER
@@ -5663,7 +5450,7 @@ async function refreshUsersFromSupabase() {
             pdfContainer.id = 'pdfContainer';
             content.innerHTML = '<div id="pdfContainer" class="pdf-container"><div style="text-align:center;padding:20px;color:#888;"><i class="fas fa-spinner fa-spin"></i> Chargement du PDF...</div></div>';
             viewer.classList.add('active');
-            
+
             pdfjsLib.getDocument(url).promise.then(function(pdf) {
                 var container = document.getElementById('pdfContainer');
                 container.innerHTML = '';
@@ -5703,37 +5490,10 @@ async function refreshUsersFromSupabase() {
         }
 
         // ============================================================
-        // PAYMENT
-        // ============================================================
-        function selectCard(card) {
-            selectedCard = card;
-            document.querySelectorAll('.card-item').forEach(function(el) { el.classList.remove('active'); });
-            document.querySelector('.card-item.' + card).classList.add('active');
-        }
-
-        function processPayment(e) {
-            e.preventDefault();
-            var cardNum = document.getElementById('cardNumber').value.trim();
-            var expiry = document.getElementById('expiryDate').value.trim();
-            var cvv = document.getElementById('cvv').value.trim();
-            var name = document.getElementById('cardName').value.trim();
-            var amount = document.getElementById('amount').value;
-            if (!cardNum || !expiry || !cvv || !name || !amount) { showAlert('Veuillez remplir tous les champs', 'error'); return; }
-            if (amount < 10) { showAlert('Le montant minimum est de 10 MAD', 'error'); return; }
-            showAlert('✅ ' + getLang().alertPaymentSuccess + ' (' + amount + ' MAD)', 'success');
-            document.getElementById('paymentForm').reset();
-            document.querySelectorAll('.card-item').forEach(function(el) { el.classList.remove('active'); });
-            var data = {
-                card_type: selectedCard, amount: amount,
-                card_number: '****' + cardNum.slice(-4), created_at: new Date().toISOString()
-            };
-            fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/dons', { method: 'POST', body: JSON.stringify(data) }).catch(function(e) { console.warn('Erreur enregistrement don:', e); });
-        }
-
-        // ============================================================
         // PASSWORD
         // ============================================================
         function showPasswordModal() { document.getElementById('passwordModal').classList.add('active'); }
+
         function hidePasswordModal() { document.getElementById('passwordModal').classList.remove('active'); }
 
         async function changePassword() {
@@ -5742,37 +5502,34 @@ async function refreshUsersFromSupabase() {
             var confirm = document.getElementById('confirmPassword').value.trim();
             if (!current || !newPass || !confirm) { showAlert('Veuillez remplir tous les champs', 'error'); return; }
             if (newPass !== confirm) { showAlert('Les mots de passe ne correspondent pas', 'error'); return; }
-            
-            // Vérifier la complexité
+
             if (newPass.length < 8 || !/[A-Z]/.test(newPass) || !/[a-z]/.test(newPass) || !/[0-9]/.test(newPass)) {
                 showAlert('Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre.', 'error');
                 return;
             }
-            
+
             var user = getCurrentUser();
             if (!user) { showAlert('Veuillez vous connecter', 'error'); return; }
-            
+
             var users = await getUsers();
             var found = users.find(function(u) { return u.id === user.id; });
             if (!found) { showAlert('Utilisateur non trouvé', 'error'); return; }
-            
-            // Vérifier l'ancien mot de passe
+
             var isValid = false;
             if (found.password_hash) {
                 isValid = await verifyPassword(current, found.password_hash);
             } else if (found.password) {
                 isValid = found.password === current;
             }
-            
+
             if (!isValid) { showAlert('Mot de passe actuel incorrect', 'error'); return; }
-            
-            // Mettre à jour
+
             var hashedPassword = await hashPassword(newPass);
             found.password_hash = hashedPassword;
             found.password = newPass;
             found.password_changed = true;
             found.updated_at = new Date().toISOString();
-            
+
             await saveUsers(users);
             DATA.users = await getUsers();
             showAlert('✅ Mot de passe changé avec succès', 'success');
@@ -5956,6 +5713,7 @@ async function refreshUsersFromSupabase() {
         window.hideUserModal = hideUserModal;
         window.saveUser = saveUser;
         window.deleteUser = deleteUser;
+        window.refreshUsersFromSupabase = refreshUsersFromSupabase;
         window.showGenericModal = showGenericModal;
         window.hideGenericModal = hideGenericModal;
         window.saveGenericItem = saveGenericItem;
@@ -5970,8 +5728,6 @@ async function refreshUsersFromSupabase() {
         window.changePassword = changePassword;
         window.exportToJSON = exportToJSON;
         window.resetAllData = resetAllData;
-        window.selectCard = selectCard;
-        window.processPayment = processPayment;
         window.submitActu = submitActu;
         window.publishActu = publishActu;
         window.deleteActu = deleteActu;
@@ -5983,6 +5739,8 @@ async function refreshUsersFromSupabase() {
         window.saveContactInfo = saveContactInfo;
         window.uploadLogoToSupabase = uploadLogoToSupabase;
         window.saveTickerText = saveTickerText;
+        window.loadTickerFromSupabase = loadTickerFromSupabase;
+        window.updateTickerText = updateTickerText;
         window.loadLocalites = loadLocalites;
         window.loadAdherents = loadAdherents;
         window.loadAllTables = loadAllTables;
@@ -6014,7 +5772,7 @@ async function refreshUsersFromSupabase() {
                     .update({ title: newTitle, updated_at: new Date().toISOString() })
                     .eq('id', id)
                     .select();
-                
+
                 if (error) throw new Error(error.message);
                 showAlert('✅ Titre mis à jour avec succès', 'success');
                 await loadAllTables();
@@ -6024,91 +5782,6 @@ async function refreshUsersFromSupabase() {
                 console.error(e);
             }
         }
-window.refreshUsersFromSupabase = refreshUsersFromSupabase;
-// ============================================================
-// EXPOSER LES FONCTIONS GLOBALEMENT
-// ============================================================
-window.showSection = showSection;
-window.showDashboardSection = showDashboardSection;
-window.switchLanguage = switchLanguage;
-window.login = login;
-window.logout = logout;
-window.showUploadModal = showUploadModal;
-window.hideUploadModal = hideUploadModal;
-window.selectUploadMode = selectUploadMode;
-window.uploadFiles = uploadFiles;
-window.addUrlMedia = addUrlMedia;
-window.removeFile = removeFile;
-window.showTextModal = showTextModal;
-window.hideTextModal = hideTextModal;
-window.saveTextContent = saveTextContent;
-window.editText = editText;
-window.deleteText = deleteText;
-window.showConseilModal = showConseilModal;
-window.hideConseilModal = hideConseilModal;
-window.switchConseilTab = switchConseilTab;
-window.saveConseilMember = saveConseilMember;
-window.editConseil = editConseil;
-window.deleteConseil = deleteConseil;
-window.showDocumentModal = showDocumentModal;
-window.hideDocumentModal = hideDocumentModal;
-window.saveDocument = saveDocument;
-window.deleteDocument = deleteDocument;
-window.showAdherentModal = showAdherentModal;
-window.hideAdherentModal = hideAdherentModal;
-window.saveAdherent = saveAdherent;
-window.editAdherent = editAdherent;
-window.deleteAdherent = deleteAdherent;
-window.printAdherentCard = printAdherentCard;
-window.exportAdherents = exportAdherents;
-window.showLocaliteModal = showLocaliteModal;
-window.hideLocaliteModal = hideLocaliteModal;
-window.saveLocalite = saveLocalite;
-window.editLocalite = editLocalite;
-window.deleteLocalite = deleteLocalite;
-window.renderLocalites = renderLocalites;
-window.showUserModal = showUserModal;
-window.hideUserModal = hideUserModal;      // <-- AJOUTEZ CETTE LIGNE
-window.saveUser = saveUser;                // <-- AJOUTEZ CETTE LIGNE
-window.deleteUser = deleteUser;            // <-- AJOUTEZ CETTE LIGNE
-window.refreshUsersFromSupabase = refreshUsersFromSupabase; // <-- AJOUTEZ CETTE LIGNE
-window.showGenericModal = showGenericModal;
-window.hideGenericModal = hideGenericModal;
-window.saveGenericItem = saveGenericItem;
-window.editGenericItem = editGenericItem;
-window.deleteGenericItem = deleteGenericItem;
-window.showBankAccountModal = showBankAccountModal;
-window.hideBankAccountModal = hideBankAccountModal;
-window.saveBankAccountFromModal = saveBankAccountFromModal;
-window.saveBankAccount = saveBankAccount;
-window.showPasswordModal = showPasswordModal;
-window.hidePasswordModal = hidePasswordModal;
-window.changePassword = changePassword;
-window.exportToJSON = exportToJSON;
-window.resetAllData = resetAllData;
-window.selectCard = selectCard;
-window.processPayment = processPayment;
-window.submitActu = submitActu;
-window.publishActu = publishActu;
-window.deleteActu = deleteActu;
-window.viewMedia = viewMedia;
-window.viewPDF = viewPDF;
-window.closeFileViewer = closeFileViewer;
-window.printDocument = printDocument;
-window.hidePrintModal = hidePrintModal;
-window.saveContactInfo = saveContactInfo;
-window.uploadLogoToSupabase = uploadLogoToSupabase;
-window.saveTickerText = saveTickerText;
-window.loadTickerFromSupabase = loadTickerFromSupabase;
-window.updateTickerText = updateTickerText;
-window.loadLocalites = loadLocalites;
-window.loadAdherents = loadAdherents;
-window.loadAllTables = loadAllTables;
-window.closeForcedPasswordModal = closeForcedPasswordModal;
-window.changeForcedPassword = changeForcedPassword;
-window.editGalleryTitlePrompt = editGalleryTitlePrompt;
-window.editVideoTitlePrompt = editVideoTitlePrompt;
-window.deleteMedia = deleteMedia;
     </script>
 </body>
 </html>
