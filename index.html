@@ -3422,58 +3422,60 @@
         // DATA LOADING
         // ============================================================
         async function loadAllTables() {
-            try {
-                await loadLocalites();
-                await loadAdherents();
+    try {
+        await loadLocalites();
+        await loadAdherents();
 
-                var tables = ['betail', 'produits', 'arbres', 'eau', 'sagia', 'conseil', 'documents_admin', 'gallery', 'videos', 'articles', 'texts', 'actu', 'dons'];
-                for (var t of tables) {
-                    var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + t + '?select=*');
-                    if (resp.ok) {
-                        var data = await resp.json();
-                        var key = t === 'documents_admin' ? 'documentsAdmin' : t;
-                        DATA[key] = data || [];
-                        console.log('✅ ' + t + ' : ' + DATA[key].length);
-                    } else {
-                        DATA[t] = [];
-                    }
-                }
-
-                DATA.users = await getUsers();
-
-                renderBetail();
-                renderProduits();
-                renderArbres();
-                renderEau();
-                renderSagia();
-                renderConseil();
-                renderDocuments();
-                renderGallery();
-                renderVideos();
-                renderArticles();
-                renderActu();
-                renderLocalites();
-                renderAdherents();
-                updateStats();
-
-                var user = getCurrentUser();
-                if (user) {
-                    document.getElementById('conseilProtected').style.display = 'none';
-                    document.getElementById('conseilContent').style.display = 'block';
-                    document.getElementById('documentsProtected').style.display = 'none';
-                    document.getElementById('documentsContent').style.display = 'block';
-                    renderConseilAdmin();
-                    renderDocumentsAdminList();
-                    renderGalleryAdmin();
-                    renderVideosAdmin();
-                    renderPublicationsAdmin();
-                    renderTexts();
-                    renderDashboardTables();
-                    renderUsers();
-                }
-            } catch (e) { console.error('Erreur loadAllTables', e); }
+        var tables = ['betail', 'produits', 'arbres', 'eau', 'sagia', 'conseil', 'documents_admin', 'gallery', 'videos', 'articles', 'texts', 'actu', 'dons'];
+        for (var t of tables) {
+            var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + t + '?select=*');
+            if (resp.ok) {
+                var data = await resp.json();
+                var key = t === 'documents_admin' ? 'documentsAdmin' : t;
+                DATA[key] = data || [];
+                console.log('✅ ' + t + ' : ' + DATA[key].length);
+            } else {
+                console.warn('⚠️ Table ' + t + ' non trouvée ou vide');
+                DATA[t] = [];
+            }
         }
 
+        DATA.users = await getUsers();
+
+        renderBetail();
+        renderProduits();
+        renderArbres();
+        renderEau();        // ✅ Appel de renderEau
+        renderSagia();
+        renderConseil();
+        renderDocuments();
+        renderGallery();
+        renderVideos();
+        renderArticles();
+        renderActu();
+        renderLocalites();
+        renderAdherents();
+        updateStats();
+
+        var user = getCurrentUser();
+        if (user) {
+            document.getElementById('conseilProtected').style.display = 'none';
+            document.getElementById('conseilContent').style.display = 'block';
+            document.getElementById('documentsProtected').style.display = 'none';
+            document.getElementById('documentsContent').style.display = 'block';
+            renderConseilAdmin();
+            renderDocumentsAdminList();
+            renderGalleryAdmin();
+            renderVideosAdmin();
+            renderPublicationsAdmin();
+            renderTexts();
+            renderDashboardTables();
+            renderUsers();
+        }
+    } catch (e) { 
+        console.error('Erreur loadAllTables', e); 
+    }
+}
         function renderAll() { loadAllTables(); }
 
         // ============================================================
