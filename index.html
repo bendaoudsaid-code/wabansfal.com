@@ -564,7 +564,10 @@
         .admin-mode #contactEditForm { display: block !important; }
         #bankAccountEditBtn { display: none !important; }
         .admin-mode #bankAccountEditBtn { display: inline-block !important; }
-
+        /* Masquer les éléments admin par défaut */
+        .admin-only { display: none !important; }
+        .admin-mode .admin-only { display: inline-block !important; }
+        
         .settings-section { margin-top: 20px; padding: 20px; background: var(--light); border-radius: 10px; }
         .settings-section h3 { color: var(--dark); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
         .settings-section h3 i { color: var(--primary); }
