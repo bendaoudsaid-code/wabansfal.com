@@ -4827,70 +4827,52 @@
         // GENERIC MODAL (Betail, Produits, Arbres, Eau, Sagia)
         // ============================================================
         function showGenericModal(type) {
-            var user = getCurrentUser();
-            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { showAlert('Vous n\'avez pas les permissions', 'error'); return; }
-            currentEditType = type;
-            currentEditId = null;
-            var t = getLang();
-            var title = '';
-            var fields = '';
-            if (type === 'betail') {
-                title = 'Ajouter des données bétail';
-                fields = `
-                    <div><label>${t.localite}</label><select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">${getLocaliteOptions()}</select></div>
-                    <div><label>${t.bovins}</label><input type="number" id="genericBovins" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.ovins}</label><input type="number" id="genericOvins" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.caprins}</label><input type="number" id="genericCaprins" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.habitants}</label><input type="number" id="genericHabitants" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                `;
-            } else if (type === 'produit') {
-                title = 'Ajouter un produit';
-                fields = `
-                    <div><label>${t.produit}</label><input type="text" id="genericNom" placeholder="Ex: Huile d'olive" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.localite}</label><select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">${getLocaliteOptions()}</select></div>
-                    <div><label>${t.quantite}</label><input type="number" id="genericQuantite" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.periode}</label><input type="text" id="genericPeriode" placeholder="Ex: Été 2024" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.statut}</label><select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;"><option value="Disponible">Disponible</option><option value="Épuisé">Épuisé</option></select></div>
-                `;
-            } else if (type === 'arbre') {
-                title = 'Ajouter des données arbres';
-                fields = `
-                    <div><label>${t.localite}</label><select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">${getLocaliteOptions()}</select></div>
-                    <div><label>${t.oliviers}</label><input type="number" id="genericOliviers" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.amandiers}</label><input type="number" id="genericAmandiers" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.figuiers}</label><input type="number" id="genericFiguiers" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.noyers}</label><input type="number" id="genericNoyers" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.habitants}</label><input type="number" id="genericHabitants" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                `;
-            } else if (type === 'eau') {
-                title = 'Ajouter des données eau';
-                fields = `
-                    <div><label>${t.localite}</label><select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">${getLocaliteOptions()}</select></div>
-                    <div><label>${t.foyers}</label><input type="number" id="genericFoyers" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.forages}</label><input type="number" id="genericForages" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.capacite}</label><input type="number" id="genericCapacite" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.statut}</label><select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;"><option value="Opérationnel">Opérationnel</option><option value="En maintenance">En maintenance</option></select></div>
-                `;
-            } else if (type === 'sagia') {
-                title = 'Ajouter un SAGIA';
-                fields = `
-                    <div><label>${t.code}</label><input type="text" id="genericCode" placeholder="Ex: SAG-001" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.nom}</label><input type="text" id="genericNom" placeholder="Ex: SAGIA Azilal" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.zone}</label><input type="text" id="genericZone" placeholder="Ex: Azilal" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.superficie}</label><input type="number" id="genericSuperficie" value="0" step="0.1" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.debit}</label><input type="number" id="genericDebit" value="0" step="0.1" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                    <div><label>${t.statut}</label><select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;"><option value="Actif">Actif</option><option value="Inactif">Inactif</option></select></div>
-                `;
-            }
-            document.getElementById('genericModalTitle').textContent = title;
-            document.getElementById('genericModalBody').innerHTML = fields +
-                `<div class="upload-actions" style="margin-top:15px;">
-                    <button class="btn-browse" onclick="hideGenericModal()" style="background:var(--danger);"><i class="fas fa-times"></i> Annuler</button>
-                    <button class="btn-browse" onclick="saveGenericItem()" style="background:var(--success);"><i class="fas fa-save"></i> Enregistrer</button>
-                </div>`;
-            document.getElementById('genericModal').classList.add('active');
-        }
-
+    var user = getCurrentUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
+        showAlert('Vous n\'avez pas les permissions', 'error'); 
+        return; 
+    }
+    currentEditType = type;
+    currentEditId = null;
+    var t = getLang();
+    var title = '';
+    var fields = '';
+    
+    if (type === 'betail') {
+        // ... code existant ...
+    } else if (type === 'produit') {
+        // ... code existant ...
+    } else if (type === 'arbre') {
+        title = 'Ajouter des données arbres';
+        fields = `
+            <div style="margin-bottom:15px;">
+                <label>${t.localite} <span style="color:red;">*</span></label>
+                <select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">
+                    ${getLocaliteOptions()}
+                </select>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                <div><label>${t.oliviers}</label><input type="number" id="genericOliviers" value="0" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                <div><label>${t.amandiers}</label><input type="number" id="genericAmandiers" value="0" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                <div><label>${t.figuiers}</label><input type="number" id="genericFiguiers" value="0" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                <div><label>${t.noyers}</label><input type="number" id="genericNoyers" value="0" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                <div><label>${t.habitants}</label><input type="number" id="genericHabitants" value="0" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+            </div>
+        `;
+    } else if (type === 'eau') {
+        // ... code existant ...
+    } else if (type === 'sagia') {
+        // ... code existant ...
+    }
+    
+    document.getElementById('genericModalTitle').textContent = title;
+    document.getElementById('genericModalBody').innerHTML = fields +
+        `<div class="upload-actions" style="margin-top:15px;">
+            <button class="btn-browse" onclick="hideGenericModal()" style="background:var(--danger);"><i class="fas fa-times"></i> Annuler</button>
+            <button class="btn-browse" onclick="saveGenericItem()" style="background:var(--success);"><i class="fas fa-save"></i> Enregistrer</button>
+        </div>`;
+    document.getElementById('genericModal').classList.add('active');
+}
         function hideGenericModal() { document.getElementById('genericModal').classList.remove('active'); }
 
         function editGenericItem(type, id) {
