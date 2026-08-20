@@ -2546,30 +2546,35 @@
         }
 
         async function logout() {
-            var t = getLang();
-            if (!confirm(t.alertLogout + ' ?')) return;
-            await logoutSupabase();
-            DATA.isAdmin = false;
-            DATA.currentUser = null;
-            DATA.userRole = null;
-            DATA.forcePasswordChange = false;
-            document.getElementById('loginForm').classList.remove('hidden');
-            document.getElementById('userInfo').classList.add('hidden');
-            document.body.classList.remove('admin-mode');
-            document.getElementById('addBtn').style.display = 'none';
-            document.getElementById('loginBtn').style.display = 'flex';
-            document.getElementById('menuDashboard').classList.add('hidden');
-            document.getElementById('contactEditForm').style.display = 'none';
-            document.getElementById('bankAccountEditBtn').style.display = 'none';
-            document.getElementById('conseilProtected').style.display = 'block';
-            document.getElementById('conseilContent').style.display = 'none';
-            document.getElementById('documentsProtected').style.display = 'block';
-            document.getElementById('documentsContent').style.display = 'none';
-            try { localStorage.removeItem('ansfal_current_user'); } catch (e) {}
-            showAlert(t.alertLogout, 'info');
-            renderAll();
-            showSection('home');
-        }
+    var t = getLang();
+    if (!confirm(t.alertLogout + ' ?')) return;
+    await logoutSupabase();
+    DATA.isAdmin = false;
+    DATA.currentUser = null;
+    DATA.userRole = null;
+    DATA.forcePasswordChange = false;
+    
+    document.getElementById('loginForm').classList.remove('hidden');
+    document.getElementById('userInfo').classList.add('hidden');
+    document.body.classList.remove('admin-mode');
+    document.getElementById('addBtn').style.display = 'none';
+    document.getElementById('loginBtn').style.display = 'flex';
+    document.getElementById('menuDashboard').classList.add('hidden');
+    document.getElementById('menuDocuments').style.display = 'none';
+    document.getElementById('contactEditForm').style.display = 'none';
+    document.getElementById('bankAccountEditBtn').style.display = 'none';
+    
+    // Masquer le conseil et les documents
+    document.getElementById('conseilProtected').style.display = 'block';
+    document.getElementById('conseilContent').style.display = 'none';
+    document.getElementById('documentsProtected').style.display = 'block';
+    document.getElementById('documentsContent').style.display = 'none';
+    
+    try { localStorage.removeItem('ansfal_current_user'); } catch (e) {}
+    showAlert(t.alertLogout, 'info');
+    renderAll();
+    showSection('home');
+}
 
         function getCurrentUser() {
             try {
