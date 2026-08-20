@@ -3422,60 +3422,58 @@
         // DATA LOADING
         // ============================================================
         async function loadAllTables() {
-    try {
-        await loadLocalites();
-        await loadAdherents();
+            try {
+                await loadLocalites();
+                await loadAdherents();
 
-        var tables = ['betail', 'produits', 'arbres', 'eau', 'sagia', 'conseil', 'documents_admin', 'gallery', 'videos', 'articles', 'texts', 'actu', 'dons'];
-        for (var t of tables) {
-            var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + t + '?select=*');
-            if (resp.ok) {
-                var data = await resp.json();
-                var key = t === 'documents_admin' ? 'documentsAdmin' : t;
-                DATA[key] = data || [];
-                console.log('✅ ' + t + ' : ' + DATA[key].length);
-            } else {
-                console.warn('⚠️ Table ' + t + ' non trouvée ou vide');
-                DATA[t] = [];
-            }
+                var tables = ['betail', 'produits', 'arbres', 'eau', 'sagia', 'conseil', 'documents_admin', 'gallery', 'videos', 'articles', 'texts', 'actu', 'dons'];
+                for (var t of tables) {
+                    var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + t + '?select=*');
+                    if (resp.ok) {
+                        var data = await resp.json();
+                        var key = t === 'documents_admin' ? 'documentsAdmin' : t;
+                        DATA[key] = data || [];
+                        console.log('✅ ' + t + ' : ' + DATA[key].length);
+                    } else {
+                        DATA[t] = [];
+                    }
+                }
+
+                DATA.users = await getUsers();
+
+                renderBetail();
+                renderProduits();
+                renderArbres();
+                renderEau();
+                renderSagia();
+                renderConseil();
+                renderDocuments();
+                renderGallery();
+                renderVideos();
+                renderArticles();
+                renderActu();
+                renderLocalites();
+                renderAdherents();
+                updateStats();
+
+                var user = getCurrentUser();
+                if (user) {
+                    document.getElementById('conseilProtected').style.display = 'none';
+                    document.getElementById('conseilContent').style.display = 'block';
+                    document.getElementById('documentsProtected').style.display = 'none';
+                    document.getElementById('documentsContent').style.display = 'block';
+                    renderConseilAdmin();
+                    renderDocumentsAdminList();
+                    renderGalleryAdmin();
+                    renderVideosAdmin();
+                    renderPublicationsAdmin();
+                    renderTexts();
+                    renderDashboardTables();
+                    renderUsers();
+                }
+            } catch (e) { console.error('Erreur loadAllTables', e); }
         }
 
-        DATA.users = await getUsers();
-
-        renderBetail();
-        renderProduits();
-        renderArbres();
-        renderEau();        // ✅ Appel de renderEau
-        renderSagia();
-        renderConseil();
-        renderDocuments();
-        renderGallery();
-        renderVideos();
-        renderArticles();
-        renderActu();
-        renderLocalites();
-        renderAdherents();
-        updateStats();
-
-        var user = getCurrentUser();
-        if (user) {
-            document.getElementById('conseilProtected').style.display = 'none';
-            document.getElementById('conseilContent').style.display = 'block';
-            document.getElementById('documentsProtected').style.display = 'none';
-            document.getElementById('documentsContent').style.display = 'block';
-            renderConseilAdmin();
-            renderDocumentsAdminList();
-            renderGalleryAdmin();
-            renderVideosAdmin();
-            renderPublicationsAdmin();
-            renderTexts();
-            renderDashboardTables();
-            renderUsers();
-        }
-    } catch (e) { 
-        console.error('Erreur loadAllTables', e); 
-    }
-}
         function renderAll() { loadAllTables(); }
 
         // ============================================================
@@ -3556,29 +3554,16 @@
         }
 
         function renderEau() {
-            function renderEau() {
-    var items = DATA.eau || [],
-        body = document.getElementById('eauBody');
-    if (!body) return;
-    if (items.length === 0) { 
-        body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>'; 
-        return; 
-    }
-    body.innerHTML = items.map(function(item) {
-        // 🔧 Utiliser localite_id pour récupérer le nom
-        var localite = item.localite_id ? getLocaliteName(item.localite_id) : 'Non définie';
-        
-        // Afficher le statut dans la bonne langue
-        var statut = '';
-        if (document.body.classList.contains('rtl')) {
-            statut = item.statut_ar || item.statut || 'قيد التشغيل';
-        } else {
-            statut = item.statut || 'Opérationnel';
+            var items = DATA.eau || [],
+                body = document.getElementById('eauBody');
+            if (!body) return;
+            if (items.length === 0) { body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>'; return; }
+            body.innerHTML = items.map(function(item) {
+                var localite = getLocaliteName(item.localite_id);
+                var statut = document.body.classList.contains('rtl') ? (item.statut_ar || item.statut || 'قيد التشغيل') : (item.statut || 'Opérationnel');
+                return '<tr><td><strong>' + localite + '</strong></td><td>' + (item.foyers || 0) + '</td><td>' + (item.forages || 0) + '</td><td>' + (item.capacite || 0) + '</td><td>' + statut + '</td></tr>';
+            }).join('');
         }
-        
-        return '<tr><td><strong>' + localite + '</strong></td><td>' + (item.foyers || 0) + '</td><td>' + (item.forages || 0) + '</td><td>' + (item.capacite || 0) + '</td><td>' + statut + '</td></tr>';
-    }).join('');
-}
 
         function renderSagia() {
             var items = DATA.sagia || [],
@@ -4842,381 +4827,216 @@
         // GENERIC MODAL (Betail, Produits, Arbres, Eau, Sagia)
         // ============================================================
         function showGenericModal(type) {
-    var user = getCurrentUser();
-    if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
-        showAlert('Vous n\'avez pas les permissions', 'error'); 
-        return; 
-    }
-    currentEditType = type;
-    currentEditId = null;
-    var t = getLang();
-    var title = '';
-    var fields = '';
-    
-    if (type === 'betail') {
-        // ... code existant ...
-    } else if (type === 'produit') {
-        // ... code existant ...
-    } else if (type === 'arbre') {
-        title = 'Ajouter des données arbres';
-        fields = `
-            <div style="margin-bottom:15px;">
-                <label>${t.localite} <span style="color:red;">*</span></label>
-                <select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">
-                    ${getLocaliteOptions()}
-                </select>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
-                <div><label>${t.oliviers}</label><input type="number" id="genericOliviers" value="0" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                <div><label>${t.amandiers}</label><input type="number" id="genericAmandiers" value="0" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                <div><label>${t.figuiers}</label><input type="number" id="genericFiguiers" value="0" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                <div><label>${t.noyers}</label><input type="number" id="genericNoyers" value="0" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                <div><label>${t.habitants}</label><input type="number" id="genericHabitants" value="0" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-            </div>
-        `;
-           } else if (type === 'eau') {
-    title = 'Ajouter des données eau';
-    fields = `
-        <div style="margin-bottom:15px;">
-            <label>${t.localite} <span style="color:red;">*</span></label>
-            <select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">
-                ${getLocaliteOptions()}
-            </select>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
-            <div><label>${t.foyers}</label><input type="number" id="genericFoyers" value="0" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-            <div><label>${t.forages}</label><input type="number" id="genericForages" value="0" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-            <div><label>${t.capacite}</label><input type="number" id="genericCapacite" value="0" min="0" step="0.1" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-            <div><label>${t.statut}</label>
-                <select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">
-                    <option value="Opérationnel">Opérationnel</option>
-                    <option value="En maintenance">En maintenance</option>
-                    <option value="Hors service">Hors service</option>
-                </select>
-            </div>
-        </div>
-    `;
-}
-    } else if (type === 'sagia') {
-        // ... code existant ...
-    }
-    
-    document.getElementById('genericModalTitle').textContent = title;
-    document.getElementById('genericModalBody').innerHTML = fields +
-        `<div class="upload-actions" style="margin-top:15px;">
-            <button class="btn-browse" onclick="hideGenericModal()" style="background:var(--danger);"><i class="fas fa-times"></i> Annuler</button>
-            <button class="btn-browse" onclick="saveGenericItem()" style="background:var(--success);"><i class="fas fa-save"></i> Enregistrer</button>
-        </div>`;
-    document.getElementById('genericModal').classList.add('active');
-}
+            var user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { showAlert('Vous n\'avez pas les permissions', 'error'); return; }
+            currentEditType = type;
+            currentEditId = null;
+            var t = getLang();
+            var title = '';
+            var fields = '';
+            if (type === 'betail') {
+                title = 'Ajouter des données bétail';
+                fields = `
+                    <div><label>${t.localite}</label><select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">${getLocaliteOptions()}</select></div>
+                    <div><label>${t.bovins}</label><input type="number" id="genericBovins" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.ovins}</label><input type="number" id="genericOvins" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.caprins}</label><input type="number" id="genericCaprins" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.habitants}</label><input type="number" id="genericHabitants" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                `;
+            } else if (type === 'produit') {
+                title = 'Ajouter un produit';
+                fields = `
+                    <div><label>${t.produit}</label><input type="text" id="genericNom" placeholder="Ex: Huile d'olive" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.localite}</label><select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">${getLocaliteOptions()}</select></div>
+                    <div><label>${t.quantite}</label><input type="number" id="genericQuantite" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.periode}</label><input type="text" id="genericPeriode" placeholder="Ex: Été 2024" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.statut}</label><select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;"><option value="Disponible">Disponible</option><option value="Épuisé">Épuisé</option></select></div>
+                `;
+            } else if (type === 'arbre') {
+                title = 'Ajouter des données arbres';
+                fields = `
+                    <div><label>${t.localite}</label><select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">${getLocaliteOptions()}</select></div>
+                    <div><label>${t.oliviers}</label><input type="number" id="genericOliviers" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.amandiers}</label><input type="number" id="genericAmandiers" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.figuiers}</label><input type="number" id="genericFiguiers" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.noyers}</label><input type="number" id="genericNoyers" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.habitants}</label><input type="number" id="genericHabitants" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                `;
+            } else if (type === 'eau') {
+                title = 'Ajouter des données eau';
+                fields = `
+                    <div><label>${t.localite}</label><select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">${getLocaliteOptions()}</select></div>
+                    <div><label>${t.foyers}</label><input type="number" id="genericFoyers" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.forages}</label><input type="number" id="genericForages" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.capacite}</label><input type="number" id="genericCapacite" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.statut}</label><select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;"><option value="Opérationnel">Opérationnel</option><option value="En maintenance">En maintenance</option></select></div>
+                `;
+            } else if (type === 'sagia') {
+                title = 'Ajouter un SAGIA';
+                fields = `
+                    <div><label>${t.code}</label><input type="text" id="genericCode" placeholder="Ex: SAG-001" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.nom}</label><input type="text" id="genericNom" placeholder="Ex: SAGIA Azilal" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.zone}</label><input type="text" id="genericZone" placeholder="Ex: Azilal" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.superficie}</label><input type="number" id="genericSuperficie" value="0" step="0.1" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.debit}</label><input type="number" id="genericDebit" value="0" step="0.1" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.statut}</label><select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;"><option value="Actif">Actif</option><option value="Inactif">Inactif</option></select></div>
+                `;
+            }
+            document.getElementById('genericModalTitle').textContent = title;
+            document.getElementById('genericModalBody').innerHTML = fields +
+                `<div class="upload-actions" style="margin-top:15px;">
+                    <button class="btn-browse" onclick="hideGenericModal()" style="background:var(--danger);"><i class="fas fa-times"></i> Annuler</button>
+                    <button class="btn-browse" onclick="saveGenericItem()" style="background:var(--success);"><i class="fas fa-save"></i> Enregistrer</button>
+                </div>`;
+            document.getElementById('genericModal').classList.add('active');
+        }
+
         function hideGenericModal() { document.getElementById('genericModal').classList.remove('active'); }
 
         function editGenericItem(type, id) {
-    var user = getCurrentUser();
-    if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
-        showAlert('Vous n\'avez pas les permissions', 'error'); 
-        return; 
-    }
-    
-    // 🔧 CORRECTION : Utiliser la bonne table pour récupérer les données
-    var tableName = type;
-    if (type === 'arbre') {
-        tableName = 'arbres';
-    }
-    
-    var items = DATA[tableName] || [];
-    var item = items.find(function(el) { return el.id === id; });
-    if (!item) { 
-        showAlert('Élément non trouvé', 'error'); 
-        return; 
-    }
-    
-    currentEditType = type;
-    currentEditId = id;
-    var t = getLang();
-    var title = '';
-    var fields = '';
-    
-    if (type === 'betail') {
-        title = 'Modifier les données bétail';
-        var localiteId = item.localite_id || (item.localite && item.localite.id) || 0;
-        fields = `
-            <div style="margin-bottom:15px;">
-                <label>${t.localite} <span style="color:red;">*</span></label>
-                <select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">
-                    ${getLocaliteOptions(localiteId)}
-                </select>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
-                <div><label>${t.bovins}</label><input type="number" id="genericBovins" value="${item.bovins || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                <div><label>${t.ovins}</label><input type="number" id="genericOvins" value="${item.ovins || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                <div><label>${t.caprins}</label><input type="number" id="genericCaprins" value="${item.caprins || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                <div><label>${t.habitants}</label><input type="number" id="genericHabitants" value="${item.habitants || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-            </div>
-        `;
-    } else if (type === 'produit') {
-        // ... code existant ...
-    } else if (type === 'arbre') {
-        title = 'Modifier les données arbres';
-        var localiteId = item.localite_id || (item.localite && item.localite.id) || 0;
-        fields = `
-            <div style="margin-bottom:15px;">
-                <label>${t.localite} <span style="color:red;">*</span></label>
-                <select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">
-                    ${getLocaliteOptions(localiteId)}
-                </select>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
-                <div><label>${t.oliviers}</label><input type="number" id="genericOliviers" value="${item.oliviers || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                <div><label>${t.amandiers}</label><input type="number" id="genericAmandiers" value="${item.amandiers || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                <div><label>${t.figuiers}</label><input type="number" id="genericFiguiers" value="${item.figuiers || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                <div><label>${t.noyers}</label><input type="number" id="genericNoyers" value="${item.noyers || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-                <div><label>${t.habitants}</label><input type="number" id="genericHabitants" value="${item.habitants || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-            </div>
-        `;
-    } else if (type === 'eau') {
-    title = 'Modifier les données eau';
-    var localiteId = item.localite_id || 0;
-    fields = `
-        <div style="margin-bottom:15px;">
-            <label>${t.localite} <span style="color:red;">*</span></label>
-            <select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">
-                ${getLocaliteOptions(localiteId)}
-            </select>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
-            <div><label>${t.foyers}</label><input type="number" id="genericFoyers" value="${item.foyers || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-            <div><label>${t.forages}</label><input type="number" id="genericForages" value="${item.forages || 0}" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-            <div><label>${t.capacite}</label><input type="number" id="genericCapacite" value="${item.capacite || 0}" min="0" step="0.1" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
-            <div><label>${t.statut}</label>
-                <select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">
-                    <option value="Opérationnel" ${item.statut === 'Opérationnel' ? 'selected' : ''}>Opérationnel</option>
-                    <option value="En maintenance" ${item.statut === 'En maintenance' ? 'selected' : ''}>En maintenance</option>
-                    <option value="Hors service" ${item.statut === 'Hors service' ? 'selected' : ''}>Hors service</option>
-                </select>
-            </div>
-        </div>
-    `;
-}
-    } else if (type === 'sagia') {
-        // ... code existant ...
-    }
-    
-    document.getElementById('genericModalTitle').textContent = title;
-    document.getElementById('genericModalBody').innerHTML = fields +
-        `<div class="upload-actions" style="margin-top:15px;">
-            <button class="btn-browse" onclick="hideGenericModal()" style="background:var(--danger);"><i class="fas fa-times"></i> Annuler</button>
-            <button class="btn-browse" onclick="saveGenericItem()" style="background:var(--success);"><i class="fas fa-save"></i> Enregistrer</button>
-        </div>`;
-    document.getElementById('genericModal').classList.add('active');
-}
-        async function saveGenericItem() {
-    var type = currentEditType;
-    var t = getLang();
-    
-    var data = { updated_at: new Date().toISOString() };
-    var tableName = type; // Par défaut, le type est le nom de la table
-    
-    if (type === 'betail') {
-        var localiteId = parseInt(document.getElementById('genericLocalite').value);
-        if (!localiteId) { 
-            showAlert('Veuillez sélectionner une localité', 'error'); 
-            return; 
+            var user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { showAlert('Vous n\'avez pas les permissions', 'error'); return; }
+            var items = DATA[type] || [];
+            var item = items.find(function(el) { return el.id === id; });
+            if (!item) { showAlert('Élément non trouvé', 'error'); return; }
+            currentEditType = type;
+            currentEditId = id;
+            var t = getLang();
+            var title = type === 'betail' ? 'Modifier les données bétail' : type === 'produit' ? 'Modifier le produit' : type === 'arbre' ? 'Modifier les données arbres' : type === 'eau' ? 'Modifier les données eau' : 'Modifier le SAGIA';
+            var fields = '';
+            if (type === 'betail') {
+                fields = `
+                    <div><label>${t.localite}</label><select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">${getLocaliteOptions(item.localite_id)}</select></div>
+                    <div><label>${t.bovins}</label><input type="number" id="genericBovins" value="${item.bovins || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.ovins}</label><input type="number" id="genericOvins" value="${item.ovins || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.caprins}</label><input type="number" id="genericCaprins" value="${item.caprins || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.habitants}</label><input type="number" id="genericHabitants" value="${item.habitants || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                `;
+            } else if (type === 'produit') {
+                fields = `
+                    <div><label>${t.produit}</label><input type="text" id="genericNom" value="${item.nom || item.nom_fr || ''}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.localite}</label><select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">${getLocaliteOptions(item.localite_id)}</select></div>
+                    <div><label>${t.quantite}</label><input type="number" id="genericQuantite" value="${item.quantite || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.periode}</label><input type="text" id="genericPeriode" value="${item.periode || ''}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.statut}</label><select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;"><option value="Disponible" ${item.statut === 'Disponible' ? 'selected' : ''}>Disponible</option><option value="Épuisé" ${item.statut === 'Épuisé' ? 'selected' : ''}>Épuisé</option></select></div>
+                `;
+            } else if (type === 'arbre') {
+                fields = `
+                    <div><label>${t.localite}</label><select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">${getLocaliteOptions(item.localite_id)}</select></div>
+                    <div><label>${t.oliviers}</label><input type="number" id="genericOliviers" value="${item.oliviers || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.amandiers}</label><input type="number" id="genericAmandiers" value="${item.amandiers || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.figuiers}</label><input type="number" id="genericFiguiers" value="${item.figuiers || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.noyers}</label><input type="number" id="genericNoyers" value="${item.noyers || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.habitants}</label><input type="number" id="genericHabitants" value="${item.habitants || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                `;
+            } else if (type === 'eau') {
+                fields = `
+                    <div><label>${t.localite}</label><select id="genericLocalite" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">${getLocaliteOptions(item.localite_id)}</select></div>
+                    <div><label>${t.foyers}</label><input type="number" id="genericFoyers" value="${item.foyers || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.forages}</label><input type="number" id="genericForages" value="${item.forages || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.capacite}</label><input type="number" id="genericCapacite" value="${item.capacite || 0}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.statut}</label><select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;"><option value="Opérationnel" ${item.statut === 'Opérationnel' ? 'selected' : ''}>Opérationnel</option><option value="En maintenance" ${item.statut === 'En maintenance' ? 'selected' : ''}>En maintenance</option></select></div>
+                `;
+            } else if (type === 'sagia') {
+                fields = `
+                    <div><label>${t.code}</label><input type="text" id="genericCode" value="${item.code || ''}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.nom}</label><input type="text" id="genericNom" value="${item.nom || item.nom_fr || ''}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.zone}</label><input type="text" id="genericZone" value="${item.zone || ''}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.superficie}</label><input type="number" id="genericSuperficie" value="${item.superficie || 0}" step="0.1" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>${t.debit}</label><input type="number" id="genericDebit" value="${item.debit || 0}" step="0.1" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                    <div><label>                    <div><label>${t.statut}</label><select id="genericStatut" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;"><option value="Actif" ${item.statut === 'Actif' ? 'selected' : ''}>Actif</option><option value="Inactif" ${item.statut === 'Inactif' ? 'selected' : ''}>Inactif</option></select></div>
+                `;
+            }
+            document.getElementById('genericModalTitle').textContent = title;
+            document.getElementById('genericModalBody').innerHTML = fields +
+                `<div class="upload-actions" style="margin-top:15px;">
+                    <button class="btn-browse" onclick="hideGenericModal()" style="background:var(--danger);"><i class="fas fa-times"></i> Annuler</button>
+                    <button class="btn-browse" onclick="saveGenericItem()" style="background:var(--success);"><i class="fas fa-save"></i> Enregistrer</button>
+                </div>`;
+            document.getElementById('genericModal').classList.add('active');
         }
-        
-        var localite = DATA.localites.find(function(l) { return l.id === localiteId; });
-        if (!localite) {
-            showAlert('Localité non trouvée', 'error');
-            return;
-        }
-        
-        data.localite = {
-            id: localite.id,
-            nom_fr: localite.nom_fr || '',
-            nom_ar: localite.nom_ar || '',
-            code: localite.code || '',
-            region: localite.region || '',
-            province: localite.province || '',
-            commune: localite.commune || ''
-        };
-        data.localite_id = localiteId;
-        data.localite_nom = localite.nom_fr || '';
-        
-        data.bovins = parseInt(document.getElementById('genericBovins').value) || 0;
-        data.ovins = parseInt(document.getElementById('genericOvins').value) || 0;
-        data.caprins = parseInt(document.getElementById('genericCaprins').value) || 0;
-        data.habitants = parseInt(document.getElementById('genericHabitants').value) || 0;
-        
-        if (isNaN(data.bovins)) data.bovins = 0;
-        if (isNaN(data.ovins)) data.ovins = 0;
-        if (isNaN(data.caprins)) data.caprins = 0;
-        if (isNaN(data.habitants)) data.habitants = 0;
-        
-    } else if (type === 'produit') {
-        var localiteId = parseInt(document.getElementById('genericLocalite').value);
-        if (!localiteId) { 
-            showAlert('Veuillez sélectionner une localité', 'error'); 
-            return; 
-        }
-        
-        var localite = DATA.localites.find(function(l) { return l.id === localiteId; });
-        if (!localite) {
-            showAlert('Localité non trouvée', 'error');
-            return;
-        }
-        
-        data.nom = document.getElementById('genericNom').value.trim();
-        data.nom_fr = data.nom;
-        data.nom_ar = data.nom;
-        data.localite = {
-            id: localite.id,
-            nom_fr: localite.nom_fr || '',
-            nom_ar: localite.nom_ar || ''
-        };
-        data.localite_id = localiteId;
-        data.localite_nom = localite.nom_fr || '';
-        data.quantite = parseFloat(document.getElementById('genericQuantite').value) || 0;
-        data.periode = document.getElementById('genericPeriode').value.trim();
-        data.statut = document.getElementById('genericStatut').value;
-        
-        if (!data.nom) { showAlert('Veuillez entrer un nom de produit', 'error'); return; }
-        
-    } else if (type === 'arbre') {
-        // 🔧 CORRECTION : Utiliser la table 'arbres'
-        tableName = 'arbres';
-        
-        var localiteId = parseInt(document.getElementById('genericLocalite').value);
-        if (!localiteId) { 
-            showAlert('Veuillez sélectionner une localité', 'error'); 
-            return; 
-        }
-        
-        var localite = DATA.localites.find(function(l) { return l.id === localiteId; });
-        if (!localite) {
-            showAlert('Localité non trouvée', 'error');
-            return;
-        }
-        
-        data.localite = {
-            id: localite.id,
-            nom_fr: localite.nom_fr || '',
-            nom_ar: localite.nom_ar || '',
-            code: localite.code || '',
-            region: localite.region || '',
-            province: localite.province || '',
-            commune: localite.commune || ''
-        };
-        data.localite_id = localiteId;
-        data.localite_nom = localite.nom_fr || '';
-        
-        data.oliviers = parseInt(document.getElementById('genericOliviers').value) || 0;
-        data.amandiers = parseInt(document.getElementById('genericAmandiers').value) || 0;
-        data.figuiers = parseInt(document.getElementById('genericFiguiers').value) || 0;
-        data.noyers = parseInt(document.getElementById('genericNoyers').value) || 0;
-        data.habitants = parseInt(document.getElementById('genericHabitants').value) || 0;
-        
-        if (isNaN(data.oliviers)) data.oliviers = 0;
-        if (isNaN(data.amandiers)) data.amandiers = 0;
-        if (isNaN(data.figuiers)) data.figuiers = 0;
-        if (isNaN(data.noyers)) data.noyers = 0;
-        if (isNaN(data.habitants)) data.habitants = 0;
-        
-    } else if (type === 'eau') {
-    var localiteId = parseInt(document.getElementById('genericLocalite').value);
-    if (!localiteId) { 
-        showAlert('Veuillez sélectionner une localité', 'error'); 
-        return; 
-    }
-    
-    // 🔧 La table 'eau' n'a PAS de colonne 'localite' JSONB
-    // On utilise uniquement localite_id
-    data.localite_id = localiteId;
-    data.foyers = parseInt(document.getElementById('genericFoyers').value) || 0;
-    data.forages = parseInt(document.getElementById('genericForages').value) || 0;
-    data.capacite = parseFloat(document.getElementById('genericCapacite').value) || 0;
-    
-    // Gérer le statut en français et en arabe
-    var statut = document.getElementById('genericStatut').value;
-    data.statut = statut;
-    
-    // Ajouter le statut en arabe selon la valeur
-    var statutArMap = {
-        'Opérationnel': 'قيد التشغيل',
-        'En maintenance': 'قيد الصيانة',
-        'Hors service': 'خارج الخدمة'
-    };
-    data.statut_ar = statutArMap[statut] || statut;
-    
-    if (isNaN(data.foyers)) data.foyers = 0;
-    if (isNaN(data.forages)) data.forages = 0;
-    if (isNaN(data.capacite)) data.capacite = 0;
-}
-    } else if (type === 'sagia') {
-        // ... code existant ...
-    }
 
-    try {
-        // 🔧 Utiliser le nom de table correct
-        var url = supabaseUrl + '/rest/v1/' + tableName;
-        var method = 'POST';
-        if (currentEditId) { 
-            url += '?id=eq.' + currentEditId; 
-            method = 'PATCH'; 
-        } else { 
-            data.created_at = new Date().toISOString(); 
+        async function saveGenericItem() {
+            var type = currentEditType;
+            var t = getLang();
+            
+            var data = { updated_at: new Date().toISOString() };
+            
+            if (type === 'betail') {
+                data.localite_id = parseInt(document.getElementById('genericLocalite').value);
+                data.bovins = parseInt(document.getElementById('genericBovins').value) || 0;
+                data.ovins = parseInt(document.getElementById('genericOvins').value) || 0;
+                data.caprins = parseInt(document.getElementById('genericCaprins').value) || 0;
+                data.habitants = parseInt(document.getElementById('genericHabitants').value) || 0;
+                if (!data.localite_id) { showAlert('Veuillez sélectionner une localité', 'error'); return; }
+            } else if (type === 'produit') {
+                data.nom = document.getElementById('genericNom').value.trim();
+                data.nom_fr = data.nom;
+                data.nom_ar = data.nom;
+                data.localite_id = parseInt(document.getElementById('genericLocalite').value);
+                data.quantite = parseFloat(document.getElementById('genericQuantite').value) || 0;
+                data.periode = document.getElementById('genericPeriode').value.trim();
+                data.statut = document.getElementById('genericStatut').value;
+                if (!data.nom) { showAlert('Veuillez entrer un nom de produit', 'error'); return; }
+                if (!data.localite_id) { showAlert('Veuillez sélectionner une localité', 'error'); return; }
+            } else if (type === 'arbre') {
+                data.localite_id = parseInt(document.getElementById('genericLocalite').value);
+                data.oliviers = parseInt(document.getElementById('genericOliviers').value) || 0;
+                data.amandiers = parseInt(document.getElementById('genericAmandiers').value) || 0;
+                data.figuiers = parseInt(document.getElementById('genericFiguiers').value) || 0;
+                data.noyers = parseInt(document.getElementById('genericNoyers').value) || 0;
+                data.habitants = parseInt(document.getElementById('genericHabitants').value) || 0;
+                if (!data.localite_id) { showAlert('Veuillez sélectionner une localité', 'error'); return; }
+            } else if (type === 'eau') {
+                data.localite_id = parseInt(document.getElementById('genericLocalite').value);
+                data.foyers = parseInt(document.getElementById('genericFoyers').value) || 0;
+                data.forages = parseInt(document.getElementById('genericForages').value) || 0;
+                data.capacite = parseFloat(document.getElementById('genericCapacite').value) || 0;
+                data.statut = document.getElementById('genericStatut').value;
+                if (!data.localite_id) { showAlert('Veuillez sélectionner une localité', 'error'); return; }
+            } else if (type === 'sagia') {
+                data.code = document.getElementById('genericCode').value.trim();
+                data.nom = document.getElementById('genericNom').value.trim();
+                data.nom_fr = data.nom;
+                data.nom_ar = data.nom;
+                data.zone = document.getElementById('genericZone').value.trim();
+                data.superficie = parseFloat(document.getElementById('genericSuperficie').value) || 0;
+                data.debit = parseFloat(document.getElementById('genericDebit').value) || 0;
+                data.statut = document.getElementById('genericStatut').value;
+                if (!data.code) { showAlert('Veuillez entrer un code', 'error'); return; }
+                if (!data.nom) { showAlert('Veuillez entrer un nom', 'error'); return; }
+            }
+
+            try {
+                var url = supabaseUrl + '/rest/v1/' + type;
+                var method = 'POST';
+                if (currentEditId) { url += '?id=eq.' + currentEditId; method = 'PATCH'; } 
+                else { data.created_at = new Date().toISOString(); }
+                
+                var resp = await fetchWithSupabaseAuth(url, { method: method, body: JSON.stringify(data) });
+                if (!resp.ok) throw new Error('Erreur sauvegarde: ' + await resp.text());
+                
+                showAlert('✅ Données enregistrées avec succès', 'success');
+                hideGenericModal();
+                await loadAllTables();
+                renderAll();
+                renderDashboardTables();
+            } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
         }
-        
-        console.log('📤 Table:', tableName, 'Données:', data);
-        
-        var resp = await fetchWithSupabaseAuth(url, { 
-            method: method, 
-            body: JSON.stringify(data) 
-        });
-        
-        if (!resp.ok) {
-            var errorText = await resp.text();
-            console.error('❌ Erreur réponse:', errorText);
-            throw new Error('Erreur sauvegarde: ' + errorText);
-        }
-        
-        showAlert('✅ Données enregistrées avec succès', 'success');
-        hideGenericModal();
-        await loadAllTables();
-        renderAll();
-        renderDashboardTables();
-    } catch (e) { 
-        showAlert('❌ Erreur: ' + e.message, 'error');
-        console.error('Erreur détaillée:', e);
-    }
-}
 
         async function deleteGenericItem(type, id) {
-    var user = getCurrentUser();
-    if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
-        showAlert('Vous n\'avez pas les permissions', 'error'); 
-        return; 
-    }
-    if (!confirm('Supprimer cet élément définitivement ?')) return;
-    
-    try {
-        // 🔧 CORRECTION : Utiliser le bon nom de table
-        var tableName = type;
-        if (type === 'arbre') {
-            tableName = 'arbres';
+            var user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { showAlert('Vous n\'avez pas les permissions', 'error'); return; }
+            if (!confirm('Supprimer cet élément définitivement ?')) return;
+            try {
+                var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + type + '?id=eq.' + id, { method: 'DELETE' });
+                if (!resp.ok) throw new Error('Erreur suppression');
+                showAlert('✅ Élément supprimé', 'success');
+                await loadAllTables();
+                renderAll();
+                renderDashboardTables();
+            } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
         }
-        
-        var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + tableName + '?id=eq.' + id, { 
-            method: 'DELETE' 
-        });
-        if (!resp.ok) throw new Error('Erreur suppression');
-        showAlert('✅ Élément supprimé', 'success');
-        await loadAllTables();
-        renderAll();
-        renderDashboardTables();
-    } catch (e) { 
-        showAlert('❌ Erreur: ' + e.message, 'error'); 
-    }
-}
 
         // ============================================================
         // RENDER DASHBOARD TABLES
@@ -5283,25 +5103,20 @@
         }
 
         function renderEauAdmin() {
-    var body = document.getElementById('eauAdminBody');
-    if (!body) return;
-    var items = DATA.eau || [];
-    if (items.length === 0) { 
-        body.innerHTML = '<tr><td colspan="6" class="no-content">' + getLang().noData + '</td></tr>'; 
-        return; 
-    }
-    var user = getCurrentUser();
-    var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
-    body.innerHTML = items.map(function(item) {
-        // 🔧 Utiliser localite_id pour récupérer le nom
-        var localite = item.localite_id ? getLocaliteName(item.localite_id) : 'Non définie';
-        
-        var actions = canEdit ? 
-            '<button class="btn-action edit" onclick="editGenericItem(\'eau\', ' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
-            '<button class="btn-action delete" onclick="deleteGenericItem(\'eau\', ' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
-        return '<tr><td>' + localite + '</td><td>' + (item.foyers || 0) + '</td><td>' + (item.forages || 0) + '</td><td>' + (item.capacite || 0) + '</td><td>' + (item.statut || 'Opérationnel') + '</td><td>' + actions + '</td></tr>';
-    }).join('');
-}
+            var body = document.getElementById('eauAdminBody');
+            if (!body) return;
+            var items = DATA.eau || [];
+            if (items.length === 0) { body.innerHTML = '<tr><td colspan="6" class="no-content">' + getLang().noData + '</td></tr>'; return; }
+            var user = getCurrentUser();
+            var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
+            body.innerHTML = items.map(function(item) {
+                var localite = getLocaliteName(item.localite_id);
+                var actions = canEdit ? 
+                    '<button class="btn-action edit" onclick="editGenericItem(\'eau\', ' + item.id + ')"><i class="fas fa-edit"></i></button> ' +
+                    '<button class="btn-action delete" onclick="deleteGenericItem(\'eau\', ' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
+                return '<tr><td>' + localite + '</td><td>' + (item.foyers || 0) + '</td><td>' + (item.forages || 0) + '</td><td>' + (item.capacite || 0) + '</td><td>' + (item.statut || 'Opérationnel') + '</td><td>' + actions + '</td></tr>';
+            }).join('');
+        }
 
         function renderSagiaAdmin() {
             var body = document.getElementById('sagiaAdminBody');
