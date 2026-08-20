@@ -4859,8 +4859,36 @@
                 <div><label>${t.habitants}</label><input type="number" id="genericHabitants" value="0" min="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
             </div>
         `;
-    } else if (type === 'eau') {
-        // ... code existant ...
+           } else if (type === 'eau') {
+    var localiteId = parseInt(document.getElementById('genericLocalite').value);
+    if (!localiteId) { 
+        showAlert('Veuillez sélectionner une localité', 'error'); 
+        return; 
+    }
+    
+    // 🔧 La table 'eau' n'a PAS de colonne 'localite' JSONB
+    // On utilise uniquement localite_id
+    data.localite_id = localiteId;
+    data.foyers = parseInt(document.getElementById('genericFoyers').value) || 0;
+    data.forages = parseInt(document.getElementById('genericForages').value) || 0;
+    data.capacite = parseFloat(document.getElementById('genericCapacite').value) || 0;
+    
+    // Gérer le statut en français et en arabe
+    var statut = document.getElementById('genericStatut').value;
+    data.statut = statut;
+    
+    // Ajouter le statut en arabe selon la valeur
+    var statutArMap = {
+        'Opérationnel': 'قيد التشغيل',
+        'En maintenance': 'قيد الصيانة',
+        'Hors service': 'خارج الخدمة'
+    };
+    data.statut_ar = statutArMap[statut] || statut;
+    
+    if (isNaN(data.foyers)) data.foyers = 0;
+    if (isNaN(data.forages)) data.forages = 0;
+    if (isNaN(data.capacite)) data.capacite = 0;
+}
     } else if (type === 'sagia') {
         // ... code existant ...
     }
@@ -5064,7 +5092,35 @@
         if (isNaN(data.habitants)) data.habitants = 0;
         
     } else if (type === 'eau') {
-        // ... code existant ...
+    var localiteId = parseInt(document.getElementById('genericLocalite').value);
+    if (!localiteId) { 
+        showAlert('Veuillez sélectionner une localité', 'error'); 
+        return; 
+    }
+    
+    // 🔧 La table 'eau' n'a PAS de colonne 'localite' JSONB
+    // On utilise uniquement localite_id
+    data.localite_id = localiteId;
+    data.foyers = parseInt(document.getElementById('genericFoyers').value) || 0;
+    data.forages = parseInt(document.getElementById('genericForages').value) || 0;
+    data.capacite = parseFloat(document.getElementById('genericCapacite').value) || 0;
+    
+    // Gérer le statut en français et en arabe
+    var statut = document.getElementById('genericStatut').value;
+    data.statut = statut;
+    
+    // Ajouter le statut en arabe selon la valeur
+    var statutArMap = {
+        'Opérationnel': 'قيد التشغيل',
+        'En maintenance': 'قيد الصيانة',
+        'Hors service': 'خارج الخدمة'
+    };
+    data.statut_ar = statutArMap[statut] || statut;
+    
+    if (isNaN(data.foyers)) data.foyers = 0;
+    if (isNaN(data.forages)) data.forages = 0;
+    if (isNaN(data.capacite)) data.capacite = 0;
+}
     } else if (type === 'sagia') {
         // ... code existant ...
     }
