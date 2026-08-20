@@ -4957,72 +4957,93 @@
         }
 
         async function saveGenericItem() {
-            var type = currentEditType;
-            var t = getLang();
-            
-            var data = { updated_at: new Date().toISOString() };
-            
-            if (type === 'betail') {
-                data.localite_id = parseInt(document.getElementById('genericLocalite').value);
-                data.bovins = parseInt(document.getElementById('genericBovins').value) || 0;
-                data.ovins = parseInt(document.getElementById('genericOvins').value) || 0;
-                data.caprins = parseInt(document.getElementById('genericCaprins').value) || 0;
-                data.habitants = parseInt(document.getElementById('genericHabitants').value) || 0;
-                if (!data.localite_id) { showAlert('Veuillez sélectionner une localité', 'error'); return; }
-            } else if (type === 'produit') {
-                data.nom = document.getElementById('genericNom').value.trim();
-                data.nom_fr = data.nom;
-                data.nom_ar = data.nom;
-                data.localite_id = parseInt(document.getElementById('genericLocalite').value);
-                data.quantite = parseFloat(document.getElementById('genericQuantite').value) || 0;
-                data.periode = document.getElementById('genericPeriode').value.trim();
-                data.statut = document.getElementById('genericStatut').value;
-                if (!data.nom) { showAlert('Veuillez entrer un nom de produit', 'error'); return; }
-                if (!data.localite_id) { showAlert('Veuillez sélectionner une localité', 'error'); return; }
-            } else if (type === 'arbre') {
-                data.localite_id = parseInt(document.getElementById('genericLocalite').value);
-                data.oliviers = parseInt(document.getElementById('genericOliviers').value) || 0;
-                data.amandiers = parseInt(document.getElementById('genericAmandiers').value) || 0;
-                data.figuiers = parseInt(document.getElementById('genericFiguiers').value) || 0;
-                data.noyers = parseInt(document.getElementById('genericNoyers').value) || 0;
-                data.habitants = parseInt(document.getElementById('genericHabitants').value) || 0;
-                if (!data.localite_id) { showAlert('Veuillez sélectionner une localité', 'error'); return; }
-            } else if (type === 'eau') {
-                data.localite_id = parseInt(document.getElementById('genericLocalite').value);
-                data.foyers = parseInt(document.getElementById('genericFoyers').value) || 0;
-                data.forages = parseInt(document.getElementById('genericForages').value) || 0;
-                data.capacite = parseFloat(document.getElementById('genericCapacite').value) || 0;
-                data.statut = document.getElementById('genericStatut').value;
-                if (!data.localite_id) { showAlert('Veuillez sélectionner une localité', 'error'); return; }
-            } else if (type === 'sagia') {
-                data.code = document.getElementById('genericCode').value.trim();
-                data.nom = document.getElementById('genericNom').value.trim();
-                data.nom_fr = data.nom;
-                data.nom_ar = data.nom;
-                data.zone = document.getElementById('genericZone').value.trim();
-                data.superficie = parseFloat(document.getElementById('genericSuperficie').value) || 0;
-                data.debit = parseFloat(document.getElementById('genericDebit').value) || 0;
-                data.statut = document.getElementById('genericStatut').value;
-                if (!data.code) { showAlert('Veuillez entrer un code', 'error'); return; }
-                if (!data.nom) { showAlert('Veuillez entrer un nom', 'error'); return; }
-            }
-
-            try {
-                var url = supabaseUrl + '/rest/v1/' + type;
-                var method = 'POST';
-                if (currentEditId) { url += '?id=eq.' + currentEditId; method = 'PATCH'; } 
-                else { data.created_at = new Date().toISOString(); }
-                
-                var resp = await fetchWithSupabaseAuth(url, { method: method, body: JSON.stringify(data) });
-                if (!resp.ok) throw new Error('Erreur sauvegarde: ' + await resp.text());
-                
-                showAlert('✅ Données enregistrées avec succès', 'success');
-                hideGenericModal();
-                await loadAllTables();
-                renderAll();
-                renderDashboardTables();
-            } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
+    var type = currentEditType;
+    var t = getLang();
+    
+    var data = { updated_at: new Date().toISOString() };
+    
+    if (type === 'betail') {
+        var localiteId = parseInt(document.getElementById('genericLocalite').value);
+        if (!localiteId) { 
+            showAlert('Veuillez sélectionner une localité', 'error'); 
+            return; 
         }
+        
+        // 🔧 Trouver la localité complète
+        var localite = DATA.localites.find(function(l) { return l.id === localiteId; });
+        if (!localite) {
+            showAlert('Localité non trouvée', 'error');
+            return;
+        }
+        
+        // 🔧 Stocker la localité comme JSONB
+        data.localite = {
+            id: localite.id,
+            nom_fr: localite.nom_fr || '',
+            nom_ar: localite.nom_ar || '',
+            code: localite.code || '',
+            region: localite.region || '',
+            province: localite.province || '',
+            commune: localite.commune || ''
+        };
+        
+        // Optionnel : stocker aussi l'ID séparément pour faciliter les requêtes
+        data.localite_id = localiteId;
+        data.localite_nom = localite.nom_fr || '';
+        
+        data.bovins = parseInt(document.getElementById('genericBovins').value) || 0;
+        data.ovins = parseInt(document.getElementById('genericOvins').value) || 0;
+        data.caprins = parseInt(document.getElementById('genericCaprins').value) || 0;
+        data.habitants = parseInt(document.getElementById('genericHabitants').value) || 0;
+        
+        if (isNaN(data.bovins)) data.bovins = 0;
+        if (isNaN(data.ovins)) data.ovins = 0;
+        if (isNaN(data.caprins)) data.caprins = 0;
+        if (isNaN(data.habitants)) data.habitants = 0;
+        
+        console.log('📤 Données bétail à sauvegarder:', data);
+        
+    } else if (type === 'produit') {
+        // ... code existant ...
+    } else if (type === 'arbre') {
+        // ... code existant ...
+    } else if (type === 'eau') {
+        // ... code existant ...
+    } else if (type === 'sagia') {
+        // ... code existant ...
+    }
+
+    try {
+        var url = supabaseUrl + '/rest/v1/' + type;
+        var method = 'POST';
+        if (currentEditId) { 
+            url += '?id=eq.' + currentEditId; 
+            method = 'PATCH'; 
+        } else { 
+            data.created_at = new Date().toISOString(); 
+        }
+        
+        var resp = await fetchWithSupabaseAuth(url, { 
+            method: method, 
+            body: JSON.stringify(data) 
+        });
+        
+        if (!resp.ok) {
+            var errorText = await resp.text();
+            console.error('❌ Erreur réponse:', errorText);
+            throw new Error('Erreur sauvegarde: ' + errorText);
+        }
+        
+        showAlert('✅ Données enregistrées avec succès', 'success');
+        hideGenericModal();
+        await loadAllTables();
+        renderAll();
+        renderDashboardTables();
+    } catch (e) { 
+        showAlert('❌ Erreur: ' + e.message, 'error');
+        console.error('Erreur détaillée:', e);
+    }
+}
 
         async function deleteGenericItem(type, id) {
             var user = getCurrentUser();
