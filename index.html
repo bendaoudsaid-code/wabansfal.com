@@ -3554,16 +3554,29 @@
         }
 
         function renderEau() {
-            var items = DATA.eau || [],
-                body = document.getElementById('eauBody');
-            if (!body) return;
-            if (items.length === 0) { body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>'; return; }
-            body.innerHTML = items.map(function(item) {
-                var localite = getLocaliteName(item.localite_id);
-                var statut = document.body.classList.contains('rtl') ? (item.statut_ar || item.statut || 'قيد التشغيل') : (item.statut || 'Opérationnel');
-                return '<tr><td><strong>' + localite + '</strong></td><td>' + (item.foyers || 0) + '</td><td>' + (item.forages || 0) + '</td><td>' + (item.capacite || 0) + '</td><td>' + statut + '</td></tr>';
-            }).join('');
+            function renderEau() {
+    var items = DATA.eau || [],
+        body = document.getElementById('eauBody');
+    if (!body) return;
+    if (items.length === 0) { 
+        body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>'; 
+        return; 
+    }
+    body.innerHTML = items.map(function(item) {
+        // 🔧 Utiliser localite_id pour récupérer le nom
+        var localite = item.localite_id ? getLocaliteName(item.localite_id) : 'Non définie';
+        
+        // Afficher le statut dans la bonne langue
+        var statut = '';
+        if (document.body.classList.contains('rtl')) {
+            statut = item.statut_ar || item.statut || 'قيد التشغيل';
+        } else {
+            statut = item.statut || 'Opérationnel';
         }
+        
+        return '<tr><td><strong>' + localite + '</strong></td><td>' + (item.foyers || 0) + '</td><td>' + (item.forages || 0) + '</td><td>' + (item.capacite || 0) + '</td><td>' + statut + '</td></tr>';
+    }).join('');
+}
 
         function renderSagia() {
             var items = DATA.sagia || [],
