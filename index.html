@@ -1110,11 +1110,11 @@
         </div>
     </section>
 
-    <!-- ========== canaux d'irrigation ========== -->
+    <!-- ==========canaux  ========== -->
     <section id="canaux d'irrigation">
         <div class="container">
             <div class="section-header">
-                <h2 id="canaux d'irrigationTitle"><i class="fas fa-list"></i> canaux d'irrigation</h2>
+                <h2 id="canaux d'irrigationTitle"><i class="fas fa-list"></i>canaux </h2>
                 <p id="canaux d'irrigationSubtitle">Système d'Aide à la Gestion de l'Irrigation par Aspersion</p>
             </div>
             <div class="table-container">
@@ -1494,11 +1494,11 @@
                     </div>
                 </div>
 
-                <!-- canaux d'irrigation Dashboard -->
+                <!--canaux  Dashboard -->
                 <div id="canaux d'irrigationDashboard" class="dashboard-section-content">
-                    <h2 id="canaux d'irrigationDashboardTitle"><i class="fas fa-list"></i> Gestion des canaux d'irrigation</h2>
+                    <h2 id="canaux d'irrigationDashboardTitle"><i class="fas fa-list"></i> Gestion descanaux </h2>
                     <div class="section-actions">
-                        <button class="btn-import admin-only" onclick="showGenericModal('canaux d'irrigation')"><i class="fas fa-plus"></i> Ajouter un canaux d'irrigation</button>
+                        <button class="btn-import admin-only" onclick="showGenericModal('canaux d'irrigation')"><i class="fas fa-plus"></i> Ajouter uncanaux </button>
                     </div>
                     <div class="table-container">
                         <table class="data-table" id="canaux d'irrigationAdminTable">
@@ -2245,7 +2245,7 @@
             produits: [],
             arbres: [],
             eau: [],
-            canaux d'irrigation: [],
+           canaux : [],
             conseil: [],
             documentsAdmin: [],
             gallery: [],
@@ -2320,7 +2320,7 @@
                 produitsDashboardTitle: 'Gestion des produits',
                 arbresDashboardTitle: 'Gestion des arbres',
                 eauDashboardTitle: 'Gestion de l\'eau',
-                canaux d'irrigationDashboardTitle: 'Gestion des canaux d'irrigation',
+               canaux DashboardTitle: 'Gestion descanaux ',
                 conseilDashboardTitle: 'Gestion du conseil',
                 documentsDashboardTitle: 'Gestion des documents',
                 adherentsDashboardTitle: 'Gestion des adhérents',
@@ -2373,8 +2373,8 @@
                 arbresSubtitle: 'Statistiques des arbres fruitiers par localité',
                 eauTitle: 'Eau potable',
                 eauSubtitle: 'Projets et statistiques sur l\'eau potable',
-                canaux d'irrigationTitle: 'canaux d'irrigation',
-                canaux d'irrigationSubtitle: 'Système d\'Aide à la Gestion de l\'Irrigation par Aspersion',
+               canaux Title: 'canaux d'irrigation',
+               canaux Subtitle: 'Système d\'Aide à la Gestion de l\'Irrigation par Aspersion',
                 conseilTitle: 'Conseil de l\'association',
                 conseilSubtitle: 'Composition du bureau et des membres du conseil d\'administration',
                 documentsTitle: 'Documents association',
@@ -2440,7 +2440,7 @@
                 produitsDashboardTitle: 'إدارة المنتجات',
                 arbresDashboardTitle: 'إدارة الأشجار',
                 eauDashboardTitle: 'إدارة الماء',
-                canaux d'irrigationDashboardTitle: 'إدارة سواقي الماء',
+               canaux DashboardTitle: 'إدارة سواقي الماء',
                 conseilDashboardTitle: 'إدارة المجلس',
                 documentsDashboardTitle: 'إدارة الوثائق',
                 adherentsDashboardTitle: 'إدارة المنخرطين',
@@ -2493,8 +2493,8 @@
                 arbresSubtitle: 'إحصائيات الأشجار المثمرة حسب المنطقة',
                 eauTitle: 'الماء الصالح للشرب',
                 eauSubtitle: 'مشاريع وإحصائيات عن الماء الصالح للشرب',
-                canaux d'irrigationTitle: 'سواقي الماء',
-                canaux d'irrigationSubtitle: 'نظام المساعدة في إدارة الري بالرش',
+               canaux Title: 'سواقي الماء',
+               canaux Subtitle: 'نظام المساعدة في إدارة الري بالرش',
                 conseilTitle: 'مجلس الجمعية',
                 conseilSubtitle: 'تكوين المكتب وأعضاء مجلس الإدارة',
                 documentsTitle: 'وثائق الجمعية',
@@ -3133,7 +3133,7 @@
             document.querySelectorAll('#mainMenu a').forEach(function(l) { l.classList.remove('active'); });
             var map = {
                 home: 'menuHome', about: 'menuAbout', betail: 'menuBetail', produits: 'menuProduits',
-                arbres: 'menuArbres', eau: 'menuEau', canaux d'irrigation: 'menucanaux d'irrigation', conseil: 'menuConseil',
+                arbres: 'menuArbres', eau: 'menuEau',canaux : 'menucanaux d'irrigation', conseil: 'menuConseil',
                 documents: 'menuDocuments', gallery: 'menuGallery', videos: 'menuVideos',
                 projects: 'menuProjects', dons: 'menuDons', actu: 'menuActu',
                 adherents: 'menuAdherents', contact: 'menuContact', dashboard: 'menuDashboard',
@@ -3401,7 +3401,7 @@
         }
 
         // ============================================================
-        // RENDER FUNCTIONS (Betail, Produits, Arbres, Eau, canaux d'irrigation)
+        // RENDER FUNCTIONS (Betail, Produits, Arbres, Eau,canaux )
         // ============================================================
         function renderBetail() {
             var items = DATA.betail || [],
@@ -5771,7 +5771,7 @@
                 'produit': currentLang === 'ar' ? 'إضافة منتج' : 'Ajouter un produit',
                 'arbre': currentLang === 'ar' ? 'إضافة منطقة (أشجار)' : 'Ajouter une localité (arbres)',
                 'eau': currentLang === 'ar' ? 'إضافة منطقة (ماء)' : 'Ajouter une localité (eau)',
-                'canaux d'irrigation': currentLang === 'ar' ? 'إضافة سواقي الماء' : 'Ajouter un canaux d'irrigation'
+                'canaux d'irrigation': currentLang === 'ar' ? 'إضافة سواقي الماء' : 'Ajouter uncanaux '
             };
             document.getElementById('genericModalTitle').textContent = titles[type] || 'Ajouter';
             var body = document.getElementById('genericModalBody');
@@ -5840,7 +5840,7 @@
             } else if (type === 'canaux d'irrigation') {
                 fields = `
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                        <div><label>Code</label><input type="text" id="genCode" placeholder="Ex: canaux d'irrigation-01" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                        <div><label>Code</label><input type="text" id="genCode" placeholder="Ex:canaux -01" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
                         <div><label>Nom</label><input type="text" id="genNom" placeholder="Ex: Système Ait Mhmed" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
                         <div><label>Zone</label><input type="text" id="genZone" placeholder="Ex: Ait Mhmed" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
                         <div><label>Superficie (Ha)</label><input type="number" id="genSuperficie" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
@@ -6258,7 +6258,7 @@
                 produits: DATA.produits,
                 arbres: DATA.arbres,
                 eau: DATA.eau,
-                canaux d'irrigation: DATA.canaux d'irrigation,
+               canaux : DATA.canaux d'irrigation,
                 conseil: DATA.conseil,
                 documents: DATA.documentsAdmin,
                 gallery: DATA.gallery,
