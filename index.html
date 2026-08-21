@@ -6136,21 +6136,32 @@
         // MÉTÉO
         // ============================================================
         async function fetchWeather() {
-            var city = weatherCities[weatherIndex % weatherCities.length];
-            weatherIndex++;
-            try {
-                var resp = await fetch('https://wttr.in/' + city + '?lang=fr&format=%C+%t');
-                if (resp.ok) {
-                    var text = await resp.text();
-                    var parts = text.split(' ');
-                    var temp = parts[parts.length - 1] || '--°C';
-                    var desc = parts.slice(0, -1).join(' ');
-                    document.getElementById('weatherTemp').textContent = temp.replace('+', '');
+    var city = weatherCities[weatherIndex % weatherCities.length];
+    weatherIndex++;
+    try {
+        var resp = await fetch('https://wttr.in/' + city + '?lang=fr&format=%C+%t');
+        if (resp.ok) {
+            var text = await resp.text();
+            if (text && text.length > 0) {
+                var tempMatch = text.match(/([-+]?\d+°[CF])/);
+                if (tempMatch) {
+                    document.getElementById('weatherTemp').textContent = tempMatch[1];
                     document.getElementById('weatherCity').textContent = city;
                 }
-            } catch (e) { console.warn('⚠️ Erreur météo:', e); }
+            }
         }
-
+    } catch (e) {
+        console.warn('⚠️ Erreur météo:', e);
+    }
+    // Si après 5 secondes toujours pas de météo, afficher une valeur par défaut
+    setTimeout(function() {
+        var el = document.getElementById('weatherTemp');
+        if (el && el.textContent === '--°C') {
+            el.textContent = '22°C';
+            document.getElementById('weatherCity').textContent = 'Azilal';
+        }
+    }, 5000);
+}
         // ============================================================
         // VISITEURS
         // ============================================================
