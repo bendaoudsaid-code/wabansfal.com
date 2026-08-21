@@ -987,7 +987,7 @@
                     <li><a href="#" onclick="showSection('produits')" id="menuProduits"><i class="fas fa-apple-alt"></i> <span class="menu-label">Produits</span></a></li>
                     <li><a href="#" onclick="showSection('arbres')" id="menuArbres"><i class="fas fa-tree"></i> <span class="menu-label">Arbres</span></a></li>
                     <li><a href="#" onclick="showSection('eau')" id="menuEau"><i class="fas fa-tint"></i> <span class="menu-label">Eau</span></a></li>
-                    <li><a href="#" onclick="showSection('canaux d'irrigation')" id="menucanaux d'irrigation"><i class="fas fa-list"></i> <span class="menu-label">canaux d'irrigation</span></a></li>
+                    <li><a href="#" onclick="showSection('canauxd'irrigation')" id="menucanauxd'irrigation"><i class="fas fa-list"></i> <span class="menu-label">canauxd'irrigation</span></a></li>
                     <li><a href="#" onclick="showSection('conseil')" id="menuConseil"><i class="fas fa-users-cog"></i> <span class="menu-label">Conseil</span></a></li>
                     <li><a href="#" onclick="showSection('documents')" id="menuDocuments"><i class="fas fa-file-pdf"></i> <span class="menu-label">Documents</span></a></li>
                     <li><a href="#" onclick="showSection('gallery')" id="menuGallery"><i class="fas fa-images"></i> <span class="menu-label">Galerie</span></a></li>
@@ -1110,17 +1110,17 @@
         </div>
     </section>
 
-    <!-- ==========canaux  ========== -->
-    <section id="canaux d'irrigation">
+    <!-- ==========canaux ========== -->
+    <section id="canauxd'irrigation">
         <div class="container">
             <div class="section-header">
-                <h2 id="canaux d'irrigationTitle"><i class="fas fa-list"></i>canaux </h2>
-                <p id="canaux d'irrigationSubtitle">Système d'Aide à la Gestion de l'Irrigation par Aspersion</p>
+                <h2 id="canauxd'irrigationTitle"><i class="fas fa-list"></i>canaux</h2>
+                <p id="canauxd'irrigationSubtitle">Système d'Aide à la Gestion de l'Irrigation par Aspersion</p>
             </div>
             <div class="table-container">
-                <table class="data-table" id="canaux d'irrigationTable">
-                    <thead><tr><th id="thCode">Code</th><th id="thNom">Nom</th><th id="thZone">Zone</th><th id="thSuperficie">Superficie (Ha)</th><th id="thDebit">Débit (m³/h)</th><th id="thcanaux d'irrigationStatut">Statut</th></tr></thead>
-                    <tbody id="canaux d'irrigationBody"><tr><td colspan="6" class="no-content">Chargement...</td></tr></tbody>
+                <table class="data-table" id="canauxd'irrigationTable">
+                    <thead><tr><th id="thCode">Code</th><th id="thNom">Nom</th><th id="thZone">Zone</th><th id="thSuperficie">Superficie (Ha)</th><th id="thDebit">Débit (m³/h)</th><th id="thcanauxd'irrigationStatut">Statut</th></tr></thead>
+                    <tbody id="canauxd'irrigationBody"><tr><td colspan="6" class="no-content">Chargement...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -1356,7 +1356,7 @@
                     <li><a href="#" data-section="produits" onclick="showDashboardSection('produits')" id="sidebarProduits"><i class="fas fa-apple-alt"></i> <span id="sidebarProduitsText">Produits</span></a></li>
                     <li><a href="#" data-section="arbres" onclick="showDashboardSection('arbres')" id="sidebarArbres"><i class="fas fa-tree"></i> <span id="sidebarArbresText">Arbres</span></a></li>
                     <li><a href="#" data-section="eau" onclick="showDashboardSection('eau')" id="sidebarEau"><i class="fas fa-tint"></i> <span id="sidebarEauText">Eau</span></a></li>
-                    <li><a href="#" data-section="canaux d'irrigation" onclick="showDashboardSection('canaux d'irrigation')" id="sidebarcanaux d'irrigation"><i class="fas fa-list"></i> <span id="sidebarcanaux d'irrigationText">canaux d'irrigation</span></a></li>
+                    <li><a href="#" data-section="canauxd'irrigation" onclick="showDashboardSection('canauxd'irrigation')" id="sidebarcanauxd'irrigation"><i class="fas fa-list"></i> <span id="sidebarcanauxd'irrigationText">canauxd'irrigation</span></a></li>
                     <li><a href="#" data-section="conseil" onclick="showDashboardSection('conseil')" id="sidebarConseil"><i class="fas fa-users-cog"></i> <span id="sidebarConseilText">Conseil</span></a></li>
                     <!-- Sous-menu Documents -->
                     <li class="has-submenu" id="documentsSubmenu">
@@ -1494,16 +1494,16 @@
                     </div>
                 </div>
 
-                <!--canaux  Dashboard -->
-                <div id="canaux d'irrigationDashboard" class="dashboard-section-content">
-                    <h2 id="canaux d'irrigationDashboardTitle"><i class="fas fa-list"></i> Gestion descanaux </h2>
+                <!--canaux Dashboard -->
+                <div id="canauxd'irrigationDashboard" class="dashboard-section-content">
+                    <h2 id="canauxd'irrigationDashboardTitle"><i class="fas fa-list"></i> Gestion descanaux</h2>
                     <div class="section-actions">
-                        <button class="btn-import admin-only" onclick="showGenericModal('canaux d'irrigation')"><i class="fas fa-plus"></i> Ajouter uncanaux </button>
+                        <button class="btn-import admin-only" onclick="showGenericModal('canauxd'irrigation')"><i class="fas fa-plus"></i> Ajouter uncanaux</button>
                     </div>
                     <div class="table-container">
-                        <table class="data-table" id="canaux d'irrigationAdminTable">
+                        <table class="data-table" id="canauxd'irrigationAdminTable">
                             <thead><tr><th>Code</th><th>Nom</th><th>Zone</th><th>Superficie</th><th>Débit</th><th>Statut</th><th>Actions</th></tr></thead>
-                            <tbody id="canaux d'irrigationAdminBody"><tr><td colspan="7" class="no-content">Chargement...</td></tr></tbody>
+                            <tbody id="canauxd'irrigationAdminBody"><tr><td colspan="7" class="no-content">Chargement...</td></tr></tbody>
                         </table>
                     </div>
                 </div>
@@ -2245,7 +2245,7 @@
             produits: [],
             arbres: [],
             eau: [],
-           canaux : [],
+           canaux: [],
             conseil: [],
             documentsAdmin: [],
             gallery: [],
@@ -2297,7 +2297,7 @@
             fr: {
                 menuHome: 'Accueil', menuAbout: 'À propos', menuBetail: 'Bétails',
                 menuProduits: 'Produits', menuArbres: 'Arbres', menuEau: 'Eau',
-                menucanaux d'irrigation: 'canaux d'irrigation', menuConseil: 'Conseil', menuDocuments: 'Documents',
+                menucanauxd'irrigation: 'canauxd'irrigation', menuConseil: 'Conseil', menuDocuments: 'Documents',
                 menuGallery: 'Galerie', menuVideos: 'Vidéos', menuProjects: 'Projets',
                 menuDons: 'Dons', menuActu: 'Actualité', menuAdherents: 'Adhérents',
                 menuContact: 'Contact', menuMusee: 'Musée ANSFAL', menuEncheres: 'Enchères',
@@ -2306,7 +2306,7 @@
                 sidebarVideos: 'Vidéos', sidebarPublications: 'Publications',
                 sidebarText: 'Textes', sidebarBetail: 'Bétails',
                 sidebarProduits: 'Produits', sidebarArbres: 'Arbres',
-                sidebarEau: 'Eau', sidebarcanaux d'irrigation: 'canaux d'irrigation',
+                sidebarEau: 'Eau', sidebarcanauxd'irrigation: 'canauxd'irrigation',
                 sidebarConseil: 'Conseil', sidebarDocuments: 'Documents',
                 sidebarAdherents: 'Adhérents', sidebarUsers: 'Utilisateurs',
                 sidebarLocalites: 'Localités', sidebarMusee: 'Musée',
@@ -2320,7 +2320,7 @@
                 produitsDashboardTitle: 'Gestion des produits',
                 arbresDashboardTitle: 'Gestion des arbres',
                 eauDashboardTitle: 'Gestion de l\'eau',
-               canaux DashboardTitle: 'Gestion descanaux ',
+               canauxDashboardTitle: 'Gestion descanaux',
                 conseilDashboardTitle: 'Gestion du conseil',
                 documentsDashboardTitle: 'Gestion des documents',
                 adherentsDashboardTitle: 'Gestion des adhérents',
@@ -2373,8 +2373,8 @@
                 arbresSubtitle: 'Statistiques des arbres fruitiers par localité',
                 eauTitle: 'Eau potable',
                 eauSubtitle: 'Projets et statistiques sur l\'eau potable',
-               canaux Title: 'canaux d'irrigation',
-               canaux Subtitle: 'Système d\'Aide à la Gestion de l\'Irrigation par Aspersion',
+               canauxTitle: 'canauxd'irrigation',
+               canauxSubtitle: 'Système d\'Aide à la Gestion de l\'Irrigation par Aspersion',
                 conseilTitle: 'Conseil de l\'association',
                 conseilSubtitle: 'Composition du bureau et des membres du conseil d\'administration',
                 documentsTitle: 'Documents association',
@@ -2417,7 +2417,7 @@
             ar: {
                 menuHome: 'الرئيسية', menuAbout: 'من نحن', menuBetail: 'الماشية',
                 menuProduits: 'المنتجات', menuArbres: 'الأشجار', menuEau: 'الماء',
-                menucanaux d'irrigation: 'سواقي الماء', menuConseil: 'المجلس', menuDocuments: 'الوثائق',
+                menucanauxd'irrigation: 'سواقي الماء', menuConseil: 'المجلس', menuDocuments: 'الوثائق',
                 menuGallery: 'المعرض', menuVideos: 'الفيديوهات', menuProjects: 'المشاريع',
                 menuDons: 'التبرعات', menuActu: 'الأخبار', menuAdherents: 'المنخرطون',
                 menuContact: 'اتصل بنا', menuMusee: 'متحف أنسفال', menuEncheres: 'المزادات',
@@ -2426,7 +2426,7 @@
                 sidebarVideos: 'الفيديوهات', sidebarPublications: 'المنشورات',
                 sidebarText: 'النصوص', sidebarBetail: 'الماشية',
                 sidebarProduits: 'المنتجات', sidebarArbres: 'الأشجار',
-                sidebarEau: 'الماء', sidebarcanaux d'irrigation: 'سواقي الماء',
+                sidebarEau: 'الماء', sidebarcanauxd'irrigation: 'سواقي الماء',
                 sidebarConseil: 'المجلس', sidebarDocuments: 'الوثائق',
                 sidebarAdherents: 'المنخرطون', sidebarUsers: 'المستخدمون',
                 sidebarLocalites: 'المناطق', sidebarMusee: 'المتحف',
@@ -2440,7 +2440,7 @@
                 produitsDashboardTitle: 'إدارة المنتجات',
                 arbresDashboardTitle: 'إدارة الأشجار',
                 eauDashboardTitle: 'إدارة الماء',
-               canaux DashboardTitle: 'إدارة سواقي الماء',
+               canauxDashboardTitle: 'إدارة سواقي الماء',
                 conseilDashboardTitle: 'إدارة المجلس',
                 documentsDashboardTitle: 'إدارة الوثائق',
                 adherentsDashboardTitle: 'إدارة المنخرطين',
@@ -2493,8 +2493,8 @@
                 arbresSubtitle: 'إحصائيات الأشجار المثمرة حسب المنطقة',
                 eauTitle: 'الماء الصالح للشرب',
                 eauSubtitle: 'مشاريع وإحصائيات عن الماء الصالح للشرب',
-               canaux Title: 'سواقي الماء',
-               canaux Subtitle: 'نظام المساعدة في إدارة الري بالرش',
+               canauxTitle: 'سواقي الماء',
+               canauxSubtitle: 'نظام المساعدة في إدارة الري بالرش',
                 conseilTitle: 'مجلس الجمعية',
                 conseilSubtitle: 'تكوين المكتب وأعضاء مجلس الإدارة',
                 documentsTitle: 'وثائق الجمعية',
@@ -2574,7 +2574,7 @@
                 'menuProduits': 'menuProduits',
                 'menuArbres': 'menuArbres',
                 'menuEau': 'menuEau',
-                'menucanaux d'irrigation': 'menucanaux d'irrigation',
+                'menucanauxd'irrigation': 'menucanauxd'irrigation',
                 'menuConseil': 'menuConseil',
                 'menuDocuments': 'menuDocuments',
                 'menuGallery': 'menuGallery',
@@ -2610,7 +2610,7 @@
                 'sidebarProduitsText': 'sidebarProduits',
                 'sidebarArbresText': 'sidebarArbres',
                 'sidebarEauText': 'sidebarEau',
-                'sidebarcanaux d'irrigationText': 'sidebarcanaux d'irrigation',
+                'sidebarcanauxd'irrigationText': 'sidebarcanauxd'irrigation',
                 'sidebarConseilText': 'sidebarConseil',
                 'sidebarDocumentsText': 'sidebarDocuments',
                 'sidebarAdherentsText': 'sidebarAdherents',
@@ -2637,7 +2637,7 @@
                 'produitsDashboardTitle': 'produitsDashboardTitle',
                 'arbresDashboardTitle': 'arbresDashboardTitle',
                 'eauDashboardTitle': 'eauDashboardTitle',
-                'canaux d'irrigationDashboardTitle': 'canaux d'irrigationDashboardTitle',
+                'canauxd'irrigationDashboardTitle': 'canauxd'irrigationDashboardTitle',
                 'conseilDashboardTitle': 'conseilDashboardTitle',
                 'documentsDashboardTitle': 'documentsDashboardTitle',
                 'adherentsDashboardTitle': 'adherentsDashboardTitle',
@@ -2693,7 +2693,7 @@
                 'produitsTitle': 'produitsTitle',
                 'arbresTitle': 'arbresTitle',
                 'eauTitle': 'eauTitle',
-                'canaux d'irrigationTitle': 'canaux d'irrigationTitle',
+                'canauxd'irrigationTitle': 'canauxd'irrigationTitle',
                 'conseilTitle': 'conseilTitle',
                 'documentsTitle': 'documentsTitle',
                 'galleryTitle': 'galleryTitle',
@@ -2740,7 +2740,7 @@
                 'produitsSubtitle': 'produitsSubtitle',
                 'arbresSubtitle': 'arbresSubtitle',
                 'eauSubtitle': 'eauSubtitle',
-                'canaux d'irrigationSubtitle': 'canaux d'irrigationSubtitle',
+                'canauxd'irrigationSubtitle': 'canauxd'irrigationSubtitle',
                 'conseilSubtitle': 'conseilSubtitle',
                 'documentsSubtitle': 'documentsSubtitle',
                 'adherentsSubtitle': 'adherentsSubtitle',
@@ -2798,7 +2798,7 @@
             renderProduits();
             renderArbres();
             renderEau();
-            rendercanaux d'irrigation();
+            rendercanauxd'irrigation();
             renderConseil();
             renderDocuments();
             renderGallery();
@@ -3133,7 +3133,7 @@
             document.querySelectorAll('#mainMenu a').forEach(function(l) { l.classList.remove('active'); });
             var map = {
                 home: 'menuHome', about: 'menuAbout', betail: 'menuBetail', produits: 'menuProduits',
-                arbres: 'menuArbres', eau: 'menuEau',canaux : 'menucanaux d'irrigation', conseil: 'menuConseil',
+                arbres: 'menuArbres', eau: 'menuEau',canaux: 'menucanauxd'irrigation', conseil: 'menuConseil',
                 documents: 'menuDocuments', gallery: 'menuGallery', videos: 'menuVideos',
                 projects: 'menuProjects', dons: 'menuDons', actu: 'menuActu',
                 adherents: 'menuAdherents', contact: 'menuContact', dashboard: 'menuDashboard',
@@ -3401,7 +3401,7 @@
         }
 
         // ============================================================
-        // RENDER FUNCTIONS (Betail, Produits, Arbres, Eau,canaux )
+        // RENDER FUNCTIONS (Betail, Produits, Arbres, Eau,canaux)
         // ============================================================
         function renderBetail() {
             var items = DATA.betail || [],
@@ -3473,9 +3473,9 @@
             }).join('');
         }
 
-        function rendercanaux d'irrigation() {
-            var items = DATA.canaux d'irrigation || [],
-                body = document.getElementById('canaux d'irrigationBody');
+        function rendercanauxd'irrigation() {
+            var items = DATA.canauxd'irrigation || [],
+                body = document.getElementById('canauxd'irrigationBody');
             if (!body) return;
             if (items.length === 0) { body.innerHTML = '<tr><td colspan="6" class="no-content">' + getLang().noData + '</td></tr>'; return; }
             body.innerHTML = items.map(function(item) {
@@ -5709,13 +5709,13 @@
         // DASHBOARD GENERIC TABLES
         // ============================================================
         function renderDashboardTables() {
-            var tables = ['betail', 'produits', 'arbres', 'eau', 'canaux d'irrigation'];
+            var tables = ['betail', 'produits', 'arbres', 'eau', 'canauxd'irrigation'];
             var adminTables = {
                 'betail': 'betailAdminBody',
                 'produits': 'produitsAdminBody',
                 'arbres': 'arbresAdminBody',
                 'eau': 'eauAdminBody',
-                'canaux d'irrigation': 'canaux d'irrigationAdminBody'
+                'canauxd'irrigation': 'canauxd'irrigationAdminBody'
             };
             var user = getCurrentUser();
             var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
@@ -5751,7 +5751,7 @@
                     } else if (t === 'eau') {
                         var localite = getLocaliteName(item.localite_id);
                         rowData = [localite, item.foyers || 0, item.forages || 0, item.capacite || 0, item.statut || 'Opérationnel'];
-                    } else if (t === 'canaux d'irrigation') {
+                    } else if (t === 'canauxd'irrigation') {
                         rowData = [item.code || '', item.nom_fr || item.nom || '', item.zone_fr || item.zone || '', item.superficie || 0, item.debit || 0, item.statut || 'Actif'];
                     }
                     return '<tr><td>' + rowData.join('</td><td>') + '</td><td>' + actions + '</td></tr>';
@@ -5771,7 +5771,7 @@
                 'produit': currentLang === 'ar' ? 'إضافة منتج' : 'Ajouter un produit',
                 'arbre': currentLang === 'ar' ? 'إضافة منطقة (أشجار)' : 'Ajouter une localité (arbres)',
                 'eau': currentLang === 'ar' ? 'إضافة منطقة (ماء)' : 'Ajouter une localité (eau)',
-                'canaux d'irrigation': currentLang === 'ar' ? 'إضافة سواقي الماء' : 'Ajouter uncanaux '
+                'canauxd'irrigation': currentLang === 'ar' ? 'إضافة سواقي الماء' : 'Ajouter uncanaux'
             };
             document.getElementById('genericModalTitle').textContent = titles[type] || 'Ajouter';
             var body = document.getElementById('genericModalBody');
@@ -5837,10 +5837,10 @@
                         </div>
                     </div>
                 `;
-            } else if (type === 'canaux d'irrigation') {
+            } else if (type === 'canauxd'irrigation') {
                 fields = `
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                        <div><label>Code</label><input type="text" id="genCode" placeholder="Ex:canaux -01" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
+                        <div><label>Code</label><input type="text" id="genCode" placeholder="Ex:canaux-01" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
                         <div><label>Nom</label><input type="text" id="genNom" placeholder="Ex: Système Ait Mhmed" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
                         <div><label>Zone</label><input type="text" id="genZone" placeholder="Ex: Ait Mhmed" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
                         <div><label>Superficie (Ha)</label><input type="number" id="genSuperficie" value="0" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" /></div>
@@ -5878,7 +5878,7 @@
                 'produits': ['localite_id', 'nom', 'quantite', 'periode', 'statut'],
                 'arbres': ['localite_id', 'oliviers', 'amandiers', 'figuiers', 'noyers', 'habitants'],
                 'eau': ['localite_id', 'foyers', 'forages', 'capacite', 'statut'],
-                'canaux d'irrigation': ['code', 'nom', 'zone', 'superficie', 'debit', 'statut']
+                'canauxd'irrigation': ['code', 'nom', 'zone', 'superficie', 'debit', 'statut']
             };
             var map = fields[table] || [];
             for (var key of map) {
@@ -5921,7 +5921,7 @@
                 data.forages = parseInt(document.getElementById('genForages').value) || 0;
                 data.capacite = parseInt(document.getElementById('genCapacite').value) || 0;
                 data.statut = document.getElementById('genStatut').value;
-            } else if (type === 'canaux d'irrigation') {
+            } else if (type === 'canauxd'irrigation') {
                 data.code = document.getElementById('genCode').value.trim();
                 data.nom = document.getElementById('genNom').value.trim();
                 data.zone = document.getElementById('genZone').value.trim();
@@ -6258,7 +6258,7 @@
                 produits: DATA.produits,
                 arbres: DATA.arbres,
                 eau: DATA.eau,
-               canaux : DATA.canaux d'irrigation,
+               canaux: DATA.canauxd'irrigation,
                 conseil: DATA.conseil,
                 documents: DATA.documentsAdmin,
                 gallery: DATA.gallery,
@@ -6285,7 +6285,7 @@
             if (!confirm('⚠️ Cette action supprimera TOUTES les données de l\'application. Continuer ?')) return;
             if (!confirm('⚠️ Êtes-vous vraiment sûr ? Cette action est irréversible !')) return;
 
-            var tables = ['betail', 'produits', 'arbres', 'eau', 'canaux d'irrigation', 'conseil', 'documents_admin', 'gallery', 'videos', 'articles', 'texts', 'actu', 'adherents', 'localites', 'musee', 'encheres'];
+            var tables = ['betail', 'produits', 'arbres', 'eau', 'canauxd'irrigation', 'conseil', 'documents_admin', 'gallery', 'videos', 'articles', 'texts', 'actu', 'adherents', 'localites', 'musee', 'encheres'];
             try {
                 for (var t of tables) {
                     await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + t + '?id=gt.0', { method: 'DELETE' });
@@ -6307,7 +6307,7 @@
                 await loadMusee();
                 await loadEncheres();
 
-                var tables = ['betail', 'produits', 'arbres', 'eau', 'canaux d'irrigation', 'conseil', 'documents_admin', 'gallery', 'videos', 'articles', 'texts', 'actu', 'dons'];
+                var tables = ['betail', 'produits', 'arbres', 'eau', 'canauxd'irrigation', 'conseil', 'documents_admin', 'gallery', 'videos', 'articles', 'texts', 'actu', 'dons'];
                 for (var t of tables) {
                     var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + t + '?select=*');
                     if (resp.ok) {
@@ -6326,7 +6326,7 @@
                 renderProduits();
                 renderArbres();
                 renderEau();
-                rendercanaux d'irrigation();
+                rendercanauxd'irrigation();
                 renderConseil();
                 renderDocuments();
                 renderGallery();
