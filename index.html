@@ -15,6 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
     <style>
+        /* ===== STYLES COMPLETS ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #1a6d2c;
@@ -677,26 +678,164 @@
         .adherent-card .adherent-info h4 { color: var(--dark); margin-bottom: 5px; }
         .adherent-card .adherent-info p { color: #666; font-size: 0.9rem; margin: 3px 0; }
 
+        /* ===== NOUVEAUX STYLES ===== */
+        .submenu { display: none; padding-left: 20px; }
+        .submenu.open { display: block; }
+        .sidebar-menu .has-submenu > a { cursor: pointer; }
+        .sidebar-menu .has-submenu > a:after {
+            content: '▼'; float: right; font-size: 0.7rem; transition: transform 0.3s;
+        }
+        body.rtl .sidebar-menu .has-submenu > a:after { float: left; }
+        .sidebar-menu .has-submenu.open > a:after { transform: rotate(180deg); }
+        .sidebar-menu .has-submenu .submenu a { padding: 8px 20px 8px 35px; font-size: 0.8rem; }
+        body.rtl .sidebar-menu .has-submenu .submenu a { padding: 8px 35px 8px 20px; }
+
+        .form-doc {
+            background: white; padding: 25px; border-radius: 10px; box-shadow: var(--shadow);
+            margin-bottom: 25px;
+        }
+        .form-doc .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .form-doc .form-row.full { grid-template-columns: 1fr; }
+        .form-doc label { font-weight: 600; color: var(--dark); display: block; margin-bottom: 5px; }
+        .form-doc input, .form-doc textarea, .form-doc select {
+            width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;
+            font-size: 0.95rem; transition: border-color 0.3s;
+        }
+        .form-doc input:focus, .form-doc textarea:focus, .form-doc select:focus {
+            border-color: var(--primary); outline: none;
+        }
+        .form-doc .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; flex-wrap: wrap; }
+
+        .documents-sub-menu {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;
+        }
+        .documents-sub-menu .doc-link {
+            background: var(--light); padding: 15px; border-radius: 8px;
+            border-left: 4px solid var(--primary); cursor: pointer;
+            transition: all 0.3s; display: flex; align-items: center; gap: 10px;
+            text-decoration: none; color: var(--text);
+        }
+        .documents-sub-menu .doc-link:hover {
+            transform: translateX(5px); box-shadow: var(--shadow);
+        }
+        .documents-sub-menu .doc-link i { font-size: 1.5rem; color: var(--primary); }
+
+        /* ===== ENCHERES PUBLIQUES ===== */
+        .auction-participate {
+            background: var(--light); padding: 20px; border-radius: 10px; margin-top: 20px;
+            border: 2px solid var(--gold);
+        }
+        .auction-participate h3 { color: var(--gold); margin-bottom: 15px; }
+        .auction-participate .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .auction-participate .form-row.full { grid-template-columns: 1fr; }
+        .auction-participate label { font-weight: 600; display: block; margin-bottom: 5px; color: var(--dark); }
+        .auction-participate input, .auction-participate textarea, .auction-participate select {
+            width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;
+            font-size: 0.95rem;
+        }
+        .auction-participate input:focus, .auction-participate textarea:focus {
+            border-color: var(--gold); outline: none;
+        }
+        .btn-gold {
+            background: var(--gold); color: white; border: none; padding: 10px 28px;
+            border-radius: 50px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+        }
+        .btn-gold:hover { background: #b8860b; transform: translateY(-2px); }
+
+        .auction-item {
+            background: var(--light);
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--gold);
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .auction-item:hover { transform: translateX(5px); box-shadow: var(--shadow); }
+        .auction-item .item-info { flex: 1; }
+        .auction-item .item-info h4 { color: var(--dark); margin-bottom: 3px; }
+        .auction-item .item-info p { color: #666; font-size: 0.9rem; margin: 2px 0; }
+        .auction-item .item-price {
+            font-weight: bold; color: var(--gold); font-size: 1.2rem;
+            background: rgba(212, 160, 23, 0.1); padding: 5px 15px;
+            border-radius: 20px; border: 2px solid var(--gold);
+        }
+        .auction-item .item-actions { display: flex; gap: 8px; }
+        .auction-item .bid-status {
+            font-size: 0.8rem; padding: 3px 12px; border-radius: 12px; font-weight: 600;
+        }
+        .auction-item .bid-status.active { background: var(--success); color: white; }
+        .auction-item .bid-status.ended { background: var(--danger); color: white; }
+        .auction-item .bid-status.upcoming { background: var(--warning); color: white; }
+
+        .museum-item, .auction-item {
+            background: var(--light);
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--gold);
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .museum-item:hover, .auction-item:hover {
+            transform: translateX(5px);
+            box-shadow: var(--shadow);
+        }
+        .museum-item .item-info, .auction-item .item-info {
+            flex: 1;
+        }
+        .museum-item .item-info h4, .auction-item .item-info h4 {
+            color: var(--dark);
+            margin-bottom: 3px;
+        }
+        .museum-item .item-info p, .auction-item .item-info p {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 2px 0;
+        }
+        .museum-item .item-price, .auction-item .item-price {
+            font-weight: bold;
+            color: var(--gold);
+            font-size: 1.2rem;
+            background: rgba(212, 160, 23, 0.1);
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 2px solid var(--gold);
+        }
+        .museum-item .item-actions, .auction-item .item-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .museum-container, .auction-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .museum-container .no-content, .auction-container .no-content {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .dashboard-item.musee-item { border-left-color: var(--gold); }
+        .dashboard-item.enchere-item { border-left-color: var(--gold); }
+
         @media print {
             .no-print { display: none !important; }
             .print-document { padding: 40px; font-size: 12px; }
-            .print-document .header {
-                text-align: center; border-bottom: 2px solid var(--dark); padding-bottom: 20px; margin-bottom: 20px;
-            }
+            .print-document .header { text-align: center; border-bottom: 2px solid var(--dark); padding-bottom: 20px; margin-bottom: 20px; }
             .print-document .header h1 { color: var(--primary); font-size: 24px; }
             .print-document .content { min-height: 400px; }
-            .print-document .footer {
-                margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd;
-                display: flex; justify-content: space-between;
-            }
+            .print-document .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; }
             .print-document .footer .signature { text-align: center; }
-            .print-document .footer .signature .line {
-                width: 200px; border-top: 1px solid #333; margin: 30px auto 5px;
-            }
-            .print-document .footer .info {
-                text-align: center; font-size: 10px; color: #666; margin-top: 20px;
-                border-top: 1px solid #ddd; padding-top: 10px;
-            }
+            .print-document .footer .signature .line { width: 200px; border-top: 1px solid #333; margin: 30px auto 5px; }
+            .print-document .footer .info { text-align: center; font-size: 10px; color: #666; margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px; }
         }
 
         @media (max-width: 768px) {
@@ -734,6 +873,10 @@
             .table-container { overflow-x: auto; }
             .conseil-member-card .member-photo { height: 180px; }
             .adherent-card .adherent-photo { height: 150px; }
+            .form-doc .form-row { grid-template-columns: 1fr; }
+            .documents-sub-menu { grid-template-columns: 1fr; }
+            .auction-participate .form-row { grid-template-columns: 1fr; }
+            .submenu { padding-left: 10px; }
         }
         @media (max-width: 480px) {
             .stats-grid { grid-template-columns: 1fr; }
@@ -803,75 +946,6 @@
         #actuDetailModal .actu-detail-pdf a:hover { background: #c0392b; transform: scale(1.05); }
         #actuDetailModal .actu-detail-pdf a i { font-size: 1.1rem; }
         body.rtl #actuDetailModal .actu-detail-pdf a { flex-direction: row-reverse; }
-
-        .museum-item, .auction-item {
-            background: var(--light);
-            border-radius: 10px;
-            padding: 15px 20px;
-            margin-bottom: 15px;
-            border-left: 4px solid var(--gold);
-            transition: all 0.3s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .museum-item:hover, .auction-item:hover {
-            transform: translateX(5px);
-            box-shadow: var(--shadow);
-        }
-        .museum-item .item-info, .auction-item .item-info {
-            flex: 1;
-        }
-        .museum-item .item-info h4, .auction-item .item-info h4 {
-            color: var(--dark);
-            margin-bottom: 3px;
-        }
-        .museum-item .item-info p, .auction-item .item-info p {
-            color: #666;
-            font-size: 0.9rem;
-            margin: 2px 0;
-        }
-        .museum-item .item-price, .auction-item .item-price {
-            font-weight: bold;
-            color: var(--gold);
-            font-size: 1.2rem;
-            background: rgba(212, 160, 23, 0.1);
-            padding: 5px 15px;
-            border-radius: 20px;
-            border: 2px solid var(--gold);
-        }
-        .museum-item .item-actions, .auction-item .item-actions {
-            display: flex;
-            gap: 8px;
-        }
-        .museum-container, .auction-container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        .museum-container .no-content, .auction-container .no-content {
-            text-align: center;
-            padding: 30px;
-        }
-
-        .auction-item .bid-status {
-            font-size: 0.8rem;
-            padding: 3px 12px;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-        .auction-item .bid-status.active { background: var(--success); color: white; }
-        .auction-item .bid-status.ended { background: var(--danger); color: white; }
-        .auction-item .bid-status.upcoming { background: var(--warning); color: white; }
-        .auction-item .current-bid { font-size: 0.9rem; color: var(--primary); }
-
-        .dashboard-item.musee-item { border-left-color: var(--gold); }
-        .dashboard-item.enchere-item { border-left-color: var(--gold); }
-
-        .items-grid .dashboard-item .item-actions .btn-action.delete { background: var(--danger); }
-        .items-grid .dashboard-item .item-actions .btn-action.edit { background: var(--info); }
-        .items-grid .dashboard-item .item-actions .btn-action.view { background: var(--success); }
     </style>
 </head>
 <body>
@@ -947,7 +1021,7 @@
         </div>
     </section>
 
-    <!-- ========== JOURNAL DÉFILANT (PUBLICATIONS) ========== -->
+    <!-- ========== PROJETS ========== -->
     <section id="projects">
         <div class="container">
             <div class="section-header"><h2 id="projectsTitle">Nos Projets & Publications</h2></div>
@@ -1080,15 +1154,7 @@
                 <h2 id="documentsTitle"><i class="fas fa-file-pdf"></i> Documents association</h2>
                 <p id="documentsSubtitle">Téléchargez et consultez les documents officiels de l'association</p>
             </div>
-            <div id="documentsProtected" class="conseil-protected">
-                <i class="fas fa-lock"></i>
-                <h3>Accès restreint</h3>
-                <p>Veuillez vous connecter pour accéder aux documents de l'association.</p>
-                <button class="btn" onclick="document.getElementById('username').focus()" style="margin-top:15px;">
-                    <i class="fas fa-sign-in-alt"></i> Se connecter
-                </button>
-            </div>
-            <div id="documentsContent" style="display:none;">
+            <div id="documentsContent">
                 <div id="documentsGrid" class="items-grid"><div class="no-content">Chargement...</div></div>
             </div>
         </div>
@@ -1127,12 +1193,11 @@
         </div>
     </section>
 
-    <!-- ========== DONS (RIB UNIQUEMENT) ========== -->
+    <!-- ========== DONS ========== -->
     <section id="dons" class="payment-section">
         <div class="container">
             <h2 id="donsTitle"><i class="fas fa-hand-holding-heart"></i> Faire un don</h2>
             <p style="text-align:center;color:#666;margin-bottom:30px;" id="donsSubtitle">Soutenez nos actions par virement bancaire</p>
-
             <div class="rib-box">
                 <i class="fas fa-university"></i>
                 <h3>Compte Crédit Agricole</h3>
@@ -1230,6 +1295,49 @@
                 <div id="auctionItems">
                     <div class="no-content" id="noAuctionPublic">Chargement des enchères...</div>
                 </div>
+                <!-- Formulaire de participation pour le public -->
+                <div class="auction-participate" id="auctionParticipate">
+                    <h3><i class="fas fa-hand-bid"></i> <span id="auctionParticipateTitle">Participer à une enchère</span></h3>
+                    <p style="color:#666;margin-bottom:15px;" id="auctionParticipateDesc">Proposez votre prix pour l'article de votre choix</p>
+                    <div class="form-row">
+                        <div>
+                            <label for="auctionSelect"><span id="auctionSelectLabel">Article</span> <span style="color:red;">*</span></label>
+                            <select id="auctionSelect">
+                                <option value="">-- Sélectionnez un article --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="auctionName"><span id="auctionNameLabel">Votre nom</span> <span style="color:red;">*</span></label>
+                            <input type="text" id="auctionName" placeholder="Votre nom" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div>
+                            <label for="auctionEmail"><span id="auctionEmailLabel">Email</span> <span style="color:red;">*</span></label>
+                            <input type="email" id="auctionEmail" placeholder="votre@email.com" />
+                        </div>
+                        <div>
+                            <label for="auctionPhone"><span id="auctionPhoneLabel">Téléphone</span></label>
+                            <input type="text" id="auctionPhone" placeholder="+212 6..." />
+                        </div>
+                    </div>
+                    <div class="form-row full">
+                        <div>
+                            <label for="auctionBid"><span id="auctionBidLabel">Votre proposition (DH)</span> <span style="color:red;">*</span></label>
+                            <input type="number" id="auctionBid" placeholder="Montant en DH" step="0.01" min="0" />
+                        </div>
+                    </div>
+                    <div class="form-row full">
+                        <div>
+                            <label for="auctionMessage"><span id="auctionMessageLabel">Message (optionnel)</span></label>
+                            <textarea id="auctionMessage" placeholder="Votre message..." style="height:60px;"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-gold" onclick="submitAuctionBid()"><i class="fas fa-paper-plane"></i> <span id="auctionSubmitBtn">Envoyer ma proposition</span></button>
+                    </div>
+                    <div id="auctionBidResult" style="margin-top:15px;display:none;"></div>
+                </div>
             </div>
         </div>
     </section>
@@ -1250,7 +1358,20 @@
                     <li><a href="#" data-section="eau" onclick="showDashboardSection('eau')" id="sidebarEau"><i class="fas fa-tint"></i> <span id="sidebarEauText">Eau</span></a></li>
                     <li><a href="#" data-section="sagia" onclick="showDashboardSection('sagia')" id="sidebarSagia"><i class="fas fa-list"></i> <span id="sidebarSagiaText">SAGIA</span></a></li>
                     <li><a href="#" data-section="conseil" onclick="showDashboardSection('conseil')" id="sidebarConseil"><i class="fas fa-users-cog"></i> <span id="sidebarConseilText">Conseil</span></a></li>
-                    <li><a href="#" data-section="documents" onclick="showDashboardSection('documents')" id="sidebarDocuments"><i class="fas fa-file-pdf"></i> <span id="sidebarDocumentsText">Documents</span></a></li>
+                    <!-- Sous-menu Documents -->
+                    <li class="has-submenu" id="documentsSubmenu">
+                        <a href="#" onclick="toggleSubmenu('documentsSubmenu')"><i class="fas fa-file-pdf"></i> <span id="sidebarDocumentsText">Documents</span></a>
+                        <ul class="submenu" id="documentsSubmenuList">
+                            <li><a href="#" onclick="showDocumentForm('bon_reception')"><i class="fas fa-check-double"></i> Bon de réception</a></li>
+                            <li><a href="#" onclick="showDocumentForm('bon_retour')"><i class="fas fa-undo"></i> Bon de retour</a></li>
+                            <li><a href="#" onclick="showDocumentForm('bon_commande')"><i class="fas fa-shopping-cart"></i> Bon de commande</a></li>
+                            <li><a href="#" onclick="showDocumentForm('bon_caisse')"><i class="fas fa-coins"></i> Bon de caisse</a></li>
+                            <li><a href="#" onclick="showDocumentForm('bon_depense')"><i class="fas fa-money-bill-wave"></i> Bon de dépense</a></li>
+                            <li><a href="#" onclick="showDocumentForm('accuse_reception')"><i class="fas fa-file-signature"></i> Accusé de réception</a></li>
+                            <li><a href="#" onclick="showDocumentForm('lettre_transite')"><i class="fas fa-truck"></i> Bon de transite</a></li>
+                            <li><a href="#" onclick="showDocumentForm('demande_attestation')"><i class="fas fa-certificate"></i> Demande d'attestation</a></li>
+                        </ul>
+                    </li>
                     <li><a href="#" data-section="adherents" onclick="showDashboardSection('adherents')" id="sidebarAdherents"><i class="fas fa-users"></i> <span id="sidebarAdherentsText">Adhérents</span></a></li>
                     <li><a href="#" data-section="users" onclick="showDashboardSection('users')" id="sidebarUsers"><i class="fas fa-users-cog"></i> <span id="sidebarUsersText">Utilisateurs</span></a></li>
                     <li><a href="#" data-section="localites" onclick="showDashboardSection('localites')" id="sidebarLocalites"><i class="fas fa-map-marker-alt"></i> <span id="sidebarLocalitesText">Localités</span></a></li>
@@ -1403,6 +1524,8 @@
                         <button class="btn-import admin-only" onclick="showDocumentModal()"><i class="fas fa-plus"></i> Ajouter un document</button>
                     </div>
                     <div class="items-grid" id="documentsList"><div class="no-content">Chargement...</div></div>
+                    <!-- Documents personnalisables -->
+                    <div id="documentFormsContainer" style="margin-top:30px;"></div>
                 </div>
 
                 <!-- Adhérents Dashboard -->
@@ -2087,6 +2210,17 @@
         </div>
     </div>
 
+    <!-- MODALE FORMULAIRE DOCUMENT -->
+    <div class="modal-overlay" id="documentFormModal">
+        <div class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-file-alt"></i> <span id="documentFormTitle">Générer un document</span></h3>
+                <button class="close-modal" onclick="hideDocumentFormModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="documentFormBody"></div>
+        </div>
+    </div>
+
     <!-- FILE VIEWER -->
     <div class="file-viewer" id="fileViewer">
         <div class="file-viewer-content">
@@ -2125,6 +2259,7 @@
             users: [],
             musee: [],
             encheres: [],
+            bids: [],
             visitors: 0,
             isAdmin: false,
             currentUser: null,
@@ -2156,52 +2291,26 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
         // ============================================================
-        // TRADUCTIONS COMPLÈTES
+        // TRADUCTIONS
         // ============================================================
         var LANG = {
             fr: {
-                // Navigation
-                menuHome: 'Accueil',
-                menuAbout: 'À propos',
-                menuBetail: 'Bétails',
-                menuProduits: 'Produits',
-                menuArbres: 'Arbres',
-                menuEau: 'Eau',
-                menuSagia: 'SAGIA',
-                menuConseil: 'Conseil',
-                menuDocuments: 'Documents',
-                menuGallery: 'Galerie',
-                menuVideos: 'Vidéos',
-                menuProjects: 'Projets',
-                menuDons: 'Dons',
-                menuActu: 'Actualité',
-                menuAdherents: 'Adhérents',
-                menuContact: 'Contact',
-                menuMusee: 'Musée ANSFAL',
-                menuEncheres: 'Enchères',
+                menuHome: 'Accueil', menuAbout: 'À propos', menuBetail: 'Bétails',
+                menuProduits: 'Produits', menuArbres: 'Arbres', menuEau: 'Eau',
+                menuSagia: 'SAGIA', menuConseil: 'Conseil', menuDocuments: 'Documents',
+                menuGallery: 'Galerie', menuVideos: 'Vidéos', menuProjects: 'Projets',
+                menuDons: 'Dons', menuActu: 'Actualité', menuAdherents: 'Adhérents',
+                menuContact: 'Contact', menuMusee: 'Musée ANSFAL', menuEncheres: 'Enchères',
                 menuDashboard: 'Dashboard',
-                
-                // Dashboard sidebar
-                sidebarDashboard: 'Tableau de bord',
-                sidebarGallery: 'Galerie',
-                sidebarVideos: 'Vidéos',
-                sidebarPublications: 'Publications',
-                sidebarText: 'Textes',
-                sidebarBetail: 'Bétails',
-                sidebarProduits: 'Produits',
-                sidebarArbres: 'Arbres',
-                sidebarEau: 'Eau',
-                sidebarSagia: 'SAGIA',
-                sidebarConseil: 'Conseil',
-                sidebarDocuments: 'Documents',
-                sidebarAdherents: 'Adhérents',
-                sidebarUsers: 'Utilisateurs',
-                sidebarLocalites: 'Localités',
-                sidebarMusee: 'Musée',
-                sidebarEncheres: 'Enchères',
-                sidebarSettings: 'Paramètres',
-                
-                // Dashboard titles
+                sidebarDashboard: 'Tableau de bord', sidebarGallery: 'Galerie',
+                sidebarVideos: 'Vidéos', sidebarPublications: 'Publications',
+                sidebarText: 'Textes', sidebarBetail: 'Bétails',
+                sidebarProduits: 'Produits', sidebarArbres: 'Arbres',
+                sidebarEau: 'Eau', sidebarSagia: 'SAGIA',
+                sidebarConseil: 'Conseil', sidebarDocuments: 'Documents',
+                sidebarAdherents: 'Adhérents', sidebarUsers: 'Utilisateurs',
+                sidebarLocalites: 'Localités', sidebarMusee: 'Musée',
+                sidebarEncheres: 'Enchères', sidebarSettings: 'Paramètres',
                 dashboardTitle: 'Tableau de Bord ANSFAL',
                 galleryDashboardTitle: 'Gestion des images',
                 videosDashboardTitle: 'Gestion des vidéos',
@@ -2220,18 +2329,10 @@
                 museeDashboardTitle: 'Gestion du Musée',
                 encheresDashboardTitle: 'Gestion des Enchères',
                 settingsTitle: 'Paramètres',
-                
-                // Stats
-                statVisitors: 'Visiteurs',
-                statMedia: 'Médias',
-                statPublications: 'Publications',
-                statActu: 'Actualités',
-                statAdherents: 'Adhérents',
-                statUsers: 'Utilisateurs',
-                statMusee: 'Musée',
-                statEncheres: 'Enchères',
-                
-                // Alerts
+                statVisitors: 'Visiteurs', statMedia: 'Médias',
+                statPublications: 'Publications', statActu: 'Actualités',
+                statAdherents: 'Adhérents', statUsers: 'Utilisateurs',
+                statMusee: 'Musée', statEncheres: 'Enchères',
                 alertFillFields: 'Veuillez remplir tous les champs',
                 alertInvalidCredentials: 'Identifiants incorrects',
                 alertLoginSuccess: 'Connexion réussie',
@@ -2250,10 +2351,8 @@
                 noVideosPublic: 'Aucune vidéo disponible.',
                 noMuseumPublic: 'Aucun objet dans le musée.',
                 noAuctionPublic: 'Aucune enchère en cours.',
-                publishBtn: 'Publier',
-                deleteBtn: 'Supprimer',
-                statusPublished: 'Publié',
-                statusDraft: 'Brouillon',
+                publishBtn: 'Publier', deleteBtn: 'Supprimer',
+                statusPublished: 'Publié', statusDraft: 'Brouillon',
                 menuHomeLabel: 'Accueil',
                 heroTitle: 'ANSFAL',
                 heroSubtitle: 'Association ANSFAL de Coopération, Développement et Environnement',
@@ -2299,51 +2398,39 @@
                 encheresTitle: 'Enchères publiques',
                 encheresSubtitle: 'Participez aux enchères de l\'association',
                 footerFollow: 'Suivez-nous',
-                footerCopyright: '© 2024 Association ANSFAL. Tous droits réservés.'
+                footerCopyright: '© 2024 Association ANSFAL. Tous droits réservés.',
+                auctionParticipateTitle: 'Participer à une enchère',
+                auctionParticipateDesc: 'Proposez votre prix pour l\'article de votre choix',
+                auctionSelectLabel: 'Article',
+                auctionNameLabel: 'Votre nom',
+                auctionEmailLabel: 'Email',
+                auctionPhoneLabel: 'Téléphone',
+                auctionBidLabel: 'Votre proposition (DH)',
+                auctionMessageLabel: 'Message (optionnel)',
+                auctionSubmitBtn: 'Envoyer ma proposition',
+                auctionBidSent: '✅ Votre proposition a été envoyée avec succès !',
+                auctionBidError: '❌ Erreur lors de l\'envoi de votre proposition',
+                bidStatusActive: 'Active',
+                bidStatusEnded: 'Terminée',
+                bidStatusUpcoming: 'À venir'
             },
             ar: {
-                // Navigation
-                menuHome: 'الرئيسية',
-                menuAbout: 'من نحن',
-                menuBetail: 'الماشية',
-                menuProduits: 'المنتجات',
-                menuArbres: 'الأشجار',
-                menuEau: 'الماء',
-                menuSagia: 'سواقي الماء',
-                menuConseil: 'المجلس',
-                menuDocuments: 'الوثائق',
-                menuGallery: 'المعرض',
-                menuVideos: 'الفيديوهات',
-                menuProjects: 'المشاريع',
-                menuDons: 'التبرعات',
-                menuActu: 'الأخبار',
-                menuAdherents: 'المنخرطون',
-                menuContact: 'اتصل بنا',
-                menuMusee: 'متحف أنسفال',
-                menuEncheres: 'المزادات',
+                menuHome: 'الرئيسية', menuAbout: 'من نحن', menuBetail: 'الماشية',
+                menuProduits: 'المنتجات', menuArbres: 'الأشجار', menuEau: 'الماء',
+                menuSagia: 'سواقي الماء', menuConseil: 'المجلس', menuDocuments: 'الوثائق',
+                menuGallery: 'المعرض', menuVideos: 'الفيديوهات', menuProjects: 'المشاريع',
+                menuDons: 'التبرعات', menuActu: 'الأخبار', menuAdherents: 'المنخرطون',
+                menuContact: 'اتصل بنا', menuMusee: 'متحف أنسفال', menuEncheres: 'المزادات',
                 menuDashboard: 'لوحة التحكم',
-                
-                // Dashboard sidebar
-                sidebarDashboard: 'لوحة التحكم',
-                sidebarGallery: 'المعرض',
-                sidebarVideos: 'الفيديوهات',
-                sidebarPublications: 'المنشورات',
-                sidebarText: 'النصوص',
-                sidebarBetail: 'الماشية',
-                sidebarProduits: 'المنتجات',
-                sidebarArbres: 'الأشجار',
-                sidebarEau: 'الماء',
-                sidebarSagia: 'سواقي الماء',
-                sidebarConseil: 'المجلس',
-                sidebarDocuments: 'الوثائق',
-                sidebarAdherents: 'المنخرطون',
-                sidebarUsers: 'المستخدمون',
-                sidebarLocalites: 'المناطق',
-                sidebarMusee: 'المتحف',
-                sidebarEncheres: 'المزادات',
-                sidebarSettings: 'الإعدادات',
-                
-                // Dashboard titles
+                sidebarDashboard: 'لوحة التحكم', sidebarGallery: 'المعرض',
+                sidebarVideos: 'الفيديوهات', sidebarPublications: 'المنشورات',
+                sidebarText: 'النصوص', sidebarBetail: 'الماشية',
+                sidebarProduits: 'المنتجات', sidebarArbres: 'الأشجار',
+                sidebarEau: 'الماء', sidebarSagia: 'سواقي الماء',
+                sidebarConseil: 'المجلس', sidebarDocuments: 'الوثائق',
+                sidebarAdherents: 'المنخرطون', sidebarUsers: 'المستخدمون',
+                sidebarLocalites: 'المناطق', sidebarMusee: 'المتحف',
+                sidebarEncheres: 'المزادات', sidebarSettings: 'الإعدادات',
                 dashboardTitle: 'لوحة تحكم أنسفال',
                 galleryDashboardTitle: 'إدارة الصور',
                 videosDashboardTitle: 'إدارة الفيديوهات',
@@ -2362,18 +2449,10 @@
                 museeDashboardTitle: 'إدارة المتحف',
                 encheresDashboardTitle: 'إدارة المزادات',
                 settingsTitle: 'الإعدادات',
-                
-                // Stats
-                statVisitors: 'الزوار',
-                statMedia: 'الوسائط',
-                statPublications: 'المنشورات',
-                statActu: 'الأخبار',
-                statAdherents: 'المنخرطون',
-                statUsers: 'المستخدمون',
-                statMusee: 'المتحف',
-                statEncheres: 'المزادات',
-                
-                // Alerts
+                statVisitors: 'الزوار', statMedia: 'الوسائط',
+                statPublications: 'المنشورات', statActu: 'الأخبار',
+                statAdherents: 'المنخرطون', statUsers: 'المستخدمون',
+                statMusee: 'المتحف', statEncheres: 'المزادات',
                 alertFillFields: 'يرجى ملء جميع الحقول',
                 alertInvalidCredentials: 'بيانات الدخول غير صحيحة',
                 alertLoginSuccess: 'تم تسجيل الدخول بنجاح',
@@ -2392,10 +2471,8 @@
                 noVideosPublic: 'لا توجد فيديوهات متاحة.',
                 noMuseumPublic: 'لا توجد قطع في المتحف.',
                 noAuctionPublic: 'لا توجد مزادات حالياً.',
-                publishBtn: 'نشر',
-                deleteBtn: 'حذف',
-                statusPublished: 'منشور',
-                statusDraft: 'مسودة',
+                publishBtn: 'نشر', deleteBtn: 'حذف',
+                statusPublished: 'منشور', statusDraft: 'مسودة',
                 menuHomeLabel: 'الرئيسية',
                 heroTitle: 'أنسفال',
                 heroSubtitle: 'جمعية أنسفال للتعاون والتنمية والبيئة',
@@ -2441,12 +2518,26 @@
                 encheresTitle: 'المزادات العامة',
                 encheresSubtitle: 'شارك في مزادات الجمعية',
                 footerFollow: 'تابعونا',
-                footerCopyright: '© 2024 جمعية أنسفال. جميع الحقوق محفوظة.'
+                footerCopyright: '© 2024 جمعية أنسفال. جميع الحقوق محفوظة.',
+                auctionParticipateTitle: 'المشاركة في مزاد',
+                auctionParticipateDesc: 'قدم عرضك للقطعة التي تختارها',
+                auctionSelectLabel: 'القطعة',
+                auctionNameLabel: 'اسمك',
+                auctionEmailLabel: 'البريد الإلكتروني',
+                auctionPhoneLabel: 'الهاتف',
+                auctionBidLabel: 'عرضك (درهم)',
+                auctionMessageLabel: 'رسالة (اختياري)',
+                auctionSubmitBtn: 'أرسل عرضي',
+                auctionBidSent: '✅ تم إرسال عرضك بنجاح !',
+                auctionBidError: '❌ حدث خطأ أثناء إرسال عرضك',
+                bidStatusActive: 'نشط',
+                bidStatusEnded: 'منتهية',
+                bidStatusUpcoming: 'قادم'
             }
         };
 
         // ============================================================
-        // FONCTIONS CRYPTO POUR HACHAGE
+        // FONCTIONS CRYPTO
         // ============================================================
         async function hashPassword(password) {
             const encoder = new TextEncoder();
@@ -2475,7 +2566,7 @@
             document.body.classList.toggle('rtl', isRTL);
             document.documentElement.lang = currentLang;
             
-            // Mise à jour des éléments du menu principal
+            // Menu principal
             var menuItems = {
                 'menuHome': 'menuHomeLabel',
                 'menuAbout': 'menuAbout',
@@ -2504,10 +2595,6 @@
                     var label = el.querySelector('.menu-label');
                     if (label) {
                         label.textContent = t[menuItems[id]] || id;
-                    } else {
-                        // Fallback pour les anciens éléments sans span
-                        var text = t[menuItems[id]] || id;
-                        el.innerHTML = el.innerHTML.replace(/[^<]*/, text);
                     }
                 }
             }
@@ -2580,15 +2667,19 @@
             
             for (var id in stats) {
                 var el = document.getElementById(id);
-                if (el) el.innerHTML = '<i class="fas fa-' + 
-                    (id === 'statVisitors' ? 'users' : 
-                     id === 'statMedia' ? 'photo-video' :
-                     id === 'statPublications' ? 'newspaper' :
-                     id === 'statActu' ? 'comment' :
-                     id === 'statAdherents' ? 'users' :
-                     id === 'statUsers' ? 'users-cog' :
-                     id === 'statMusee' ? 'landmark' : 'gavel') + 
-                    '"></i> ' + (t[stats[id]] || id);
+                if (el) {
+                    var iconMap = {
+                        'statVisitors': 'users',
+                        'statMedia': 'photo-video',
+                        'statPublications': 'newspaper',
+                        'statActu': 'comment',
+                        'statAdherents': 'users',
+                        'statUsers': 'users-cog',
+                        'statMusee': 'landmark',
+                        'statEncheres': 'gavel'
+                    };
+                    el.innerHTML = '<i class="fas fa-' + iconMap[id] + '"></i> ' + (t[stats[id]] || id);
+                }
             }
             
             // Section titles
@@ -2663,7 +2754,16 @@
                 'museeSubtitle': 'museeSubtitle',
                 'encheresSubtitle': 'encheresSubtitle',
                 'footerFollow': 'footerFollow',
-                'footerCopyright': 'footerCopyright'
+                'footerCopyright': 'footerCopyright',
+                'auctionParticipateTitle': 'auctionParticipateTitle',
+                'auctionParticipateDesc': 'auctionParticipateDesc',
+                'auctionSelectLabel': 'auctionSelectLabel',
+                'auctionNameLabel': 'auctionNameLabel',
+                'auctionEmailLabel': 'auctionEmailLabel',
+                'auctionPhoneLabel': 'auctionPhoneLabel',
+                'auctionBidLabel': 'auctionBidLabel',
+                'auctionMessageLabel': 'auctionMessageLabel',
+                'auctionSubmitBtn': 'auctionSubmitBtn'
             };
             
             for (var id in other) {
@@ -2679,7 +2779,6 @@
                     'Association ANSFAL de Coopération, Développement et Environnement';
             }
             
-            // Footer logo subtitle
             var footerLogoSubtitle = document.getElementById('footerLogoSubtitle');
             if (footerLogoSubtitle) {
                 footerLogoSubtitle.textContent = isRTL ? 
@@ -2688,19 +2787,13 @@
             }
             
             // Update table headers for RTL
-            var tableHeaders = document.querySelectorAll('.data-table th');
-            tableHeaders.forEach(function(th) {
-                if (isRTL) {
-                    th.style.textAlign = 'right';
-                } else {
-                    th.style.textAlign = 'left';
-                }
+            document.querySelectorAll('.data-table th').forEach(function(th) {
+                th.style.textAlign = isRTL ? 'right' : 'left';
             });
             
-            // Update ticker
             updateTickerText();
             
-            // Re-render tables and content
+            // Re-render
             renderBetail();
             renderProduits();
             renderArbres();
@@ -2716,8 +2809,8 @@
             renderMusee();
             renderEncheres();
             renderLocalites();
+            renderAuctionOptions();
             
-            // Save language preference
             try {
                 localStorage.setItem('ansfal_lang', currentLang);
             } catch (e) {}
@@ -2727,7 +2820,6 @@
             if (lang === currentLang) return;
             currentLang = lang;
             
-            // Update buttons
             document.querySelectorAll('.lang-btn').forEach(function(btn) {
                 btn.classList.remove('active');
                 if ((lang === 'fr' && btn.textContent.includes('FR')) || 
@@ -2813,9 +2905,8 @@
             showAlert('Connexion en cours...', 'info');
 
             var users = await getUsers();
-            console.log('👥 Utilisateurs chargés:', users);
-
             var found = null;
+
             for (var u of users) {
                 if (u.username === user) {
                     var isValid = false;
@@ -2828,7 +2919,6 @@
                     }
                     if (!isValid && user === 'admin' && pass === 'admin123' && !u.password_changed) {
                         isValid = true;
-                        console.log('⚠️ Connexion avec le mot de passe par défaut');
                     }
                     if (isValid) {
                         found = u;
@@ -2965,8 +3055,6 @@
             document.getElementById('bankAccountEditBtn').style.display = 'inline-block';
             document.getElementById('conseilProtected').style.display = 'none';
             document.getElementById('conseilContent').style.display = 'block';
-            document.getElementById('documentsProtected').style.display = 'none';
-            document.getElementById('documentsContent').style.display = 'block';
 
             if (user.role === 'admin' || user.role === 'webmestre') {
                 document.getElementById('contactEditForm').style.display = 'block';
@@ -2979,6 +3067,7 @@
             }
 
             setCurrentUser(user);
+            renderAuctionOptions();
         }
 
         function getCurrentUser() {
@@ -3010,8 +3099,6 @@
             document.getElementById('bankAccountEditBtn').style.display = 'none';
             document.getElementById('conseilProtected').style.display = 'block';
             document.getElementById('conseilContent').style.display = 'none';
-            document.getElementById('documentsProtected').style.display = 'block';
-            document.getElementById('documentsContent').style.display = 'none';
             try { localStorage.removeItem('ansfal_current_user'); } catch (e) {}
             showAlert(t.alertLogout, 'info');
             renderAll();
@@ -3053,18 +3140,14 @@
                 musee: 'menuMusee', encheres: 'menuEncheres'
             };
             if (map[id]) document.getElementById(map[id]).classList.add('active');
-            if (id === 'conseil' || id === 'documents') {
+            if (id === 'conseil') {
                 var user = getCurrentUser();
                 if (!user) {
                     document.getElementById('conseilProtected').style.display = 'block';
                     document.getElementById('conseilContent').style.display = 'none';
-                    document.getElementById('documentsProtected').style.display = 'block';
-                    document.getElementById('documentsContent').style.display = 'none';
                 } else {
                     document.getElementById('conseilProtected').style.display = 'none';
                     document.getElementById('conseilContent').style.display = 'block';
-                    document.getElementById('documentsProtected').style.display = 'none';
-                    document.getElementById('documentsContent').style.display = 'block';
                 }
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -3091,6 +3174,17 @@
             if (type === 'adherents') renderAdherents();
             if (type === 'musee') renderMuseeAdmin();
             if (type === 'encheres') renderEncheresAdmin();
+        }
+
+        // ============================================================
+        // SOUS-MENU DOCUMENTS
+        // ============================================================
+        function toggleSubmenu(id) {
+            var li = document.getElementById(id);
+            if (!li) return;
+            li.classList.toggle('open');
+            var sub = li.querySelector('.submenu');
+            if (sub) sub.classList.toggle('open');
         }
 
         // ============================================================
@@ -3326,14 +3420,8 @@
             var items = DATA.produits || [];
             var body = document.getElementById('produitsBody');
             if (!body) return;
-
-            if (items.length === 0) {
-                body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>';
-                return;
-            }
-
+            if (items.length === 0) { body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>'; return; }
             var isRTL = currentLang === 'ar';
-
             body.innerHTML = items.map(function(item) {
                 var nom = '';
                 if (item.nom_fr && typeof item.nom_fr === 'object') {
@@ -3343,30 +3431,20 @@
                 } else {
                     nom = item.nom_fr || item.nom || item.nom_ar || 'Produit';
                 }
-
                 var localite = getLocaliteName(item.localite_id);
-
                 var periode = '';
                 if (item.periode && typeof item.periode === 'object') {
                     periode = isRTL ? (item.periode.ar || item.periode.fr || '') : (item.periode.fr || item.periode.ar || '');
                 } else {
                     periode = item.periode || '';
                 }
-
                 var statut = '';
                 if (item.statut && typeof item.statut === 'object') {
                     statut = isRTL ? (item.statut.ar || item.statut.fr || 'Disponible') : (item.statut.fr || item.statut.ar || 'Disponible');
                 } else {
                     statut = item.statut || 'Disponible';
                 }
-
-                return '<tr>' +
-                    '<td><strong>' + nom + '</strong></td>' +
-                    '<td>' + localite + '</td>' +
-                    '<td>' + (item.quantite || 0) + '</td>' +
-                    '<td>' + periode + '</td>' +
-                    '<td>' + statut + '</td>' +
-                    '</tr>';
+                return '<tr><td><strong>' + nom + '</strong></td><td>' + localite + '</td><td>' + (item.quantite || 0) + '</td><td>' + periode + '</td><td>' + statut + '</td></tr>';
             }).join('');
         }
 
@@ -3458,10 +3536,7 @@
             var list = document.getElementById('conseilList');
             if (!list) return;
             var items = DATA.conseil || [];
-            if (items.length === 0) {
-                list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>';
-                return;
-            }
+            if (items.length === 0) { list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; return; }
             items.sort(function(a, b) { return (a.ordre || 0) - (b.ordre || 0); });
             var user = getCurrentUser();
             var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
@@ -3708,10 +3783,7 @@
             var list = document.getElementById('documentsAdminList');
             if (!list) return;
             var items = DATA.documentsAdmin || [];
-            if (items.length === 0) {
-                list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>';
-                return;
-            }
+            if (items.length === 0) { list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; return; }
             var user = getCurrentUser();
             var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
             list.innerHTML = items.map(function(item) {
@@ -3838,10 +3910,7 @@
             var container = document.getElementById('galleryContainer');
             var items = DATA.gallery || [];
             if (!container) return;
-            if (items.length === 0) {
-                container.innerHTML = '<div class="no-content">' + getLang().noGalleryPublic + '</div>';
-                return;
-            }
+            if (items.length === 0) { container.innerHTML = '<div class="no-content">' + getLang().noGalleryPublic + '</div>'; return; }
             container.innerHTML = items.map(function(item) {
                 var title = item.titre || (item.nom || 'Image');
                 return '<div class="gallery-item" onclick="openFileViewer(\'' + item.url + '\', \'' + title.replace(/'/g, "\\'") + '\')">' +
@@ -3855,10 +3924,7 @@
             var list = document.getElementById('galleryList');
             if (!list) return;
             var items = DATA.gallery || [];
-            if (items.length === 0) {
-                list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>';
-                return;
-            }
+            if (items.length === 0) { list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; return; }
             var user = getCurrentUser();
             var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
             list.innerHTML = items.map(function(item) {
@@ -3877,10 +3943,7 @@
             var container = document.getElementById('videosContainer');
             var items = DATA.videos || [];
             if (!container) return;
-            if (items.length === 0) {
-                container.innerHTML = '<div class="no-content">' + getLang().noVideosPublic + '</div>';
-                return;
-            }
+            if (items.length === 0) { container.innerHTML = '<div class="no-content">' + getLang().noVideosPublic + '</div>'; return; }
             container.innerHTML = items.map(function(item) {
                 var videoHtml = '';
                 var title = item.titre || (item.nom || 'Vidéo');
@@ -3900,10 +3963,7 @@
             var list = document.getElementById('videosList');
             if (!list) return;
             var items = DATA.videos || [];
-            if (items.length === 0) {
-                list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>';
-                return;
-            }
+            if (items.length === 0) { list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; return; }
             var user = getCurrentUser();
             var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
             list.innerHTML = items.map(function(item) {
@@ -3926,10 +3986,7 @@
             var container = document.getElementById('articlesContainer');
             var items = DATA.articles || [];
             if (!container) return;
-            if (items.length === 0) {
-                container.innerHTML = '<div class="no-content">' + getLang().noData + '</div>';
-                return;
-            }
+            if (items.length === 0) { container.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; return; }
             container.innerHTML = items.map(function(item) {
                 var date = item.created_at ? new Date(item.created_at).toLocaleDateString() : '';
                 var imageHtml = item.image_url ? '<img src="' + item.image_url + '" style="width:100%;height:150px;object-fit:cover;border-radius:8px;margin-bottom:10px;" />' : '';
@@ -3946,10 +4003,7 @@
             var list = document.getElementById('publicationsList');
             if (!list) return;
             var items = DATA.articles || [];
-            if (items.length === 0) {
-                list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>';
-                return;
-            }
+            if (items.length === 0) { list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; return; }
             var user = getCurrentUser();
             var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
             list.innerHTML = items.map(function(item) {
@@ -3987,9 +4041,8 @@
             var items = DATA.texts || [];
             
             if (list) {
-                if (items.length === 0) {
-                    list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>';
-                } else {
+                if (items.length === 0) { list.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; }
+                else {
                     var user = getCurrentUser();
                     var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
                     list.innerHTML = items.map(function(item) {
@@ -4813,6 +4866,20 @@
                     '</div>' +
                     '</div>';
             }).join('');
+            renderAuctionOptions();
+        }
+
+        function renderAuctionOptions() {
+            var select = document.getElementById('auctionSelect');
+            if (!select) return;
+            var items = DATA.encheres || [];
+            var activeItems = items.filter(function(item) { return item.statut === 'active' || item.statut === 'upcoming'; });
+            var currentValue = select.value;
+            select.innerHTML = '<option value="">-- ' + (currentLang === 'ar' ? 'اختر قطعة' : 'Sélectionnez un article') + ' --</option>';
+            activeItems.forEach(function(item) {
+                var selected = (item.id == currentValue) ? 'selected' : '';
+                select.innerHTML += '<option value="' + item.id + '" ' + selected + '>' + (item.nom || 'Article') + ' (' + (item.prix_depart || 0) + ' DH)</option>';
+            });
         }
 
         function renderEncheresAdmin() {
@@ -4980,6 +5047,233 @@
         }
 
         // ============================================================
+        // PARTICIPATION AUX ENCHÈRES (PUBLIC)
+        // ============================================================
+        async function submitAuctionBid() {
+            var t = getLang();
+            var enchereId = document.getElementById('auctionSelect').value;
+            var name = document.getElementById('auctionName').value.trim();
+            var email = document.getElementById('auctionEmail').value.trim();
+            var phone = document.getElementById('auctionPhone').value.trim();
+            var bid = parseFloat(document.getElementById('auctionBid').value);
+            var message = document.getElementById('auctionMessage').value.trim();
+
+            if (!enchereId) { showAlert('Veuillez sélectionner un article', 'error'); return; }
+            if (!name) { showAlert('Veuillez entrer votre nom', 'error'); return; }
+            if (!email) { showAlert('Veuillez entrer votre email', 'error'); return; }
+            if (!bid || bid <= 0) { showAlert('Veuillez entrer un montant valide', 'error'); return; }
+
+            var enchere = DATA.encheres.find(function(el) { return el.id == enchereId; });
+            if (!enchere) { showAlert('Article non trouvé', 'error'); return; }
+            if (enchere.statut === 'ended') { showAlert('Cette enchère est terminée', 'error'); return; }
+            if (bid < enchere.prix_actuel) {
+                showAlert('Votre proposition doit être supérieure au prix actuel (' + enchere.prix_actuel + ' DH)', 'error');
+                return;
+            }
+
+            try {
+                var data = {
+                    enchere_id: enchereId,
+                    nom: name,
+                    email: email,
+                    telephone: phone || null,
+                    montant: bid,
+                    message: message || null,
+                    created_at: new Date().toISOString()
+                };
+
+                var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/bids', {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    headers: { 'Prefer': 'return=representation' }
+                });
+                if (!resp.ok) throw new Error('Erreur: ' + await resp.text());
+
+                // Mettre à jour le prix actuel et le nombre d'enchères
+                await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/encheres?id=eq.' + enchereId, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ 
+                        prix_actuel: bid, 
+                        nb_encheres: (enchere.nb_encheres || 0) + 1,
+                        updated_at: new Date().toISOString()
+                    })
+                });
+
+                showAlert(t.auctionBidSent, 'success');
+                document.getElementById('auctionName').value = '';
+                document.getElementById('auctionEmail').value = '';
+                document.getElementById('auctionPhone').value = '';
+                document.getElementById('auctionBid').value = '';
+                document.getElementById('auctionMessage').value = '';
+                
+                await loadEncheres();
+                renderEncheres();
+                renderEncheresAdmin();
+            } catch (e) {
+                showAlert(t.auctionBidError + ': ' + e.message, 'error');
+                console.error(e);
+            }
+        }
+
+        // ============================================================
+        // FORMULAIRES DOCUMENTS PERSONNALISÉS
+        // ============================================================
+        function showDocumentForm(type) {
+            var user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) {
+                showAlert('Vous n\'avez pas les permissions', 'error');
+                return;
+            }
+
+            var titles = {
+                'bon_reception': currentLang === 'ar' ? 'Bon de réception' : 'Bon de réception',
+                'bon_retour': currentLang === 'ar' ? 'Bon de retour' : 'Bon de retour',
+                'bon_commande': currentLang === 'ar' ? 'Bon de commande' : 'Bon de commande',
+                'bon_caisse': currentLang === 'ar' ? 'Bon de caisse' : 'Bon de caisse',
+                'bon_depense': currentLang === 'ar' ? 'Bon de dépense' : 'Bon de dépense',
+                'accuse_reception': currentLang === 'ar' ? 'Accusé de réception' : 'Accusé de réception',
+                'lettre_transite': currentLang === 'ar' ? 'Bon de transite' : 'Bon de transite',
+                'demande_attestation': currentLang === 'ar' ? 'Demande d\'attestation' : 'Demande d\'attestation'
+            };
+
+            document.getElementById('documentFormTitle').textContent = titles[type] || 'Générer un document';
+            var body = document.getElementById('documentFormBody');
+
+            var isRTL = currentLang === 'ar';
+            var fields = `
+                <div style="margin-bottom:20px;text-align:center;border-bottom:2px solid var(--primary);padding-bottom:15px;">
+                    <h2 style="color:var(--primary);font-size:1.8rem;">ANSFAL</h2>
+                    <p style="color:#666;">${isRTL ? 'جمعية أنسفال للتعاون والتنمية والبيئة' : 'Association ANSFAL de Coopération, Développement et Environnement'}</p>
+                    <p style="color:#888;font-size:0.85rem;"><i class="fas fa-phone"></i> +212 625931318 | <i class="fas fa-envelope"></i> contact@ansfal.org</p>
+                    <p style="color:#888;font-size:0.85rem;"><i class="fas fa-map-marker-alt"></i> ${isRTL ? 'المغرب' : 'Maroc'} | <i class="fas fa-university"></i> ${isRTL ? 'رقم الحساب: 225070014712363651011109' : 'RIB: 225070014712363651011109'}</p>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                    <div><label>${isRTL ? 'التاريخ' : 'Date'} <span style="color:red;">*</span></label><input type="date" id="docDate" value="${new Date().toISOString().split('T')[0]}" /></div>
+                    <div><label>${isRTL ? 'الرقم' : 'Numéro'} <span style="color:red;">*</span></label><input type="text" id="docNumero" placeholder="${isRTL ? 'مثال: 001/2024' : 'Ex: 001/2024'}" /></div>
+                    <div><label>${isRTL ? 'الموضوع' : 'Objet'} <span style="color:red;">*</span></label><input type="text" id="docObjet" placeholder="${isRTL ? 'موضوع الوثيقة' : 'Objet du document'}" /></div>
+                    <div><label>${isRTL ? 'المستفيد' : 'Bénéficiaire'} <span style="color:red;">*</span></label><input type="text" id="docBeneficiaire" placeholder="${isRTL ? 'اسم المستفيد' : 'Nom du bénéficiaire'}" /></div>
+                </div>
+                <div style="margin-top:15px;">
+                    <label>${isRTL ? 'المحتوى' : 'Contenu'} <span style="color:red;">*</span></label>
+                    <textarea id="docContenu" rows="6" placeholder="${isRTL ? 'Écrivez le contenu du document ici...' : 'Écrivez le contenu du document ici...'}" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;resize:vertical;"></textarea>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:15px;">
+                    <div>
+                        <label>${isRTL ? 'Signature du Président' : 'Signature du Président'}</label>
+                        <input type="text" id="docPresident" placeholder="${isRTL ? 'Nom du Président' : 'Nom du Président'}" />
+                    </div>
+                    <div>
+                        <label>${isRTL ? 'Cachet de l\'association' : 'Cachet de l\'association'}</label>
+                        <input type="text" id="docCachet" placeholder="${isRTL ? 'Lieu et date' : 'Lieu et date'}" />
+                    </div>
+                </div>
+                <div style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap;">
+                    <button class="btn-browse" onclick="generateDocument('${type}')" style="background:var(--success);"><i class="fas fa-file-pdf"></i> ${isRTL ? 'توليد الوثيقة' : 'Générer le document'}</button>
+                    <button class="btn-browse" onclick="hideDocumentFormModal()" style="background:var(--danger);"><i class="fas fa-times"></i> ${isRTL ? 'إلغاء' : 'Annuler'}</button>
+                </div>
+                <div id="docGeneratedPreview" style="margin-top:20px;display:none;background:#f5f5f5;padding:20px;border-radius:10px;max-height:400px;overflow-y:auto;border:1px solid #ddd;"></div>
+            `;
+
+            body.innerHTML = fields;
+            document.getElementById('documentFormModal').classList.add('active');
+        }
+
+        function hideDocumentFormModal() {
+            document.getElementById('documentFormModal').classList.remove('active');
+        }
+
+        function generateDocument(type) {
+            var isRTL = currentLang === 'ar';
+            var date = document.getElementById('docDate').value;
+            var numero = document.getElementById('docNumero').value.trim();
+            var objet = document.getElementById('docObjet').value.trim();
+            var beneficiaire = document.getElementById('docBeneficiaire').value.trim();
+            var contenu = document.getElementById('docContenu').value.trim();
+            var president = document.getElementById('docPresident').value.trim() || 'Le Président';
+            var cachet = document.getElementById('docCachet').value.trim() || 'Maroc, le ' + new Date().toLocaleDateString();
+
+            if (!numero || !objet || !beneficiaire || !contenu) {
+                showAlert('Veuillez remplir tous les champs obligatoires', 'error');
+                return;
+            }
+
+            var typeLabels = {
+                'bon_reception': isRTL ? 'Bon de réception' : 'Bon de réception',
+                'bon_retour': isRTL ? 'Bon de retour' : 'Bon de retour',
+                'bon_commande': isRTL ? 'Bon de commande' : 'Bon de commande',
+                'bon_caisse': isRTL ? 'Bon de caisse' : 'Bon de caisse',
+                'bon_depense': isRTL ? 'Bon de dépense' : 'Bon de dépense',
+                'accuse_reception': isRTL ? 'Accusé de réception' : 'Accusé de réception',
+                'lettre_transite': isRTL ? 'Bon de transite' : 'Bon de transite',
+                'demande_attestation': isRTL ? 'Demande d\'attestation' : 'Demande d\'attestation'
+            };
+
+            var content = document.getElementById('docGeneratedPreview');
+            var html = `
+                <div class="print-document" id="docToPrint" style="max-width:800px;margin:0 auto;padding:20px;background:white;border-radius:10px;">
+                    <div class="header" style="text-align:center;border-bottom:2px solid var(--dark);padding-bottom:20px;margin-bottom:20px;">
+                        <h1 style="color:var(--primary);font-size:24px;margin:0;">ANSFAL</h1>
+                        <p style="margin:5px 0;color:#666;">${isRTL ? 'جمعية أنسفال للتعاون والتنمية والبيئة' : 'Association ANSFAL de Coopération, Développement et Environnement'}</p>
+                        <p style="margin:5px 0;color:#888;font-size:12px;">
+                            <i class="fas fa-phone"></i> +212 625931318 | <i class="fas fa-envelope"></i> contact@ansfal.org<br>
+                            <i class="fas fa-map-marker-alt"></i> ${isRTL ? 'المغرب' : 'Maroc'} | <i class="fas fa-university"></i> ${isRTL ? 'رقم الحساب: 225070014712363651011109' : 'RIB: 225070014712363651011109'}
+                        </p>
+                    </div>
+                    <div style="text-align:center;margin-bottom:15px;">
+                        <h2 style="color:var(--dark);font-size:20px;border-bottom:1px solid #eee;padding-bottom:10px;">${typeLabels[type]}</h2>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;font-size:14px;">
+                        <div><strong>${isRTL ? 'الرقم' : 'N°'}:</strong> ${numero}</div>
+                        <div><strong>${isRTL ? 'التاريخ' : 'Date'}:</strong> ${new Date(date).toLocaleDateString()}</div>
+                    </div>
+                    <div style="margin-bottom:10px;font-size:14px;">
+                        <div><strong>${isRTL ? 'الموضوع' : 'Objet'}:</strong> ${objet}</div>
+                        <div><strong>${isRTL ? 'المستفيد' : 'Bénéficiaire'}:</strong> ${beneficiaire}</div>
+                    </div>
+                    <div style="margin:15px 0;padding:15px;background:#f9f9f9;border-radius:5px;font-size:14px;line-height:1.8;white-space:pre-wrap;">
+                        ${contenu}
+                    </div>
+                    <div style="margin-top:30px;display:flex;justify-content:space-between;font-size:14px;">
+                        <div style="text-align:center;">
+                            <div>${isRTL ? 'توقيع الرئيس' : 'Signature du Président'}</div>
+                            <div style="margin-top:30px;border-top:1px solid #333;width:150px;margin-left:auto;margin-right:auto;padding-top:5px;">${president}</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div>${isRTL ? 'ختم الجمعية' : 'Cachet de l\'association'}</div>
+                            <div style="margin-top:30px;border-top:1px solid #333;width:150px;margin-left:auto;margin-right:auto;padding-top:5px;">${cachet}</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:30px;text-align:center;font-size:10px;color:#888;border-top:1px solid #ddd;padding-top:10px;">
+                        ${isRTL ? 'وثيقة صادرة عن جمعية أنسفال - جميع الحقوق محفوظة' : 'Document émis par l\'Association ANSFAL - Tous droits réservés'}
+                    </div>
+                </div>
+            `;
+
+            content.innerHTML = html;
+            content.style.display = 'block';
+
+            // Ajouter un bouton d'impression
+            var printBtn = document.createElement('button');
+            printBtn.className = 'btn-browse';
+            printBtn.style.cssText = 'background:var(--info);margin-top:10px;';
+            printBtn.innerHTML = '<i class="fas fa-print"></i> ' + (isRTL ? 'طباعة' : 'Imprimer');
+            printBtn.onclick = function() {
+                var printContent = document.getElementById('docToPrint');
+                if (!printContent) return;
+                var printWindow = window.open('', '_blank', 'width=800,height=600');
+                if (!printWindow) { showAlert('Veuillez autoriser les popups pour l\'impression', 'error'); return; }
+                printWindow.document.write('<html><head><title>ANSFAL - ' + typeLabels[type] + '</title>');
+                printWindow.document.write('<style>body{font-family:Arial,sans-serif;padding:40px;} .header{text-align:center;border-bottom:2px solid #1a6d2c;padding-bottom:20px;margin-bottom:20px;} .header h1{color:#1a6d2c;} .content{margin:20px 0;} .footer{margin-top:40px;display:flex;justify-content:space-between;} .signature{text-align:center;} .signature .line{width:200px;border-top:1px solid #333;margin:30px auto 5px;} .info{text-align:center;font-size:10px;color:#888;margin-top:20px;border-top:1px solid #ddd;padding-top:10px;}');
+                printWindow.document.write('</head><body>');
+                printWindow.document.write(printContent.outerHTML);
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+                setTimeout(function() { printWindow.print(); }, 500);
+            };
+            content.appendChild(printBtn);
+        }
+
+        // ============================================================
         // UPLOAD MEDIA
         // ============================================================
         function showUploadModal(type) {
@@ -5006,8 +5300,8 @@
             document.getElementById('uploadBtn').disabled = true;
             selectedFiles = [];
             uploadMode = 'pc';
-            document.querySelector('.choice-btn.active').classList.remove('active');
-            document.querySelector('.choice-btn:first-child').classList.add('active');
+            document.querySelector('.choice-btn.active')?.classList.remove('active');
+            document.querySelector('.choice-btn:first-child')?.classList.add('active');
             document.getElementById('pcUploadArea').style.display = 'block';
             document.getElementById('urlUploadArea').style.display = 'none';
             document.getElementById('uploadModal').classList.add('active');
@@ -6038,8 +6332,6 @@
                 if (user) {
                     document.getElementById('conseilProtected').style.display = 'none';
                     document.getElementById('conseilContent').style.display = 'block';
-                    document.getElementById('documentsProtected').style.display = 'none';
-                    document.getElementById('documentsContent').style.display = 'block';
                     renderConseilAdmin();
                     renderDocumentsAdminList();
                     renderGalleryAdmin();
@@ -6110,8 +6402,40 @@
                 if (e.key === 'Enter') document.getElementById('password').focus();
             });
 
+            // Initialiser les options du sélecteur d'enchères
+            renderAuctionOptions();
+
             console.log('✅ Application ANSFAL prête !');
         });
+
+        // ============================================================
+        // INIT AUTH
+        // ============================================================
+        function initAuth() {
+            var user = getCurrentUser();
+            if (user) {
+                DATA.currentUser = user;
+                DATA.userRole = user.role;
+                DATA.isAdmin = user.role === 'admin' || user.role === 'webmestre';
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('userInfo').classList.remove('hidden');
+                document.getElementById('userName').textContent = user.username;
+                document.getElementById('userRole').textContent = user.role;
+                document.body.classList.add('admin-mode');
+                document.getElementById('addBtn').style.display = 'flex';
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('menuDashboard').classList.remove('hidden');
+                document.getElementById('bankAccountEditBtn').style.display = 'inline-block';
+                document.getElementById('conseilProtected').style.display = 'none';
+                document.getElementById('conseilContent').style.display = 'block';
+                if (user.role === 'admin' || user.role === 'webmestre') {
+                    document.getElementById('contactEditForm').style.display = 'block';
+                }
+                if (user.role === 'membre') {
+                    document.querySelectorAll('.admin-only').forEach(function(el) { el.style.display = 'none'; });
+                }
+            }
+        }
 
         window._ansfal = {
             DATA: DATA,
