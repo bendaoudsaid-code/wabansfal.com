@@ -5409,101 +5409,248 @@ var supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
         }
 
         async function uploadFiles() {
-            if (selectedFiles.length === 0) return;
+    if (selectedFiles.length === 0) return;
 
-            var progress = document.getElementById('uploadProgress');
-            var progressFill = document.getElementById('progressFill');
-            var progressText = document.getElementById('progressText');
-            var success = document.getElementById('uploadSuccess');
-            var actions = document.getElementById('actionButtons');
-            var uploadBtn = document.getElementById('uploadBtn');
+    var progress = document.getElementById('uploadProgress');
+    var progressFill = document.getElementById('progressFill');
+    var progressText = document.getElementById('progressText');
+    var success = document.getElementById('uploadSuccess');
+    var actions = document.getElementById('actionButtons');
+    var uploadBtn = document.getElementById('uploadBtn');
 
-            progress.style.display = 'block';
-            success.style.display = 'none';
-            actions.style.display = 'none';
-            uploadBtn.disabled = true;
+    progress.style.display = 'block';
+    success.style.display = 'none';
+    actions.style.display = 'none';
+    uploadBtn.disabled = true;
 
-            var total = selectedFiles.length;
-            var completed = 0;
-            var errors = [];
+    var total = selectedFiles.length;
+    var completed = 0;
+    var errors = [];
 
-            for (var i = 0; i < total; i++) {
-                var file = selectedFiles[i];
-                var fileName = Date.now() + '_' + file.name.replace(/\s/g, '_');
+    for (var i = 0; i < total; i++) {
+        var file = selectedFiles[i];
+        var originalName = file.name;
+        var fileName = Date.now() + '_' + originalName.replace(/[^a-zA-Z0-9._-]/g, '_');
+        
+        try {
+            console.log('📤 Upload de:', originalName);
+            console.log('📄 Type:', file.type);
+            console.log('📏 Taille:', (file.size/1024).toFixed(1), 'KB');
 
+            // --- NOUVEAU: Vérification du format ---
+            var fileToUpload = file;
+            
+            // Si c'est une image HEIC/HEIF ou un format problématique
+            if (file.type === 'image/heic' || file.type === 'image/heif' || 
+                originalName.toLowerCase().endsWith('.heic') || 
+                originalName.toLowerCase().endsWith('.heif')) {
+                console.warn('⚠️ Format HEIC/HEIF détecté, conversion nécessaire');
                 try {
-                    var { data, error } = await supabase.storage
-                        .from('medias')
-                        .upload(fileName, file, { cacheControl: '3600', upsert: false });
-
-                    if (error) {
-                        errors.push(file.name + ': ' + error.message);
-                        continue;
-                    }
-
-                    var { data: urlData } = supabase.storage.from('medias').getPublicUrl(fileName);
-                    var url = urlData.publicUrl;
-                    var isImage = file.type.startsWith('image/');
-                    var isVideo = file.type.startsWith('video/');
-                    var isPDF = file.type === 'application/pdf';
-
-                    var table = 'gallery';
-                    if (isVideo) table = 'videos';
-                    else if (isPDF) table = 'documents_admin';
-                    else if (currentUploadType === 'video') table = 'videos';
-                    else if (currentUploadType === 'article') table = 'articles';
-                    else if (currentUploadType === 'document') table = 'documents_admin';
-
-                    var dataToSave = {
-                        url: url,
-                        titre: file.name.split('.')[0] || 'Fichier',
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString()
-                    };
-
-                    if (table === 'articles') {
-                        dataToSave.contenu = ' ';
-                    }
-                    if (table === 'documents_admin') {
-                        dataToSave.type = 'Document';
-                    }
-
-                    var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + table, {
-                        method: 'POST',
-                        body: JSON.stringify(dataToSave),
-                        headers: { 'Prefer': 'return=representation' }
-                    });
-                    if (!resp.ok) {
-                        errors.push(file.name + ': Erreur sauvegarde');
-                        continue;
-                    }
-
-                    completed++;
-                    var percent = Math.round((completed / total) * 100);
-                    progressFill.style.width = percent + '%';
-                    progressText.textContent = percent + '%';
-
+                    fileToUpload = await convertHeicToJpeg(file);
                 } catch (e) {
-                    errors.push(file.name + ': ' + e.message);
+                    console.warn('❌ Conversion échouée, utilisation du fichier original', e);
+                }
+            }
+            
+            // Si c'est une image JPEG avec un problème
+            if (file.type === 'image/jpeg' || originalName.toLowerCase().endsWith('.jpg') || 
+                originalName.toLowerCase().endsWith('.jpeg')) {
+                try {
+                    // Vérifier si l'image est valide
+                    const isValid = await validateImage(file);
+                    if (!isValid) {
+                        console.warn('⚠️ Image JPEG invalide, tentative de reconversion');
+                        fileToUpload = await reconvertImage(file);
+                    }
+                } catch (e) {
+                    console.warn('⚠️ Erreur validation JPEG:', e);
                 }
             }
 
-            if (errors.length > 0) {
-                showAlert('❌ ' + errors.length + ' erreur(s) lors de l\'upload', 'error');
-                console.error(errors);
-            } else {
-                success.style.display = 'block';
-                document.getElementById('successMessage').textContent = (currentLang === 'ar' ? 'تم رفع ' : 'Upload réussi de ') + completed + ' fichier(s)';
+            const { data, error } = await supabase.storage
+                .from('medias')
+                .upload(fileName, fileToUpload, {
+                    cacheControl: '3600',
+                    upsert: false,
+                    contentType: file.type || 'application/octet-stream'
+                });
+
+            if (error) {
+                console.error('❌ Erreur Supabase:', error);
+                errors.push(originalName + ': ' + error.message);
+                continue;
             }
 
-            await loadAllTables();
-            renderAll();
-            updateStats();
+            console.log('✅ Upload réussi:', data);
 
-            setTimeout(function() {
-                hideUploadModal();
-            }, 3000);
+            const { data: urlData } = supabase.storage.from('medias').getPublicUrl(fileName);
+            const url = urlData.publicUrl;
+
+            var isImage = file.type.startsWith('image/');
+            var isVideo = file.type.startsWith('video/');
+            var isPDF = file.type === 'application/pdf';
+
+            var table = 'gallery';
+            if (isVideo) table = 'videos';
+            else if (isPDF) table = 'documents_admin';
+            else if (currentUploadType === 'video') table = 'videos';
+            else if (currentUploadType === 'article') table = 'articles';
+            else if (currentUploadType === 'document') table = 'documents_admin';
+
+            var dataToSave = {
+                url: url,
+                titre: originalName.split('.')[0] || 'Fichier',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            };
+
+            if (table === 'articles') {
+                dataToSave.contenu = ' ';
+            }
+            if (table === 'documents_admin' && !dataToSave.type) {
+                dataToSave.type = 'Document';
+            }
+
+            const response = await fetch(supabaseUrl + '/rest/v1/' + table, {
+                method: 'POST',
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': 'Bearer ' + supabaseKey,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation'
+                },
+                body: JSON.stringify(dataToSave)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error('Erreur sauvegarde: ' + errorText);
+            }
+
+            completed++;
+            var percent = Math.round((completed / total) * 100);
+            progressFill.style.width = percent + '%';
+            progressText.textContent = percent + '%';
+
+        } catch (e) {
+            console.error('❌ Erreur pour ' + originalName + ':', e);
+            errors.push(originalName + ': ' + e.message);
         }
+    }
+
+    if (errors.length > 0) {
+        showAlert('⚠️ ' + errors.length + ' erreur(s) sur ' + total + ' fichier(s)', 'warning');
+        console.error('Détail des erreurs:', errors);
+    } else {
+        success.style.display = 'block';
+        document.getElementById('successMessage').textContent = '✅ Upload réussi de ' + completed + ' fichier(s)';
+    }
+
+    await loadAllTables();
+    renderAll();
+    updateStats();
+
+    setTimeout(function() {
+        hideUploadModal();
+    }, 3000);
+}
+
+// --- NOUVELLES FONCTIONS ---
+
+// Valider une image
+function validateImage(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                resolve(true);
+            };
+            img.onerror = function() {
+                resolve(false);
+            };
+            img.src = e.target.result;
+        };
+        reader.onerror = function() {
+            reject(false);
+        };
+    });
+}
+
+// Reconversion d'image
+function reconvertImage(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                canvas.toBlob(function(blob) {
+                    if (blob) {
+                        const newFile = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+                            type: 'image/jpeg',
+                            lastModified: Date.now()
+                        });
+                        resolve(newFile);
+                    } else {
+                        resolve(file);
+                    }
+                }, 'image/jpeg', 0.92);
+            };
+            img.onerror = function() {
+                resolve(file);
+            };
+            img.src = e.target.result;
+        };
+        reader.onerror = function() {
+            resolve(file);
+        };
+    });
+}
+
+// Conversion HEIC/HEIF (nécessite une bibliothèque externe)
+function convertHeicToJpeg(file) {
+    return new Promise((resolve, reject) => {
+        // Utiliser une bibliothèque de conversion
+        // Solution simple: essayer de lire et reconvertir
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                canvas.toBlob(function(blob) {
+                    if (blob) {
+                        const newFile = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+                            type: 'image/jpeg',
+                            lastModified: Date.now()
+                        });
+                        resolve(newFile);
+                    } else {
+                        resolve(file);
+                    }
+                }, 'image/jpeg', 0.92);
+            };
+            img.onerror = function() {
+                resolve(file);
+            };
+            img.src = e.target.result;
+        };
+        reader.onerror = function() {
+            resolve(file);
+        };
+    });
+}
 
         // ============================================================
         // FILE VIEWER
