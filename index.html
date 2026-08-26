@@ -2610,6 +2610,38 @@
                 showAlert('❌ ' + t.alertInvalidCredentials, 'error');
             }
         }
+function renderHomeTexts() {
+    var container = document.getElementById('homePublishedTexts');
+    if (!container) return;
+    
+    var published = DATA.texts.filter(function(t) { return t.published === true; });
+    
+    if (published.length === 0) {
+        container.innerHTML = '<div class="no-content" style="color: rgba(255,255,255,0.7);">Aucun texte publié pour le moment.</div>';
+        return;
+    }
+    
+    // Afficher les 4 derniers textes publiés
+    var displayTexts = published.slice(-4).reverse();
+    
+    container.innerHTML = displayTexts.map(function(t) {
+        var title = t.title || t.titre || 'Sans titre';
+        var content = t.content || t.contenu || '';
+        var maxLength = 120;
+        var shortContent = content.length > maxLength ? content.substring(0, maxLength) + '...' : content;
+        var date = t.created_at ? new Date(t.created_at).toLocaleDateString('fr-FR') : 'Date inconnue';
+        
+        // Si la colonne s'appelle 'titre' au lieu de 'title'
+        var displayTitle = t.titre || t.title || 'Sans titre';
+        
+        return '<div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; border-left: 4px solid var(--accent); transition: transform 0.3s;">' +
+            '<h4 style="color: white; margin: 0 0 8px 0; font-size: 1.1rem;">' + displayTitle + '</h4>' +
+            '<p style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0 0 8px 0; line-height: 1.5;">' + shortContent + '</p>' +
+            '<small style="color: rgba(255,255,255,0.5);">📅 ' + date + '</small>' +
+            '</div>';
+    }).join('');
+}
+        
 
         async function getAdminChangedStatus() {
             try {
