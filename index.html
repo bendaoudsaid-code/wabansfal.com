@@ -4531,9 +4531,11 @@
                         created_at: new Date().toISOString()
                     };
                     if (currentUploadType === 'article') {
-                        payload.content = 'Contenu de l\'article';
-                        payload.author = DATA.currentUser ? DATA.currentUser.username : 'Admin';
-                    }
+    payload.titre = file.name.split('.')[0];  // ✅ Utiliser 'titre' au lieu de 'title'
+    payload.contenu = 'Contenu de l\'article';  // ✅ Utiliser 'contenu' au lieu de 'content'
+    payload.author = DATA.currentUser ? DATA.currentUser.username : 'Admin';
+    payload.image_url = url;  // ✅ Pour la colonne image_url
+}
 
                     var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/' + tableName, {
                         method: 'POST',
