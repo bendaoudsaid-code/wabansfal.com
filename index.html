@@ -4300,6 +4300,722 @@
         updateUILanguage();
         console.log('✅ ANSFAL - Application initialisée avec Supabase');
     });
+   // ============================================================
+// MODALES - FONCTIONS D'AFFICHAGE/MASQUAGE
+// ============================================================
+
+// --- TEXTE ---
+function showTextModal() {
+    currentEditId = null;
+    document.getElementById('textModalHeaderText').textContent = currentLang === 'ar' ? 'إضافة نص' : 'Ajouter un texte';
+    document.getElementById('textTitle').value = '';
+    document.getElementById('textContent').value = '';
+    document.getElementById('publishText').checked = true;
+    document.getElementById('textModal').classList.add('active');
+}
+function hideTextModal() { 
+    document.getElementById('textModal').classList.remove('active'); 
+}
+
+// --- CONSEIL ---
+function showConseilModal() {
+    currentConseilId = null;
+    document.getElementById('conseilModalTitle').textContent = currentLang === 'ar' ? 'إضافة عضو' : 'Ajouter un membre';
+    document.getElementById('conseilNom').value = '';
+    document.getElementById('conseilPrenom').value = '';
+    document.getElementById('conseilFonction').value = 'Membre';
+    document.getElementById('conseilOrdre').value = '0';
+    document.getElementById('conseilEmail').value = '';
+    document.getElementById('conseilTelephone').value = '';
+    document.getElementById('conseilBio').value = '';
+    document.getElementById('conseilSignature').value = '';
+    document.getElementById('conseilPhotoPreview').style.display = 'none';
+    document.getElementById('conseilPhotoPlaceholder').style.display = 'block';
+    document.getElementById('conseilPhotoName').textContent = currentLang === 'ar' ? 'لم يتم اختيار صورة' : 'Aucune photo sélectionnée';
+    document.getElementById('conseilSignaturePreview').style.display = 'none';
+    document.getElementById('conseilSignaturePlaceholder').style.display = 'block';
+    document.getElementById('conseilSignatureName').textContent = currentLang === 'ar' ? 'لا توجد صورة' : 'Aucune image';
+    switchConseilTab('info');
+    document.getElementById('conseilModal').classList.add('active');
+}
+function hideConseilModal() { 
+    document.getElementById('conseilModal').classList.remove('active'); 
+    currentConseilId = null;
+}
+
+// --- DOCUMENT ---
+function showDocumentModal() {
+    document.getElementById('documentModalTitle').textContent = currentLang === 'ar' ? 'إضافة وثيقة' : 'Ajouter un document';
+    document.getElementById('documentTitre').value = '';
+    document.getElementById('documentType').value = 'Statuts';
+    document.getElementById('documentFile').value = '';
+    document.getElementById('documentModal').classList.add('active');
+}
+function hideDocumentModal() { 
+    document.getElementById('documentModal').classList.remove('active'); 
+}
+
+// --- ADHÉRENT ---
+function showAdherentModal() {
+    currentAdherentId = null;
+    document.getElementById('adherentModalTitle').textContent = currentLang === 'ar' ? 'إضافة منخرط' : 'Ajouter un adhérent';
+    document.getElementById('adherentNom').value = '';
+    document.getElementById('adherentPrenom').value = '';
+    document.getElementById('adherentEmail').value = '';
+    document.getElementById('adherentTelephone').value = '';
+    document.getElementById('adherentAdresse').value = '';
+    document.getElementById('adherentDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('adherentStatut').value = 'Actif';
+    document.getElementById('adherentNotes').value = '';
+    document.getElementById('adherentPhoto').value = '';
+    
+    // Remplir le select des localités
+    var select = document.getElementById('adherentLocalite');
+    select.innerHTML = '<option value="">-- ' + (currentLang === 'ar' ? 'اختر منطقة' : 'Sélectionner une localité') + ' --</option>';
+    DATA.localites.forEach(function(loc) {
+        var name = currentLang === 'ar' ? (loc.nom_ar || loc.nom_fr) : (loc.nom_fr || '');
+        select.innerHTML += '<option value="' + loc.id + '">' + name + '</option>';
+    });
+    
+    document.getElementById('adherentModal').classList.add('active');
+}
+function hideAdherentModal() { 
+    document.getElementById('adherentModal').classList.remove('active'); 
+    currentAdherentId = null;
+}
+
+function editAdherent(id) {
+    var item = DATA.adherents.find(function(a) { return a.id === id; });
+    if (!item) { showAlert('Adhérent non trouvé', 'error'); return; }
+    
+    currentAdherentId = id;
+    document.getElementById('adherentModalTitle').textContent = currentLang === 'ar' ? 'تعديل منخرط' : 'Modifier un adhérent';
+    document.getElementById('adherentNom').value = item.nom || '';
+    document.getElementById('adherentPrenom').value = item.prenom || '';
+    document.getElementById('adherentEmail').value = item.email || '';
+    document.getElementById('adherentTelephone').value = item.telephone || '';
+    document.getElementById('adherentAdresse').value = item.adresse || '';
+    document.getElementById('adherentDate').value = item.date_adhesion || '';
+    document.getElementById('adherentStatut').value = item.statut || 'Actif';
+    document.getElementById('adherentNotes').value = item.notes || '';
+    
+    var select = document.getElementById('adherentLocalite');
+    select.innerHTML = '<option value="">-- ' + (currentLang === 'ar' ? 'اختر منطقة' : 'Sélectionner une localité') + ' --</option>';
+    DATA.localites.forEach(function(loc) {
+        var name = currentLang === 'ar' ? (loc.nom_ar || loc.nom_fr) : (loc.nom_fr || '');
+        var selected = (loc.id == item.localite_id) ? 'selected' : '';
+        select.innerHTML += '<option value="' + loc.id + '" ' + selected + '>' + name + '</option>';
+    });
+    
+    document.getElementById('adherentModal').classList.add('active');
+}
+
+async function deleteAdherent(id) {
+    var user = getCurrentUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
+        showAlert(getLang().alertNoPermission, 'error'); 
+        return; 
+    }
+    if (!confirm(currentLang === 'ar' ? 'حذف هذا المنخرط ؟' : 'Supprimer cet adhérent ?')) return;
+    try {
+        const { error } = await supabase.from('adherents').delete().eq('id', id);
+        if (error) throw error;
+        showAlert(getLang().alertItemDeleted, 'success');
+        await loadAllTables();
+        renderAll();
+    } catch (e) { 
+        showAlert('❌ Erreur: ' + e.message, 'error'); 
+    }
+}
+
+// --- UTILISATEUR ---
+function showUserModal() {
+    var user = getCurrentUser();
+    if (!user || user.role !== 'admin') { 
+        showAlert(getLang().alertNoPermission, 'error'); 
+        return; 
+    }
+    document.getElementById('userModalTitle').textContent = currentLang === 'ar' ? 'إضافة مستخدم' : 'Ajouter un utilisateur';
+    document.getElementById('userLogin').value = '';
+    document.getElementById('userEmail').value = '';
+    document.getElementById('userPassword').value = '';
+    document.getElementById('userRoleSelect').value = 'membre';
+    document.getElementById('userModal').classList.add('active');
+}
+function hideUserModal() { 
+    document.getElementById('userModal').classList.remove('active'); 
+}
+
+// --- MOT DE PASSE ---
+function showPasswordModal() {
+    document.getElementById('passwordModalHeaderText').textContent = currentLang === 'ar' ? 'تغيير كلمة المرور' : 'Changer le mot de passe';
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmPassword').value = '';
+    document.getElementById('passwordModal').classList.add('active');
+}
+function hidePasswordModal() { 
+    document.getElementById('passwordModal').classList.remove('active'); 
+}
+
+// --- COMPTE BANCAIRE ---
+function showBankAccountModal() {
+    var rib = document.getElementById('bankAccount').textContent;
+    document.getElementById('bankAccountEdit').value = rib;
+    document.getElementById('bankAccountModal').classList.add('active');
+}
+function hideBankAccountModal() { 
+    document.getElementById('bankAccountModal').classList.remove('active'); 
+}
+
+// --- GÉNÉRIQUE ---
+function showGenericModal(type) {
+    var user = getCurrentUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
+        showAlert(getLang().alertNoPermission, 'error'); 
+        return; 
+    }
+    
+    currentEditType = type;
+    currentEditId = null;
+    
+    var body = document.getElementById('genericModalBody');
+    var title = '';
+    var fieldsHtml = '';
+    
+    var configs = {
+        'betail': { 
+            title: currentLang === 'ar' ? 'إضافة ماشية' : 'Ajouter un bétail',
+            fields: [
+                { name: 'localite_id', label: currentLang === 'ar' ? 'المنطقة' : 'Localité', type: 'select_localite' },
+                { name: 'bovins', label: currentLang === 'ar' ? 'بقر' : 'Bovins', type: 'number' },
+                { name: 'ovins', label: currentLang === 'ar' ? 'غنم' : 'Ovins', type: 'number' },
+                { name: 'caprins', label: currentLang === 'ar' ? 'ماعز' : 'Caprins', type: 'number' },
+                { name: 'habitants', label: currentLang === 'ar' ? 'السكان' : 'Habitants', type: 'number' }
+            ]
+        },
+        'produit': {
+            title: currentLang === 'ar' ? 'إضافة منتج' : 'Ajouter un produit',
+            fields: [
+                { name: 'nom_fr', label: currentLang === 'ar' ? 'الاسم (فرنسي)' : 'Nom (FR)', type: 'text' },
+                { name: 'nom_ar', label: currentLang === 'ar' ? 'الاسم (عربي)' : 'Nom (AR)', type: 'text' },
+                { name: 'localite_id', label: currentLang === 'ar' ? 'المنطقة' : 'Localité', type: 'select_localite' },
+                { name: 'quantite', label: currentLang === 'ar' ? 'الكمية (طن)' : 'Quantité (tonnes)', type: 'number' },
+                { name: 'periode', label: currentLang === 'ar' ? 'الفترة' : 'Période', type: 'text' },
+                { name: 'statut', label: currentLang === 'ar' ? 'الحالة' : 'Statut', type: 'select', options: ['Disponible', 'Non disponible', 'En cours'] }
+            ]
+        },
+        'arbre': {
+            title: currentLang === 'ar' ? 'إضافة أشجار' : 'Ajouter des arbres',
+            fields: [
+                { name: 'localite_id', label: currentLang === 'ar' ? 'المنطقة' : 'Localité', type: 'select_localite' },
+                { name: 'oliviers', label: currentLang === 'ar' ? 'زيتون' : 'Oliviers', type: 'number' },
+                { name: 'amandiers', label: currentLang === 'ar' ? 'لوز' : 'Amandiers', type: 'number' },
+                { name: 'figuiers', label: currentLang === 'ar' ? 'تين' : 'Figuiers', type: 'number' },
+                { name: 'noyers', label: currentLang === 'ar' ? 'جوز' : 'Noyers', type: 'number' },
+                { name: 'habitants', label: currentLang === 'ar' ? 'السكان' : 'Habitants', type: 'number' }
+            ]
+        },
+        'eau': {
+            title: currentLang === 'ar' ? 'إضافة ماء' : 'Ajouter des données eau',
+            fields: [
+                { name: 'localite_id', label: currentLang === 'ar' ? 'المنطقة' : 'Localité', type: 'select_localite' },
+                { name: 'foyers', label: currentLang === 'ar' ? 'الأسر الموصولة' : 'Foyers raccordés', type: 'number' },
+                { name: 'forages', label: currentLang === 'ar' ? 'الآبار' : 'Forages', type: 'number' },
+                { name: 'capacite', label: currentLang === 'ar' ? 'الطاقة (م³/يوم)' : 'Capacité (m³/jour)', type: 'number' },
+                { name: 'statut', label: currentLang === 'ar' ? 'الحالة' : 'Statut', type: 'select', options: ['Opérationnel', 'En panne', 'En construction'] }
+            ]
+        },
+        'canaux_ir': {
+            title: currentLang === 'ar' ? 'إضافة قناة' : 'Ajouter un CANAL-IR',
+            fields: [
+                { name: 'code', label: currentLang === 'ar' ? 'الرمز' : 'Code', type: 'text' },
+                { name: 'nom_fr', label: currentLang === 'ar' ? 'الاسم (فرنسي)' : 'Nom (FR)', type: 'text' },
+                { name: 'nom_ar', label: currentLang === 'ar' ? 'الاسم (عربي)' : 'Nom (AR)', type: 'text' },
+                { name: 'zone_fr', label: currentLang === 'ar' ? 'المنطقة (فرنسي)' : 'Zone (FR)', type: 'text' },
+                { name: 'zone_ar', label: currentLang === 'ar' ? 'المنطقة (عربي)' : 'Zone (AR)', type: 'text' },
+                { name: 'superficie', label: currentLang === 'ar' ? 'المساحة (هكتار)' : 'Superficie (Ha)', type: 'number' },
+                { name: 'debit', label: currentLang === 'ar' ? 'التدفق (م³/س)' : 'Débit (m³/h)', type: 'number' },
+                { name: 'statut', label: currentLang === 'ar' ? 'الحالة' : 'Statut', type: 'select', options: ['Actif', 'Inactif', 'En maintenance'] }
+            ]
+        }
+    };
+    
+    var config = configs[type];
+    if (!config) { showAlert('Type inconnu', 'error'); return; }
+    
+    title = config.title;
+    
+    config.fields.forEach(function(f) {
+        var html = '<div style="margin-bottom:15px;">';
+        html += '<label style="display:block;margin-bottom:5px;font-weight:600;color:var(--dark);">' + f.label + '</label>';
+        
+        if (f.type === 'select_localite') {
+            html += '<select id="genericField_' + f.name + '" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">';
+            html += '<option value="">-- ' + (currentLang === 'ar' ? 'اختر منطقة' : 'Sélectionner une localité') + ' --</option>';
+            DATA.localites.forEach(function(loc) {
+                var name = currentLang === 'ar' ? (loc.nom_ar || loc.nom_fr) : (loc.nom_fr || '');
+                html += '<option value="' + loc.id + '">' + name + '</option>';
+            });
+            html += '</select>';
+        } else if (f.type === 'select') {
+            html += '<select id="genericField_' + f.name + '" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">';
+            f.options.forEach(function(opt) {
+                html += '<option value="' + opt + '">' + opt + '</option>';
+            });
+            html += '</select>';
+        } else {
+            html += '<input type="' + f.type + '" id="genericField_' + f.name + '" value="" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" />';
+        }
+        
+        html += '</div>';
+        fieldsHtml += html;
+    });
+    
+    body.innerHTML = '<div>' + fieldsHtml + '</div>' +
+        '<div class="upload-actions" style="margin-top:20px;">' +
+        '<button class="btn-browse" onclick="hideGenericModal()" style="background:var(--danger);"><i class="fas fa-times"></i> ' + (currentLang === 'ar' ? 'إلغاء' : 'Annuler') + '</button>' +
+        '<button class="btn-browse" onclick="saveNewGenericItem(\'' + type + '\')" style="background:var(--success);"><i class="fas fa-save"></i> ' + (currentLang === 'ar' ? 'حفظ' : 'Enregistrer') + '</button>' +
+        '</div>';
+    
+    document.getElementById('genericModalTitle').textContent = title;
+    document.getElementById('genericModal').classList.add('active');
+}
+
+function hideGenericModal() { 
+    document.getElementById('genericModal').classList.remove('active'); 
+    currentEditType = null;
+    currentEditId = null;
+}
+
+async function saveNewGenericItem(type) {
+    var user = getCurrentUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) { 
+        showAlert(getLang().alertNoPermission, 'error'); 
+        return; 
+    }
+    
+    var tableMap = {
+        'betail': { table: 'betail', fields: ['localite_id', 'bovins', 'ovins', 'caprins', 'habitants'] },
+        'produit': { table: 'produits', fields: ['nom_fr', 'nom_ar', 'localite_id', 'quantite', 'periode', 'statut'] },
+        'arbre': { table: 'arbres', fields: ['localite_id', 'oliviers', 'amandiers', 'figuiers', 'noyers', 'habitants'] },
+        'eau': { table: 'eau', fields: ['localite_id', 'foyers', 'forages', 'capacite', 'statut'] },
+        'canaux_ir': { table: 'canaux_ir', fields: ['code', 'nom_fr', 'nom_ar', 'zone_fr', 'zone_ar', 'superficie', 'debit', 'statut'] }
+    };
+    
+    var config = tableMap[type];
+    if (!config) { showAlert('Type invalide', 'error'); return; }
+    
+    var payload = { created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    
+    config.fields.forEach(function(f) {
+        var el = document.getElementById('genericField_' + f);
+        if (el) {
+            var val = el.value;
+            if (f === 'localite_id' || el.type === 'number') {
+                payload[f] = val ? parseFloat(val) : null;
+            } else {
+                payload[f] = val || null;
+            }
+        }
+    });
+    
+    try {
+        const { error } = await supabase.from(config.table).insert([payload]);
+        if (error) throw error;
+        showAlert('✅ ' + (currentLang === 'ar' ? 'تم الحفظ بنجاح' : 'Enregistré avec succès'), 'success');
+        hideGenericModal();
+        await loadAllTables();
+        renderAll();
+    } catch (e) {
+        showAlert('❌ Erreur: ' + e.message, 'error');
+    }
+}
+
+// --- MUSÉE ---
+function showMuseeModal() {
+    currentMuseeId = null;
+    document.getElementById('museeModalTitle').textContent = currentLang === 'ar' ? 'إضافة قطعة' : 'Ajouter un objet';
+    document.getElementById('museeNom').value = '';
+    document.getElementById('museeCategorie').value = 'Artisanat';
+    document.getElementById('museeDescription').value = '';
+    document.getElementById('museeAnnee').value = '';
+    document.getElementById('museeLocalisation').value = '';
+    document.getElementById('museePhoto').value = '';
+    document.getElementById('museeModal').classList.add('active');
+}
+function hideMuseeModal() { 
+    document.getElementById('museeModal').classList.remove('active'); 
+    currentMuseeId = null;
+}
+
+// --- ENCHÈRES ---
+function showEnchereModal() {
+    currentEnchereId = null;
+    document.getElementById('enchereModalTitle').textContent = currentLang === 'ar' ? 'إضافة قطعة للمزاد' : 'Ajouter un article aux enchères';
+    document.getElementById('enchereNom').value = '';
+    document.getElementById('enchereDescription').value = '';
+    document.getElementById('encherePrixDepart').value = '0';
+    document.getElementById('encherePrixActuel').value = '0';
+    document.getElementById('enchereDateDebut').value = new Date().toISOString().split('T')[0];
+    document.getElementById('enchereDateFin').value = '';
+    document.getElementById('enchereStatut').value = 'upcoming';
+    document.getElementById('enchereNbEncheres').value = '0';
+    document.getElementById('encherePhoto').value = '';
+    document.getElementById('enchereModal').classList.add('active');
+}
+function hideEnchereModal() { 
+    document.getElementById('enchereModal').classList.remove('active'); 
+    currentEnchereId = null;
+}
+
+// --- IMPRESSION ---
+function showPrintModal() { 
+    document.getElementById('printModal').classList.add('active'); 
+}
+function hidePrintModal() { 
+    document.getElementById('printModal').classList.remove('active'); 
+}
+
+// --- DÉTAIL ACTUALITÉ ---
+function hideActuDetailModal() { 
+    document.getElementById('actuDetailModal').classList.remove('active'); 
+}
+
+// ============================================================
+// RENDER MUSÉE ET ENCHÈRES (VERSIONS COMPLÈTES)
+// ============================================================
+
+function renderMusee() {
+    var container = document.getElementById('museumItems');
+    var items = DATA.musee || [];
+    if (!container) return;
+    
+    if (items.length === 0) { 
+        container.innerHTML = '<div class="no-content" id="noMuseumPublic">' + getLang().noMuseumPublic + '</div>'; 
+        return; 
+    }
+    
+    var isRTL = currentLang === 'ar';
+    container.innerHTML = items.map(function(item) {
+        var photo = item.photo_url 
+            ? '<img src="' + item.photo_url + '" style="width:100%;height:220px;object-fit:cover;border-radius:10px 10px 0 0;" />' 
+            : '<div style="width:100%;height:220px;background:linear-gradient(135deg, var(--light), #e0e0e0);display:flex;align-items:center;justify-content:center;font-size:4rem;color:var(--primary);border-radius:10px 10px 0 0;"><i class="fas fa-landmark"></i></div>';
+        
+        var categorie = item.categorie || '';
+        var annee = item.annee ? '<p style="margin:3px 0;color:#666;font-size:0.85rem;"><i class="fas fa-calendar"></i> ' + item.annee + '</p>' : '';
+        var localisation = item.localisation ? '<p style="margin:3px 0;color:#666;font-size:0.85rem;"><i class="fas fa-map-marker-alt"></i> ' + item.localisation + '</p>' : '';
+        var description = item.description ? '<p style="margin:8px 0;color:#555;font-size:0.9rem;line-height:1.5;">' + item.description + '</p>' : '';
+        
+        return '<div class="museum-item" style="flex-direction:column;padding:0;overflow:hidden;">' +
+            photo +
+            '<div style="padding:15px;width:100%;">' +
+            '<h4 style="color:var(--dark);margin:0 0 8px 0;font-size:1.1rem;">' + (item.nom || '') + '</h4>' +
+            '<span class="badge" style="background:var(--gold);color:white;margin-bottom:8px;display:inline-block;">' + categorie + '</span>' +
+            annee +
+            localisation +
+            description +
+            '</div></div>';
+    }).join('');
+}
+
+function renderEncheres() {
+    var container = document.getElementById('auctionItems');
+    var items = DATA.encheres || [];
+    if (!container) return;
+    
+    if (items.length === 0) { 
+        container.innerHTML = '<div class="no-content" id="noAuctionPublic">' + getLang().noAuctionPublic + '</div>'; 
+        return; 
+    }
+    
+    var isRTL = currentLang === 'ar';
+    container.innerHTML = items.map(function(item) {
+        var status = item.statut || 'upcoming';
+        var statusText = getLang().bidStatusUpcoming;
+        if (status === 'active') statusText = getLang().bidStatusActive;
+        else if (status === 'ended') statusText = getLang().bidStatusEnded;
+        
+        var photo = item.photo_url 
+            ? '<img src="' + item.photo_url + '" style="width:100px;height:100px;object-fit:cover;border-radius:10px;" />' 
+            : '<div style="width:100px;height:100px;background:linear-gradient(135deg, var(--gold-light), var(--gold));display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:white;border-radius:10px;"><i class="fas fa-gavel"></i></div>';
+        
+        var prixDepart = (item.prix_depart || 0).toFixed(2);
+        var prixActuel = (item.prix_actuel || item.prix_depart || 0).toFixed(2);
+        var nbEncheres = item.nb_encheres || 0;
+        
+        var dateInfo = '';
+        if (item.date_debut || item.date_fin) {
+            dateInfo = '<p style="margin:3px 0;color:#888;font-size:0.8rem;">';
+            if (item.date_debut) dateInfo += '<i class="fas fa-calendar-plus"></i> ' + item.date_debut;
+            if (item.date_fin) dateInfo += ' → <i class="fas fa-calendar-minus"></i> ' + item.date_fin;
+            dateInfo += '</p>';
+        }
+        
+        var canBid = (status === 'active' || status === 'upcoming');
+        var bidBtn = canBid 
+            ? '<button class="btn-action bid" onclick="selectAuctionItem(' + item.id + ')" title="' + (isRTL ? 'شارك' : 'Participer') + '"><i class="fas fa-hand-bid"></i></button>'
+            : '';
+        
+        return '<div class="auction-item" style="align-items:flex-start;">' +
+            '<div style="flex:0 0 100px;margin-' + (isRTL ? 'left' : 'right') + ':15px;">' + photo + '</div>' +
+            '<div class="item-info" style="flex:1;">' +
+            '<h4 style="color:var(--dark);margin:0 0 5px 0;">' + (item.nom || '') + '</h4>' +
+            (item.description ? '<p style="margin:5px 0;color:#555;font-size:0.9rem;">' + item.description + '</p>' : '') +
+            '<div style="display:flex;flex-wrap:wrap;gap:10px;margin:8px 0;">' +
+            '<span style="background:rgba(212,160,23,0.1);padding:4px 12px;border-radius:15px;font-size:0.85rem;"><strong>' + (isRTL ? 'البداية:' : 'Départ:') + '</strong> ' + prixDepart + ' DH</span>' +
+            '<span style="background:rgba(212,160,23,0.2);padding:4px 12px;border-radius:15px;font-size:0.85rem;font-weight:bold;color:var(--gold);"><strong>' + (isRTL ? 'الحالي:' : 'Actuel:') + '</strong> ' + prixActuel + ' DH</span>' +
+            '<span style="background:rgba(60,179,113,0.1);padding:4px 12px;border-radius:15px;font-size:0.85rem;"><i class="fas fa-gavel"></i> ' + nbEncheres + ' ' + (isRTL ? 'عرض' : 'enchères') + '</span>' +
+            '</div>' +
+            dateInfo +
+            '<span class="bid-status ' + status + '">' + statusText + '</span>' +
+            '</div>' +
+            '<div class="item-actions">' + bidBtn + '</div>' +
+            '</div>';
+    }).join('');
+    
+    // Mettre à jour le select du formulaire de participation
+    renderAuctionOptions();
+}
+
+// ============================================================
+// EXPORT PDF ADHÉRENTS
+// ============================================================
+function exportAdherents() {
+    var user = getCurrentUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'webmestre')) {
+        showAlert(getLang().alertNoPermission, 'error');
+        return;
+    }
+    
+    var items = DATA.adherents || [];
+    if (items.length === 0) {
+        showAlert(currentLang === 'ar' ? 'لا يوجد منخرطون للتصدير' : 'Aucun adhérent à exporter', 'warning');
+        return;
+    }
+    
+    var isRTL = currentLang === 'ar';
+    var logoUrl = document.getElementById('siteLogo').src || '';
+    var logoHtml = logoUrl ? '<img src="' + logoUrl + '" style="height:60px;width:60px;object-fit:contain;" />' : '';
+    var logoSubtitle = document.getElementById('logoSubtitle')?.textContent || 'Association ANSFAL';
+    var footerPhone = document.getElementById('footerPhone')?.textContent || '';
+    var footerEmail = document.getElementById('footerEmail')?.textContent || '';
+    var footerAddress = document.getElementById('footerAddress')?.textContent || '';
+    
+    var rows = items.map(function(item, index) {
+        var localite = getLocaliteName(item.localite_id);
+        return '<tr>' +
+            '<td style="border:1px solid #ddd;padding:6px;text-align:center;">' + (index + 1) + '</td>' +
+            '<td style="border:1px solid #ddd;padding:6px;">' + (item.nom || '') + ' ' + (item.prenom || '') + '</td>' +
+            '<td style="border:1px solid #ddd;padding:6px;">' + (item.email || '-') + '</td>' +
+            '<td style="border:1px solid #ddd;padding:6px;">' + (item.telephone || '-') + '</td>' +
+            '<td style="border:1px solid #ddd;padding:6px;">' + localite + '</td>' +
+            '<td style="border:1px solid #ddd;padding:6px;text-align:center;">' + (item.statut || 'Actif') + '</td>' +
+            '<td style="border:1px solid #ddd;padding:6px;text-align:center;">' + (item.date_adhesion || '-') + '</td>' +
+            '</tr>';
+    }).join('');
+    
+    var title = isRTL ? 'قائمة المنخرطين' : 'Liste des Adhérents';
+    var dateStr = new Date().toLocaleDateString(isRTL ? 'ar-MA' : 'fr-FR');
+    
+    var content = '<div style="text-align:center;border-bottom:2px solid #145a32;padding-bottom:20px;margin-bottom:20px;">' +
+        '<div style="display:flex;align-items:center;justify-content:center;gap:15px;">' + logoHtml +
+        '<div style="text-align:left;"><h1 style="color:#1a6d2c;margin:0;font-size:22px;">' + (isRTL ? 'جمعية أنسفال' : 'Association ANSFAL') + '</h1>' +
+        '<p style="margin:0;color:#666;font-size:0.85rem;">' + logoSubtitle + '</p>' +
+        '<p style="margin:0;color:#888;font-size:0.7rem;">' + footerPhone + ' | ' + footerEmail + ' | ' + footerAddress + '</p></div></div>' +
+        '<h2 style="color:#145a32;margin:15px 0 5px;text-align:center;font-size:18px;">' + title + '</h2>' +
+        '<p style="color:#666;font-size:0.85rem;margin:5px 0;">' + (isRTL ? 'تاريخ:' : 'Date:') + ' ' + dateStr + ' | ' + (isRTL ? 'العدد:' : 'Total:') + ' ' + items.length + '</p>' +
+        '</div>' +
+        '<table style="width:100%;border-collapse:collapse;font-size:11px;">' +
+        '<thead><tr style="background:#1a6d2c;color:white;">' +
+        '<th style="border:1px solid #ddd;padding:8px;">#</th>' +
+        '<th style="border:1px solid #ddd;padding:8px;">' + (isRTL ? 'الاسم الكامل' : 'Nom complet') + '</th>' +
+        '<th style="border:1px solid #ddd;padding:8px;">' + (isRTL ? 'البريد الإلكتروني' : 'Email') + '</th>' +
+        '<th style="border:1px solid #ddd;padding:8px;">' + (isRTL ? 'الهاتف' : 'Téléphone') + '</th>' +
+        '<th style="border:1px solid #ddd;padding:8px;">' + (isRTL ? 'المنطقة' : 'Localité') + '</th>' +
+        '<th style="border:1px solid #ddd;padding:8px;">' + (isRTL ? 'الحالة' : 'Statut') + '</th>' +
+        '<th style="border:1px solid #ddd;padding:8px;">' + (isRTL ? 'تاريخ الانخراط' : 'Date d\'adhésion') + '</th>' +
+        '</tr></thead><tbody>' + rows + '</tbody></table>' +
+        '<div style="text-align:center;font-size:9px;color:#666;margin-top:30px;border-top:1px solid #ddd;padding-top:10px;">' +
+        '<p>' + (isRTL ? 'جمعية أنسفال للتعاون والتنمية والبيئة' : 'Association ANSFAL - Coopération, Développement et Environnement') + '</p></div>';
+    
+    var printWindow = window.open('', '_blank', 'width=900,height=700');
+    printWindow.document.write('<!DOCTYPE html><html><head><title>' + title + '</title>' +
+        '<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;padding:30px;color:#333;}' +
+        'table{width:100%;border-collapse:collapse;}th{background:#1a6d2c;color:white;padding:8px;text-align:left;}' +
+        'td{padding:6px;}tr:nth-child(even){background:#f9f9f9;}' +
+        '@media print{body{padding:15px;}@page{margin:10mm;size:A4 landscape;}}</style></head><body>' + content + '</body></html>');
+    printWindow.document.close();
+    setTimeout(function() { printWindow.focus(); printWindow.print(); }, 500);
+}
+
+// ============================================================
+// GESTION COMPLÈTE DES ENCHÈRES (BIDS)
+// ============================================================
+async function loadBidsFromSupabase() {
+    try {
+        const { data, error } = await supabase.from('bids').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        DATA.bids = data || [];
+    } catch (e) {
+        console.warn('⚠️ Table bids:', e.message);
+        DATA.bids = [];
+    }
+}
+
+async function saveBidToSupabase(bidData) {
+    try {
+        const { data, error } = await supabase.from('bids').insert([bidData]);
+        if (error) throw error;
+        return data;
+    } catch (e) {
+        console.error('❌ saveBid:', e);
+        throw e;
+    }
+}
+
+// Mise à jour de submitAuctionBid pour sauvegarder dans Supabase
+async function submitAuctionBid() {
+    var t = getLang();
+    var itemId = document.getElementById('auctionSelect').value;
+    var name = document.getElementById('auctionName').value.trim();
+    var email = document.getElementById('auctionEmail').value.trim();
+    var phone = document.getElementById('auctionPhone').value.trim();
+    var bid = document.getElementById('auctionBid').value.trim();
+    var message = document.getElementById('auctionMessage').value.trim();
+    
+    if (!itemId || !name || !email || !bid) { 
+        showAlert(t.alertFillFields, 'error'); 
+        return; 
+    }
+    
+    var bidValue = parseFloat(bid);
+    if (isNaN(bidValue) || bidValue <= 0) { 
+        showAlert(currentLang === 'ar' ? 'مبلغ غير صالح' : 'Montant invalide', 'error'); 
+        return; 
+    }
+    
+    var item = DATA.encheres.find(function(i) { return i.id == itemId; });
+    if (item && bidValue <= (item.prix_actuel || item.prix_depart || 0)) { 
+        showAlert(currentLang === 'ar' ? 'يجب أن يكون أعلى من السعر الحالي' : 'Doit être supérieur au prix actuel', 'error'); 
+        return; 
+    }
+    
+    var resultDiv = document.getElementById('auctionBidResult');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<div style="background:var(--light);padding:15px;border-radius:10px;text-align:center;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--gold);"></i><br><p>' + (currentLang === 'ar' ? 'جاري الإرسال...' : 'Envoi en cours...') + '</p></div>';
+    
+    try {
+        // Sauvegarder le bid
+        var bidData = {
+            enchere_id: parseInt(itemId),
+            bidder_name: name,
+            bidder_email: email,
+            bidder_phone: phone || null,
+            amount: bidValue,
+            message: message || null,
+            status: 'pending',
+            created_at: new Date().toISOString()
+        };
+        
+        await saveBidToSupabase(bidData);
+        
+        // Mettre à jour l'enchère
+        if (item) {
+            item.prix_actuel = bidValue;
+            item.nb_encheres = (item.nb_encheres || 0) + 1;
+            await saveEnchereItemToSupabase(item);
+        }
+        
+        resultDiv.innerHTML = '<div style="background:#d4edda;padding:15px;border-radius:10px;text-align:center;color:#155724;">' +
+            '<i class="fas fa-check-circle" style="font-size:2rem;color:var(--success);"></i><br>' +
+            '<p>' + t.auctionBidSent + '</p></div>';
+        
+        // Réinitialiser le formulaire
+        document.getElementById('auctionName').value = '';
+        document.getElementById('auctionEmail').value = '';
+        document.getElementById('auctionPhone').value = '';
+        document.getElementById('auctionBid').value = '';
+        document.getElementById('auctionMessage').value = '';
+        document.getElementById('auctionSelect').value = '';
+        
+        await loadAllTables();
+        renderAll();
+        
+        setTimeout(function() { resultDiv.style.display = 'none'; }, 5000);
+    } catch (e) {
+        resultDiv.innerHTML = '<div style="background:#f8d7da;padding:15px;border-radius:10px;text-align:center;color:#721c24;">' +
+            '<i class="fas fa-exclamation-circle" style="font-size:2rem;color:var(--danger);"></i><br>' +
+            '<p>' + t.auctionBidError + '<br><small>' + e.message + '</small></p></div>';
+    }
+}
+
+// ============================================================
+// GESTION DES ÉVÉNEMENTS PHOTO/SIGNATURE CONSEIL
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Photo conseil
+    var conseilPhotoInput = document.getElementById('conseilPhoto');
+    if (conseilPhotoInput) {
+        conseilPhotoInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                conseilPhotoFile = this.files[0];
+                document.getElementById('conseilPhotoName').textContent = this.files[0].name;
+                var reader = new FileReader();
+                reader.onload = function(ev) {
+                    document.getElementById('conseilPhotoPreview').src = ev.target.result;
+                    document.getElementById('conseilPhotoPreview').style.display = 'block';
+                    document.getElementById('conseilPhotoPlaceholder').style.display = 'none';
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+    
+    // Signature image conseil
+    var conseilSignatureInput = document.getElementById('conseilSignatureImage');
+    if (conseilSignatureInput) {
+        conseilSignatureInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                conseilSignatureFile = this.files[0];
+                document.getElementById('conseilSignatureName').textContent = this.files[0].name;
+                var reader = new FileReader();
+                reader.onload = function(ev) {
+                    document.getElementById('conseilSignaturePreview').src = ev.target.result;
+                    document.getElementById('conseilSignaturePreview').style.display = 'block';
+                    document.getElementById('conseilSignaturePlaceholder').style.display = 'none';
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+    
+    // Photo musée
+    var museePhotoInput = document.getElementById('museePhoto');
+    if (museePhotoInput) {
+        museePhotoInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                museePhotoFile = this.files[0];
+            }
+        });
+    }
+    
+    // Photo enchère
+    var encherePhotoInput = document.getElementById('encherePhoto');
+    if (encherePhotoInput) {
+        encherePhotoInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                encherePhotoFile = this.files[0];
+            }
+        });
+    }
+});
+
+// ============================================================
+// AJOUTER AU CHARGEMENT INITIAL
+// ============================================================
+// Dans DOMContentLoaded, ajouter :
+// await loadBidsFromSupabase();     
 </script>
 </body>
 </html>
