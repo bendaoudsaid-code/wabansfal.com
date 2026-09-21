@@ -3539,52 +3539,487 @@
     // ============================================================
     // PLACEHOLDERS
     // ============================================================
-    function showTextModal() { document.getElementById('textModal').classList.add('active'); }
-    function hideTextModal() { document.getElementById('textModal').classList.remove('active'); }
-    function showConseilModal() { document.getElementById('conseilModal').classList.add('active'); }
-    function hideConseilModal() { document.getElementById('conseilModal').classList.remove('active'); }
-    function showDocumentModal() { document.getElementById('documentModal').classList.add('active'); }
-    function hideDocumentModal() { document.getElementById('documentModal').classList.remove('active'); }
-    function showAdherentModal() { document.getElementById('adherentModal').classList.add('active'); }
-    function hideAdherentModal() { document.getElementById('adherentModal').classList.remove('active'); }
-    function showUserModal() { document.getElementById('userModal').classList.add('active'); }
-    function hideUserModal() { document.getElementById('userModal').classList.remove('active'); }
-    function showBankAccountModal() { document.getElementById('bankAccountModal').classList.add('active'); }
-    function hideBankAccountModal() { document.getElementById('bankAccountModal').classList.remove('active'); }
-    function showPasswordModal() { document.getElementById('passwordModal').classList.add('active'); }
-    function hidePasswordModal() { document.getElementById('passwordModal').classList.remove('active'); }
-    function showGenericModal(type) { document.getElementById('genericModalTitle').textContent = 'Ajouter un ' + type; document.getElementById('genericModal').classList.add('active'); }
-    function hideGenericModal() { document.getElementById('genericModal').classList.remove('active'); }
-    function hidePrintModal() { document.getElementById('printModal').classList.remove('active'); }
-    function hideActuDetailModal() { document.getElementById('actuDetailModal').classList.remove('active'); }
-    function showMuseeModal() { document.getElementById('museeModal').classList.add('active'); }
-    function hideMuseeModal() { document.getElementById('museeModal').classList.remove('active'); }
-    function showEnchereModal() { document.getElementById('enchereModal').classList.add('active'); }
-    function hideEnchereModal() { document.getElementById('enchereModal').classList.remove('active'); }
-    function showDocumentForm(type) { showAlert('Formulaire ' + type + ' en développement', 'info'); }
-    function hideDocumentFormModal() { document.getElementById('documentFormModal').classList.remove('active'); }
-    function generateDocument(type) { showAlert('Génération de document', 'info'); }
-    function printDocument() { window.print(); }
-    function switchConseilTab(tab) {
-        document.querySelectorAll('.conseil-tab').forEach(function(el) { el.style.display = 'none'; });
-        var el = document.getElementById('conseilTab' + tab.charAt(0).toUpperCase() + tab.slice(1));
-        if (el) el.style.display = 'block';
-        document.querySelectorAll('.tab-btn').forEach(function(e) { e.classList.remove('active'); });
-        var btn = document.querySelector('.tab-btn[onclick*="' + tab + '"]');
-        if (btn) btn.classList.add('active');
+        // ============================================================
+    // DOCUMENTS — FORMULAIRES DE GÉNÉRATION
+    // ============================================================
+    function showDocumentForm(type) {
+        var modal = document.getElementById('documentFormModal');
+        var body = document.getElementById('documentFormBody');
+        
+        var docTypes = {
+            'bon_commande': { title: 'Bon de commande', icon: 'fa-shopping-cart' },
+            'bon_reception': { title: 'Bon de réception', icon: 'fa-check-double' },
+            'bon_retour': { title: 'Bon de retour', icon: 'fa-undo' },
+            'bon_caisse': { title: 'Bon de caisse', icon: 'fa-coins' },
+            'bon_depense': { title: 'Bon de dépense', icon: 'fa-money-bill-wave' },
+            'accuse_reception': { title: 'Accusé de réception', icon: 'fa-file-signature' },
+            'lettre_transite': { title: 'Bon de transite', icon: 'fa-truck' },
+            'demande_attestation': { title: 'Demande d\'attestation', icon: 'fa-certificate' }
+        };
+        
+        var info = docTypes[type] || { title: 'Document', icon: 'fa-file' };
+        document.getElementById('documentFormTitle').innerHTML = '<i class="fas ' + info.icon + '"></i> ' + info.title;
+        
+        // Liste des membres du conseil pour le signataire
+        var membres = DATA.conseil || [];
+        var options = '<option value="">-- Sélectionner un signataire --</option>';
+        membres.forEach(function(m) {
+            options += '<option value="' + m.id + '">' + (m.prenom || '') + ' ' + (m.nom || '') + ' (' + (m.fonction || 'Membre') + ')</option>';
+        });
+        
+        // Liste des localités
+        var localites = DATA.localites || [];
+        var locOptions = '';
+        localites.forEach(function(l) {
+            var name = currentLang === 'ar' ? (l.nom_ar || l.nom_fr) : (l.nom_fr || '');
+            locOptions += '<option value="' + l.id + '">' + name + '</option>';
+        });
+        
+        var today = new Date().toISOString().split('T')[0];
+        var autoNum = 'ANSFAL-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 9000) + 1000);
+        
+        var extraFields = '';
+        
+        if (type === 'bon_commande') {
+            extraFields = `
+                <div class="form-row">
+                    <div><label>Fournisseur <span style="color:red;">*</span></label><input type="text" id="docFournisseur" placeholder="Nom du fournisseur" /></div>
+                    <div><label>N° de commande</label><input type="text" id="docNumCommande" value="${autoNum}" /></div>
+                </div>
+                <div class="form-row full">
+                    <div><label>Articles commandés (un par ligne : désignation, quantité, prix unitaire)</label><textarea id="docArticles" rows="5" placeholder="Ex:&#10;Ciment 50kg, 20, 75&#10;Fer 8mm, 15, 45"></textarea></div>
+                </div>
+            `;
+        } else if (type === 'bon_reception') {
+            extraFields = `
+                <div class="form-row">
+                    <div><label>Fournisseur <span style="color:red;">*</span></label><input type="text" id="docFournisseur" placeholder="Nom du fournisseur" /></div>
+                    <div><label>Réf. Bon de commande</label><input type="text" id="docRefCommande" placeholder="Réf. du bon de commande" /></div>
+                </div>
+                <div class="form-row full">
+                    <div><label>Articles reçus</label><textarea id="docArticles" rows="5" placeholder="Désignation, Quantité reçue, État (conforme/non conforme)"></textarea></div>
+                </div>
+            `;
+        } else if (type === 'bon_retour') {
+            extraFields = `
+                <div class="form-row">
+                    <div><label>Fournisseur <span style="color:red;">*</span></label><input type="text" id="docFournisseur" placeholder="Nom du fournisseur" /></div>
+                    <div><label>Motif du retour</label><input type="text" id="docMotif" placeholder="Motif du retour" /></div>
+                </div>
+                <div class="form-row full">
+                    <div><label>Articles retournés</label><textarea id="docArticles" rows="5" placeholder="Désignation, Quantité, Motif détaillé"></textarea></div>
+                </div>
+            `;
+        } else if (type === 'bon_caisse') {
+            extraFields = `
+                <div class="form-row">
+                    <div><label>Montant (DH) <span style="color:red;">*</span></label><input type="number" id="docMontant" step="0.01" min="0" placeholder="0.00" /></div>
+                    <div><label>Mode de paiement</label>
+                        <select id="docModePaiement">
+                            <option value="Espèces">Espèces</option>
+                            <option value="Chèque">Chèque</option>
+                            <option value="Virement">Virement</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div><label>Motif / Justification</label><textarea id="docMotif" rows="3" placeholder="Motif du mouvement de caisse"></textarea></div>
+                </div>
+            `;
+        } else if (type === 'bon_depense') {
+            extraFields = `
+                <div class="form-row">
+                    <div><label>Montant (DH) <span style="color:red;">*</span></label><input type="number" id="docMontant" step="0.01" min="0" placeholder="0.00" /></div>
+                    <div><label>Catégorie de dépense</label>
+                        <select id="docCategorie">
+                            <option value="Fournitures">Fournitures</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Électricité/Eau">Électricité/Eau</option>
+                            <option value="Maintenance">Maintenance</option>
+                            <option value="Salaires">Salaires</option>
+                            <option value="Autre">Autre</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div><label>Justification détaillée</label><textarea id="docMotif" rows="3" placeholder="Détails de la dépense"></textarea></div>
+                </div>
+            `;
+        } else if (type === 'accuse_reception') {
+            extraFields = `
+                <div class="form-row full">
+                    <div><label>Objet du document reçu <span style="color:red;">*</span></label><input type="text" id="docObjetDoc" placeholder="Ex: Demande de subvention n°2024-001" /></div>
+                </div>
+                <div class="form-row">
+                    <div><label>Date de réception</label><input type="date" id="docDateReception" value="${today}" /></div>
+                    <div><label>Nombre de pièces</label><input type="number" id="docNbPieces" value="1" min="1" /></div>
+                </div>
+                <div class="form-row full">
+                    <div><label>Observations</label><textarea id="docObservations" rows="3" placeholder="Observations éventuelles"></textarea></div>
+                </div>
+            `;
+        } else if (type === 'lettre_transite') {
+            extraFields = `
+                <div class="form-row">
+                    <div><label>N° de bon de transite <span style="color:red;">*</span></label><input type="text" id="docNumTransite" value="${autoNum}" /></div>
+                    <div><label>Transporteur</label><input type="text" id="docTransporteur" placeholder="Nom du transporteur" /></div>
+                </div>
+                <div class="form-row">
+                    <div><label>Lieu de départ</label><input type="text" id="docDepart" placeholder="Ex: Azilal" /></div>
+                    <div><label>Lieu d'arrivée</label><input type="text" id="docArrivee" placeholder="Ex: Marrakech" /></div>
+                </div>
+                <div class="form-row full">
+                    <div><label>Description des marchandises</label><textarea id="docArticles" rows="4" placeholder="Désignation, quantité, poids..."></textarea></div>
+                </div>
+            `;
+        } else if (type === 'demande_attestation') {
+            extraFields = `
+                <div class="form-row full">
+                    <div><label>Type d'attestation <span style="color:red;">*</span></label>
+                        <select id="docTypeAttestation">
+                            <option value="Attestation de travail">Attestation de travail</option>
+                            <option value="Attestation de membre actif">Attestation de membre actif</option>
+                            <option value="Attestation de participation">Attestation de participation</option>
+                            <option value="Attestation de réalisation">Attestation de réalisation</option>
+                            <option value="Autre">Autre</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div><label>Contenu / Objet détaillé</label><textarea id="docMotif" rows="4" placeholder="Précisez l'objet de l'attestation..."></textarea></div>
+                </div>
+            `;
+        }
+        
+        body.innerHTML = `
+            <div class="form-doc">
+                <div class="form-row">
+                    <div><label>Numéro du document</label><input type="text" id="docNum" value="${autoNum}" /></div>
+                    <div><label>Date</label><input type="date" id="docDate" value="${today}" /></div>
+                </div>
+                <div class="form-row">
+                    <div><label>Objet <span style="color:red;">*</span></label><input type="text" id="docObjet" placeholder="Objet du document" value="${info.title}" /></div>
+                    <div><label>Lieu</label><input type="text" id="docLieu" value="Azilal" /></div>
+                </div>
+                <div class="form-row">
+                    <div><label>Nom du destinataire</label><input type="text" id="docDestinataire" placeholder="Nom complet du destinataire" /></div>
+                    <div><label>Fonction du destinataire</label><input type="text" id="docDestFonction" placeholder="Fonction" /></div>
+                </div>
+                ${extraFields}
+                <div class="form-row full">
+                    <div><label>Description / Notes complémentaires</label><textarea id="docContenu" rows="3" placeholder="Notes ou contenu additionnel..."></textarea></div>
+                </div>
+                <div class="form-row">
+                    <div><label>Signataire</label>
+                        <select id="docSignataire">${options}</select>
+                    </div>
+                    <div><label>Localité concernée (optionnel)</label>
+                        <select id="docLocalite">
+                            <option value="">-- Aucune --</option>
+                            ${locOptions}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions" style="margin-top:20px;border-top:1px solid #eee;padding-top:15px;">
+                    <button class="btn-browse" onclick="hideDocumentFormModal()" style="background:var(--danger);"><i class="fas fa-times"></i> Annuler</button>
+                    <button class="btn-browse" onclick="generateDocument('${type}')" style="background:var(--success);"><i class="fas fa-file-pdf"></i> Générer & Imprimer</button>
+                </div>
+            </div>
+        `;
+        
+        modal.classList.add('active');
     }
-    function editConseilMember(id) { showAlert('Édition membre ' + id, 'info'); }
-    function editMuseeItem(id) { showAlert('Édition objet ' + id, 'info'); }
-    function editEnchereItem(id) { showAlert('Édition enchère ' + id, 'info'); }
-    function editGenericItem(type, id) { showAlert('Édition ' + type + ' ' + id, 'info'); }
-    function deleteGenericItem(type, id) { if (confirm('Supprimer ?')) showAlert('Suppression ' + type, 'info'); }
-    function saveTextContent() { showAlert('Texte enregistré', 'success'); hideTextModal(); }
-    function saveConseilMember() { showAlert('Membre enregistré', 'success'); hideConseilModal(); }
-    function saveDocument() { showAlert('Document enregistré', 'success'); hideDocumentModal(); }
-    function saveAdherent() { showAlert('Adhérent enregistré', 'success'); hideAdherentModal(); }
-    function saveUser() { showAlert('Utilisateur enregistré', 'success'); hideUserModal(); }
-    function saveMuseeItem() { showAlert('Objet enregistré', 'success'); hideMuseeModal(); }
-    function saveEnchereItem() { showAlert('Enchère enregistrée', 'success'); hideEnchereModal(); }
+
+    function hideDocumentFormModal() {
+        document.getElementById('documentFormModal').classList.remove('active');
+    }
+
+    function generateDocument(type) {
+        // Récupérer tous les champs
+        var num = document.getElementById('docNum')?.value || 'ANSFAL-000';
+        var date = document.getElementById('docDate')?.value || new Date().toISOString().split('T')[0];
+        var objet = document.getElementById('docObjet')?.value || 'Document';
+        var destinataire = document.getElementById('docDestinataire')?.value || '_____';
+        var destFonction = document.getElementById('docDestFonction')?.value || '_____';
+        var contenu = document.getElementById('docContenu')?.value || '';
+        var signataireId = document.getElementById('docSignataire')?.value;
+        var lieu = document.getElementById('docLieu')?.value || 'Azilal';
+        var localiteId = document.getElementById('docLocalite')?.value;
+        
+        // Champs spécifiques
+        var fournisseur = document.getElementById('docFournisseur')?.value || '';
+        var articles = document.getElementById('docArticles')?.value || '';
+        var montant = document.getElementById('docMontant')?.value || '';
+        var motif = document.getElementById('docMotif')?.value || '';
+        var modePaiement = document.getElementById('docModePaiement')?.value || '';
+        var categorie = document.getElementById('docCategorie')?.value || '';
+        var refCommande = document.getElementById('docRefCommande')?.value || '';
+        var numTransite = document.getElementById('docNumTransite')?.value || '';
+        var transporteur = document.getElementById('docTransporteur')?.value || '';
+        var depart = document.getElementById('docDepart')?.value || '';
+        var arrivee = document.getElementById('docArrivee')?.value || '';
+        var typeAttestation = document.getElementById('docTypeAttestation')?.value || '';
+        var objetDoc = document.getElementById('docObjetDoc')?.value || '';
+        var dateReception = document.getElementById('docDateReception')?.value || '';
+        var nbPieces = document.getElementById('docNbPieces')?.value || '1';
+        var observations = document.getElementById('docObservations')?.value || '';
+        
+        // Titres des documents
+        var docTypes = {
+            'bon_commande': 'BON DE COMMANDE',
+            'bon_reception': 'BON DE RÉCEPTION',
+            'bon_retour': 'BON DE RETOUR',
+            'bon_caisse': 'BON DE CAISSE',
+            'bon_depense': 'BON DE DÉPENSE',
+            'accuse_reception': 'ACCUSÉ DE RÉCEPTION',
+            'lettre_transite': 'BON DE TRANSITE',
+            'demande_attestation': 'DEMANDE D\'ATTESTATION'
+        };
+        var title = docTypes[type] || 'DOCUMENT';
+        
+        // Construire le tableau des articles (pour commande, réception, retour)
+        var articlesHtml = '';
+        if (articles && (type === 'bon_commande' || type === 'bon_reception' || type === 'bon_retour' || type === 'lettre_transite')) {
+            var rows = articles.split('\n').filter(function(r) { return r.trim(); });
+            var isCommande = (type === 'bon_commande');
+            var isRetour = (type === 'bon_retour');
+            
+            var headerCols = '<th>Désignation</th><th>Quantité</th>';
+            if (isCommande) headerCols += '<th>Prix unitaire (DH)</th><th>Total (DH)</th>';
+            if (type === 'bon_reception') headerCols += '<th>État</th>';
+            if (isRetour) headerCols += '<th>Motif</th>';
+            
+            var totalGeneral = 0;
+            var rowsHtml = rows.map(function(r) {
+                var parts = r.split(',').map(function(p) { return p.trim(); });
+                var cells = '<td>' + (parts[0] || '') + '</td><td>' + (parts[1] || '') + '</td>';
+                if (isCommande) {
+                    var pu = parseFloat(parts[2]) || 0;
+                    var qte = parseFloat(parts[1]) || 0;
+                    var tot = pu * qte;
+                    totalGeneral += tot;
+                    cells += '<td>' + pu.toFixed(2) + '</td><td>' + tot.toFixed(2) + '</td>';
+                }
+                if (type === 'bon_reception') cells += '<td>' + (parts[2] || 'Conforme') + '</td>';
+                if (isRetour) cells += '<td>' + (parts[2] || '') + '</td>';
+                return '<tr>' + cells + '</tr>';
+            }).join('');
+            
+            if (isCommande) {
+                rowsHtml += '<tr style="background:#f0f0f0;font-weight:bold;"><td colspan="3" style="text-align:right;">TOTAL GÉNÉRAL</td><td>' + totalGeneral.toFixed(2) + ' DH</td></tr>';
+            }
+            
+            articlesHtml = '<table style="width:100%;border-collapse:collapse;margin:15px 0;"><thead><tr style="background:var(--primary);color:white;">' + headerCols + '</tr></thead><tbody>' + rowsHtml + '</tbody></table>';
+        }
+        
+        // Construire le corps spécifique selon le type
+        var specificBody = '';
+        
+        if (type === 'bon_commande') {
+            specificBody = '<p><strong>Fournisseur :</strong> ' + fournisseur + '</p>' +
+                          (refCommande ? '<p><strong>Réf. commande :</strong> ' + refCommande + '</p>' : '') +
+                          articlesHtml;
+        } else if (type === 'bon_reception') {
+            specificBody = '<p><strong>Fournisseur :</strong> ' + fournisseur + '</p>' +
+                          (refCommande ? '<p><strong>Réf. bon de commande :</strong> ' + refCommande + '</p>' : '') +
+                          articlesHtml;
+        } else if (type === 'bon_retour') {
+            specificBody = '<p><strong>Fournisseur :</strong> ' + fournisseur + '</p>' +
+                          (motif ? '<p><strong>Motif du retour :</strong> ' + motif + '</p>' : '') +
+                          articlesHtml;
+        } else if (type === 'bon_caisse' || type === 'bon_depense') {
+            specificBody = '<p><strong>Montant :</strong> <span style="font-size:1.3rem;color:var(--primary);font-weight:bold;">' + (parseFloat(montant) || 0).toFixed(2) + ' DH</span></p>' +
+                          (modePaiement ? '<p><strong>Mode de paiement :</strong> ' + modePaiement + '</p>' : '') +
+                          (categorie ? '<p><strong>Catégorie :</strong> ' + categorie + '</p>' : '') +
+                          (motif ? '<div style="margin:15px 0;padding:15px;background:#f9f9f9;border-radius:8px;border-left:3px solid var(--primary);"><p><strong>Motif :</strong></p><p style="white-space:pre-wrap;">' + motif + '</p></div>' : '');
+        } else if (type === 'accuse_reception') {
+            specificBody = '<p><strong>Objet du document :</strong> ' + objetDoc + '</p>' +
+                          '<p><strong>Date de réception :</strong> ' + (dateReception || date) + '</p>' +
+                          '<p><strong>Nombre de pièces :</strong> ' + nbPieces + '</p>' +
+                          (observations ? '<div style="margin:15px 0;padding:15px;background:#f9f9f9;border-radius:8px;border-left:3px solid var(--primary);"><p><strong>Observations :</strong></p><p style="white-space:pre-wrap;">' + observations + '</p></div>' : '');
+        } else if (type === 'lettre_transite') {
+            specificBody = '<p><strong>N° de bon :</strong> ' + numTransite + '</p>' +
+                          '<p><strong>Transporteur :</strong> ' + transporteur + '</p>' +
+                          '<p><strong>De :</strong> ' + depart + ' <strong>→ À :</strong> ' + arrivee + '</p>' +
+                          articlesHtml;
+        } else if (type === 'demande_attestation') {
+            specificBody = '<p><strong>Type d\'attestation :</strong> ' + typeAttestation + '</p>' +
+                          (motif ? '<div style="margin:15px 0;padding:15px;background:#f9f9f9;border-radius:8px;border-left:3px solid var(--primary);"><p><strong>Objet :</strong></p><p style="white-space:pre-wrap;">' + motif + '</p></div>' : '');
+        }
+        
+        // Signature
+        var signataire = DATA.conseil.find(function(m) { return m.id == signataireId; });
+        var signatureHtml = '';
+        if (signataire) {
+            signatureHtml = '<div style="text-align:center;">' +
+                '<p style="font-weight:bold;font-size:1.1rem;margin:0;">' + (signataire.prenom || '') + ' ' + (signataire.nom || '') + '</p>' +
+                '<p style="color:#666;margin:5px 0;">' + (signataire.fonction || '') + '</p>' +
+                (signataire.signature ? 
+                    (signataire.signature.startsWith('http') ? '<img src="' + signataire.signature + '" style="max-height:60px;margin-top:5px;" />' : 
+                    '<p style="font-family:\'Brush Script MT\',cursive;font-size:1.5rem;color:var(--primary);margin-top:8px;">' + signataire.signature + '</p>') : 
+                    '<div style="width:200px;border-top:1px solid #333;margin:30px auto 5px;"></div><p style="color:#999;font-size:0.8rem;">Signature</p>') +
+                '</div>';
+        } else {
+            signatureHtml = '<div style="text-align:center;">' +
+                '<div style="width:200px;border-top:1px solid #333;margin:30px auto 5px;"></div>' +
+                '<p style="color:#999;font-size:0.8rem;">Signature et cachet</p>' +
+                '</div>';
+        }
+        
+        var logoUrl = document.getElementById('siteLogo').src || '';
+        var logoHtml = logoUrl ? '<img src="' + logoUrl + '" style="height:70px;width:70px;object-fit:contain;" />' : '';
+        var logoSubtitle = document.getElementById('logoSubtitle')?.textContent || 'Association ANSFAL de Coopération, Développement et Environnement';
+        var footerPhone = document.getElementById('footerPhone')?.textContent || '';
+        var footerEmail = document.getElementById('footerEmail')?.textContent || '';
+        var footerAddress = document.getElementById('footerAddress')?.textContent || '';
+        var footerBank = document.getElementById('footerBankAccount')?.textContent || '';
+        
+        var printContent = document.getElementById('printContent');
+        printContent.innerHTML = `
+            <div class="header">
+                <div style="display:flex;align-items:center;justify-content:center;gap:15px;margin-bottom:15px;">
+                    ${logoHtml}
+                    <div style="text-align:left;">
+                        <h1 style="color:var(--primary);margin:0;font-size:22px;">Association ANSFAL</h1>
+                        <p style="margin:0;color:#666;font-size:0.85rem;">${logoSubtitle}</p>
+                        <p style="margin:0;color:#888;font-size:0.7rem;">Tél: ${footerPhone} | Email: ${footerEmail} | ${footerAddress}</p>
+                    </div>
+                </div>
+                <h2 style="color:var(--dark);margin:20px 0 5px;text-align:center;font-size:20px;text-transform:uppercase;letter-spacing:1px;">${title}</h2>
+                <hr style="border:1px solid var(--primary);width:120px;margin:8px auto;" />
+            </div>
+            
+            <div class="content" style="padding:20px 0;min-height:300px;">
+                <table style="width:100%;margin-bottom:15px;">
+                    <tr>
+                        <td style="padding:4px 0;"><strong>N° :</strong> ${num}</td>
+                        <td style="padding:4px 0;text-align:right;"><strong>Date :</strong> ${date}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="padding:4px 0;"><strong>Objet :</strong> ${objet}</td>
+                    </tr>
+                </table>
+                
+                <div style="margin:15px 0;padding:15px;background:#f9f9f9;border-radius:8px;border-left:3px solid var(--primary);">
+                    <p style="margin:0 0 5px;"><strong>Destinataire :</strong> ${destinataire}</p>
+                    ${destFonction && destFonction !== '_____' ? '<p style="margin:0;color:#666;">' + destFonction + '</p>' : ''}
+                </div>
+                
+                ${specificBody}
+                
+                ${contenu ? '<div style="margin:15px 0;padding:15px;background:#f9f9f9;border-radius:8px;"><p style="white-space:pre-wrap;margin:0;">' + contenu + '</p></div>' : ''}
+                
+                <p style="margin-top:25px;"><strong>Fait à</strong> ${lieu}, <strong>le</strong> ${date}</p>
+            </div>
+            
+            <div class="footer" style="margin-top:40px;padding-top:20px;border-top:1px solid #ddd;display:flex;justify-content:flex-end;">
+                ${signatureHtml}
+            </div>
+            
+            <div class="info" style="text-align:center;font-size:9px;color:#666;margin-top:30px;border-top:1px solid #ddd;padding-top:10px;">
+                <p style="margin:2px 0;">Association ANSFAL - Coopération, Développement et Environnement</p>
+                <p style="margin:2px 0;">${footerAddress} | Tél: ${footerPhone} | Email: ${footerEmail}</p>
+                ${footerBank ? '<p style="margin:2px 0;">RIB: ' + footerBank + '</p>' : ''}
+            </div>
+        `;
+        
+        hideDocumentFormModal();
+        document.getElementById('printModal').classList.add('active');
+    }
+
+    function printDocument() {
+        var printContent = document.getElementById('printContent').innerHTML;
+        var printWindow = window.open('', '_blank', 'width=800,height=900');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Impression Document ANSFAL</title>
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { font-family: 'Roboto', 'Cairo', Arial, sans-serif; padding: 40px; color: #333; }
+                    :root { --primary: #1a6d2c; --dark: #145a32; --accent: #3cb371; }
+                    h1, h2 { color: #1a6d2c; }
+                    .header { text-align: center; border-bottom: 2px solid #145a32; padding-bottom: 20px; margin-bottom: 20px; }
+                    .content { min-height: 400px; }
+                    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; }
+                    table { width: 100%; border-collapse: collapse; }
+                    table th, table td { padding: 8px; border: 1px solid #ddd; text-align: left; }
+                    table th { background: #1a6d2c; color: white; }
+                    .info { text-align: center; font-size: 10px; color: #666; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 10px; }
+                    @media print {
+                        body { padding: 20px; }
+                        @page { margin: 15mm; size: A4; }
+                    }
+                </style>
+            </head>
+            <body>
+                ${printContent}
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        setTimeout(function() {
+            printWindow.focus();
+            printWindow.print();
+        }, 500);
+    }
+
+    // ============================================================
+    // ÉDITION / SUPPRESSION — CONSEIL, MUSÉE, ENCHÈRES
+    // ============================================================
+    function editConseilMember(id) {
+        var item = DATA.conseil.find(function(m) { return m.id === id; });
+        if (!item) { showAlert('Membre non trouvé', 'error'); return; }
+        
+        document.getElementById('conseilModalTitle').textContent = 'Modifier un membre';
+        document.getElementById('conseilNom').value = item.nom || '';
+        document.getElementById('conseilPrenom').value = item.prenom || '';
+        document.getElementById('conseilFonction').value = item.fonction || 'Membre';
+        document.getElementById('conseilOrdre').value = item.ordre || 0;
+        document.getElementById('conseilEmail').value = item.email || '';
+        document.getElementById('conseilTelephone').value = item.telephone || '';
+        document.getElementById('conseilBio').value = item.bio || '';
+        document.getElementById('conseilSignature').value = item.signature || '';
+        
+        if (item.photo_url) {
+            document.getElementById('conseilPhotoPreview').src = item.photo_url;
+            document.getElementById('conseilPhotoPreview').style.display = 'block';
+            document.getElementById('conseilPhotoPlaceholder').style.display = 'none';
+        }
+        
+        currentConseilId = id;
+        document.getElementById('conseilModal').classList.add('active');
+    }
+
+    function editMuseeItem(id) {
+        var item = DATA.musee.find(function(m) { return m.id === id; });
+        if (!item) { showAlert('Objet non trouvé', 'error'); return; }
+        
+        document.getElementById('museeModalTitle').textContent = 'Modifier un objet';
+        document.getElementById('museeNom').value = item.nom || '';
+        document.getElementById('museeCategorie').value = item.categorie || 'Artisanat';
+        document.getElementById('museeDescription').value = item.description || '';
+        document.getElementById('museeAnnee').value = item.annee || '';
+        document.getElementById('museeLocalisation').value = item.localisation || '';
+        
+        currentMuseeId = id;
+        document.getElementById('museeModal').classList.add('active');
+    }
+
+    function editEnchereItem(id) {
+        var item = DATA.encheres.find(function(m) { return m.id === id; });
+        if (!item) { showAlert('Article non trouvé', 'error'); return; }
+        
+        document.getElementById('enchereModalTitle').textContent = 'Modifier un article';
+        document.getElementById('enchereNom').value = item.nom || '';
+        document.getElementById('enchereDescription').value = item.description || '';
+        document.getElementById('encherePrixDepart').value = item.prix_depart || 0;
+        document.getElementById('encherePrixActuel').value = item.prix_actuel || 0;
+        document.getElementById('enchereDateDebut').value = item.date_debut || '';
+        document.getElementById('enchereDateFin').value = item.date_fin || '';
+        document.getElementById('
     function exportAdherents() { showAlert('Export PDF en développement', 'info'); }
     function exportToJSON() { showAlert('Export JSON en développement', 'info'); }
     function resetAllData() { if (confirm('Effacer toutes les données ?')) showAlert('Données effacées', 'info'); }
