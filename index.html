@@ -3539,203 +3539,30 @@
     // ============================================================
     // PLACEHOLDERS
     // ============================================================
-        // ============================================================
-    // DOCUMENTS — FORMULAIRES DE GÉNÉRATION
-    // ============================================================
-    function showDocumentForm(type) {
-        var modal = document.getElementById('documentFormModal');
-        var body = document.getElementById('documentFormBody');
-        
-        var docTypes = {
-            'bon_commande': { title: 'Bon de commande', icon: 'fa-shopping-cart' },
-            'bon_reception': { title: 'Bon de réception', icon: 'fa-check-double' },
-            'bon_retour': { title: 'Bon de retour', icon: 'fa-undo' },
-            'bon_caisse': { title: 'Bon de caisse', icon: 'fa-coins' },
-            'bon_depense': { title: 'Bon de dépense', icon: 'fa-money-bill-wave' },
-            'accuse_reception': { title: 'Accusé de réception', icon: 'fa-file-signature' },
-            'lettre_transite': { title: 'Bon de transite', icon: 'fa-truck' },
-            'demande_attestation': { title: 'Demande d\'attestation', icon: 'fa-certificate' }
-        };
-        
-        var info = docTypes[type] || { title: 'Document', icon: 'fa-file' };
-        document.getElementById('documentFormTitle').innerHTML = '<i class="fas ' + info.icon + '"></i> ' + info.title;
-        
-        // Liste des membres du conseil pour le signataire
-        var membres = DATA.conseil || [];
-        var options = '<option value="">-- Sélectionner un signataire --</option>';
-        membres.forEach(function(m) {
-            options += '<option value="' + m.id + '">' + (m.prenom || '') + ' ' + (m.nom || '') + ' (' + (m.fonction || 'Membre') + ')</option>';
-        });
-        
-        // Liste des localités
-        var localites = DATA.localites || [];
-        var locOptions = '';
-        localites.forEach(function(l) {
-            var name = currentLang === 'ar' ? (l.nom_ar || l.nom_fr) : (l.nom_fr || '');
-            locOptions += '<option value="' + l.id + '">' + name + '</option>';
-        });
-        
-        var today = new Date().toISOString().split('T')[0];
-        var autoNum = 'ANSFAL-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 9000) + 1000);
-        
-        var extraFields = '';
-        
-        if (type === 'bon_commande') {
-            extraFields = `
-                <div class="form-row">
-                    <div><label>Fournisseur <span style="color:red;">*</span></label><input type="text" id="docFournisseur" placeholder="Nom du fournisseur" /></div>
-                    <div><label>N° de commande</label><input type="text" id="docNumCommande" value="${autoNum}" /></div>
-                </div>
-                <div class="form-row full">
-                    <div><label>Articles commandés (un par ligne : désignation, quantité, prix unitaire)</label><textarea id="docArticles" rows="5" placeholder="Ex:&#10;Ciment 50kg, 20, 75&#10;Fer 8mm, 15, 45"></textarea></div>
-                </div>
-            `;
-        } else if (type === 'bon_reception') {
-            extraFields = `
-                <div class="form-row">
-                    <div><label>Fournisseur <span style="color:red;">*</span></label><input type="text" id="docFournisseur" placeholder="Nom du fournisseur" /></div>
-                    <div><label>Réf. Bon de commande</label><input type="text" id="docRefCommande" placeholder="Réf. du bon de commande" /></div>
-                </div>
-                <div class="form-row full">
-                    <div><label>Articles reçus</label><textarea id="docArticles" rows="5" placeholder="Désignation, Quantité reçue, État (conforme/non conforme)"></textarea></div>
-                </div>
-            `;
-        } else if (type === 'bon_retour') {
-            extraFields = `
-                <div class="form-row">
-                    <div><label>Fournisseur <span style="color:red;">*</span></label><input type="text" id="docFournisseur" placeholder="Nom du fournisseur" /></div>
-                    <div><label>Motif du retour</label><input type="text" id="docMotif" placeholder="Motif du retour" /></div>
-                </div>
-                <div class="form-row full">
-                    <div><label>Articles retournés</label><textarea id="docArticles" rows="5" placeholder="Désignation, Quantité, Motif détaillé"></textarea></div>
-                </div>
-            `;
-        } else if (type === 'bon_caisse') {
-            extraFields = `
-                <div class="form-row">
-                    <div><label>Montant (DH) <span style="color:red;">*</span></label><input type="number" id="docMontant" step="0.01" min="0" placeholder="0.00" /></div>
-                    <div><label>Mode de paiement</label>
-                        <select id="docModePaiement">
-                            <option value="Espèces">Espèces</option>
-                            <option value="Chèque">Chèque</option>
-                            <option value="Virement">Virement</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row full">
-                    <div><label>Motif / Justification</label><textarea id="docMotif" rows="3" placeholder="Motif du mouvement de caisse"></textarea></div>
-                </div>
-            `;
-        } else if (type === 'bon_depense') {
-            extraFields = `
-                <div class="form-row">
-                    <div><label>Montant (DH) <span style="color:red;">*</span></label><input type="number" id="docMontant" step="0.01" min="0" placeholder="0.00" /></div>
-                    <div><label>Catégorie de dépense</label>
-                        <select id="docCategorie">
-                            <option value="Fournitures">Fournitures</option>
-                            <option value="Transport">Transport</option>
-                            <option value="Électricité/Eau">Électricité/Eau</option>
-                            <option value="Maintenance">Maintenance</option>
-                            <option value="Salaires">Salaires</option>
-                            <option value="Autre">Autre</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row full">
-                    <div><label>Justification détaillée</label><textarea id="docMotif" rows="3" placeholder="Détails de la dépense"></textarea></div>
-                </div>
-            `;
-        } else if (type === 'accuse_reception') {
-            extraFields = `
-                <div class="form-row full">
-                    <div><label>Objet du document reçu <span style="color:red;">*</span></label><input type="text" id="docObjetDoc" placeholder="Ex: Demande de subvention n°2024-001" /></div>
-                </div>
-                <div class="form-row">
-                    <div><label>Date de réception</label><input type="date" id="docDateReception" value="${today}" /></div>
-                    <div><label>Nombre de pièces</label><input type="number" id="docNbPieces" value="1" min="1" /></div>
-                </div>
-                <div class="form-row full">
-                    <div><label>Observations</label><textarea id="docObservations" rows="3" placeholder="Observations éventuelles"></textarea></div>
-                </div>
-            `;
-        } else if (type === 'lettre_transite') {
-            extraFields = `
-                <div class="form-row">
-                    <div><label>N° de bon de transite <span style="color:red;">*</span></label><input type="text" id="docNumTransite" value="${autoNum}" /></div>
-                    <div><label>Transporteur</label><input type="text" id="docTransporteur" placeholder="Nom du transporteur" /></div>
-                </div>
-                <div class="form-row">
-                    <div><label>Lieu de départ</label><input type="text" id="docDepart" placeholder="Ex: Azilal" /></div>
-                    <div><label>Lieu d'arrivée</label><input type="text" id="docArrivee" placeholder="Ex: Marrakech" /></div>
-                </div>
-                <div class="form-row full">
-                    <div><label>Description des marchandises</label><textarea id="docArticles" rows="4" placeholder="Désignation, quantité, poids..."></textarea></div>
-                </div>
-            `;
-        } else if (type === 'demande_attestation') {
-            extraFields = `
-                <div class="form-row full">
-                    <div><label>Type d'attestation <span style="color:red;">*</span></label>
-                        <select id="docTypeAttestation">
-                            <option value="Attestation de travail">Attestation de travail</option>
-                            <option value="Attestation de membre actif">Attestation de membre actif</option>
-                            <option value="Attestation de participation">Attestation de participation</option>
-                            <option value="Attestation de réalisation">Attestation de réalisation</option>
-                            <option value="Autre">Autre</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row full">
-                    <div><label>Contenu / Objet détaillé</label><textarea id="docMotif" rows="4" placeholder="Précisez l'objet de l'attestation..."></textarea></div>
-                </div>
-            `;
-        }
-        
-        body.innerHTML = `
-            <div class="form-doc">
-                <div class="form-row">
-                    <div><label>Numéro du document</label><input type="text" id="docNum" value="${autoNum}" /></div>
-                    <div><label>Date</label><input type="date" id="docDate" value="${today}" /></div>
-                </div>
-                <div class="form-row">
-                    <div><label>Objet <span style="color:red;">*</span></label><input type="text" id="docObjet" placeholder="Objet du document" value="${info.title}" /></div>
-                    <div><label>Lieu</label><input type="text" id="docLieu" value="Azilal" /></div>
-                </div>
-                <div class="form-row">
-                    <div><label>Nom du destinataire</label><input type="text" id="docDestinataire" placeholder="Nom complet du destinataire" /></div>
-                    <div><label>Fonction du destinataire</label><input type="text" id="docDestFonction" placeholder="Fonction" /></div>
-                </div>
-                ${extraFields}
-                <div class="form-row full">
-                    <div><label>Description / Notes complémentaires</label><textarea id="docContenu" rows="3" placeholder="Notes ou contenu additionnel..."></textarea></div>
-                </div>
-                <div class="form-row">
-                    <div><label>Signataire</label>
-                        <select id="docSignataire">${options}</select>
-                    </div>
-                    <div><label>Localité concernée (optionnel)</label>
-                        <select id="docLocalite">
-                            <option value="">-- Aucune --</option>
-                            ${locOptions}
-                        </select>
-                    </div>
-                </div>
-                <div class="form-actions" style="margin-top:20px;border-top:1px solid #eee;padding-top:15px;">
-                    <button class="btn-browse" onclick="hideDocumentFormModal()" style="background:var(--danger);"><i class="fas fa-times"></i> Annuler</button>
-                    <button class="btn-browse" onclick="generateDocument('${type}')" style="background:var(--success);"><i class="fas fa-file-pdf"></i> Générer & Imprimer</button>
-                </div>
-            </div>
-        `;
-        
-        modal.classList.add('active');
-    }
-
-    function hideDocumentFormModal() {
-        document.getElementById('documentFormModal').classList.remove('active');
-    }
-
-    function generateDocument(type) {
-        // Récupérer tous les champs
+       function showDocumentForm(type) { showAlert('Formulaire ' + type + ' en développement', 'info'); }
+function hideDocumentFormModal() { document.getElementById('documentFormModal').classList.remove('active'); }
+function generateDocument(type) { showAlert('Génération de document', 'info'); }
+function printDocument() { window.print(); }
+function switchConseilTab(tab) {
+    document.querySelectorAll('.conseil-tab').forEach(function(el) { el.style.display = 'none'; });
+    var el = document.getElementById('conseilTab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+    if (el) el.style.display = 'block';
+    document.querySelectorAll('.tab-btn').forEach(function(e) { e.classList.remove('active'); });
+    var btn = document.querySelector('.tab-btn[onclick*="' + tab + '"]');
+    if (btn) btn.classList.add('active');
+}
+function editConseilMember(id) { showAlert('Édition membre ' + id, 'info'); }
+function editMuseeItem(id) { showAlert('Édition objet ' + id, 'info'); }
+function editEnchereItem(id) { showAlert('Édition enchère ' + id, 'info'); }
+function editGenericItem(type, id) { showAlert('Édition ' + type + ' ' + id, 'info'); }
+function deleteGenericItem(type, id) { if (confirm('Supprimer ?')) showAlert('Suppression ' + type, 'info'); }
+function saveTextContent() { showAlert('Texte enregistré', 'success'); hideTextModal(); }
+function saveConseilMember() { showAlert('Membre enregistré', 'success'); hideConseilModal(); }
+function saveDocument() { showAlert('Document enregistré', 'success'); hideDocumentModal(); }
+function saveAdherent() { showAlert('Adhérent enregistré', 'success'); hideAdherentModal(); }
+function saveUser() { showAlert('Utilisateur enregistré', 'success'); hideUserModal(); }
+function saveMuseeItem() { showAlert('Objet enregistré', 'success'); hideMuseeModal(); }
+function saveEnchereItem() { showAlert('Enchère enregistrée', 'success'); hideEnchereModal(); }
         var num = document.getElementById('docNum')?.value || 'ANSFAL-000';
         var date = document.getElementById('docDate')?.value || new Date().toISOString().split('T')[0];
         var objet = document.getElementById('docObjet')?.value || 'Document';
