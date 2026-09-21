@@ -15,7 +15,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
     <style>
-        /* ===== STYLES COMPLETS (inchangés, déjà complets) ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #1a6d2c;
@@ -476,7 +475,6 @@
         #actuDetailModal .actu-detail-pdf a:hover { background: #c0392b; transform: scale(1.05); }
         #actuDetailModal .actu-detail-pdf a i { font-size: 1.1rem; }
         body.rtl #actuDetailModal .actu-detail-pdf a { flex-direction: row-reverse; }
-        /* Prayer times */
         .prayer-times { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 6px 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border: 1px solid rgba(255,255,255,0.08); }
         .prayer-times .prayer-item { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: #e0e0e0; }
         .prayer-times .prayer-item i { color: var(--accent); font-size: 0.9rem; }
@@ -1254,7 +1252,6 @@
     <button class="login-btn" id="loginBtn"><i class="fas fa-user-shield"></i></button>
 
     <!-- ========== MODALES ========== -->
-    <!-- MODALE UPLOAD -->
     <div class="modal-overlay" id="uploadModal">
         <div class="modal">
             <div class="modal-header">
@@ -1286,7 +1283,7 @@
                     <input type="file" id="fileInput" class="file-input" multiple accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx">
                 </div>
 
-                <div class="url-input-area" id="urlUploadArea">
+                <div class="url-input-area" id="urlUploadArea" style="display:none;">
                     <div class="url-input-group">
                         <label id="urlInputLabel"><i class="fas fa-link"></i> URL de l'image ou de la vidéo</label>
                         <input type="url" id="mediaUrl" placeholder="https://i.imgur.com/..." autocomplete="off" />
@@ -2176,10 +2173,9 @@
         }
 
         // ============================================================
-        // FONCTIONS SUPABASE POUR LOCALSTORAGE
+        // FONCTIONS SUPABASE POUR UTILISATEURS (CORRIGÉES)
         // ============================================================
 
-        // 1. Gestion des utilisateurs
         var DEFAULT_ADMIN = {
             username: 'admin',
             email: 'admin@ansfal.org',
@@ -2191,6 +2187,7 @@
             updated_at: new Date().toISOString()
         };
 
+        // Récupère tous les utilisateurs depuis Supabase
         async function getUsers() {
             try {
                 const { data, error } = await supabase
@@ -2218,12 +2215,23 @@
             }
         }
 
+        // Sauvegarde un utilisateur (mise à jour ciblée par username)
         async function saveUsers(users) {
             try {
                 for (const user of users) {
+                    // Ne mettre à jour que les champs modifiables
+                    const payload = {
+                        password_hash: user.password_hash,
+                        password: user.password,
+                        password_changed: user.password_changed,
+                        role: user.role,
+                        email: user.email,
+                        updated_at: new Date().toISOString()
+                    };
                     const { error } = await supabase
                         .from('users')
-                        .upsert(user, { onConflict: 'username' });
+                        .update(payload)
+                        .eq('username', user.username);
                     if (error) throw error;
                 }
                 DATA.users = users;
@@ -2234,7 +2242,9 @@
             }
         }
 
-        // 2. Logo
+        // ============================================================
+        // LOGO
+        // ============================================================
         async function saveLogoToSupabase(url) {
             try {
                 const { error } = await supabase
@@ -2276,7 +2286,42 @@
             }
         }
 
-        // 3. Compte bancaire
+        async function uploadLogoToSupabase() {
+            if (!selectedLogoFile) {
+                showAlert('Veuillez sélectionner un fichier', 'error');
+                return;
+            }
+            try {
+                showAlert('Upload du logo...', 'info');
+                var fileName = 'logo_' + Date.now() + '_' + selectedLogoFile.name.replace(/\s/g, '_');
+                var { data, error } = await supabase.storage
+                    .from('medias')
+                    .upload(fileName, selectedLogoFile, { cacheControl: '3600', upsert: false });
+                if (error) throw new Error('Erreur upload: ' + error.message);
+                var { data: urlData } = supabase.storage.from('medias').getPublicUrl(fileName);
+                var url = urlData.publicUrl;
+
+                var img = document.getElementById('siteLogo');
+                var defaultLogo = document.getElementById('defaultLogo');
+                img.src = url;
+                img.style.display = 'block';
+                defaultLogo.style.display = 'none';
+
+                await saveLogoToSupabase(url);
+                document.getElementById('logoPreview').innerHTML = '<img src="' + url + '" />';
+                showAlert('✅ Logo mis à jour avec succès', 'success');
+                selectedLogoFile = null;
+                document.getElementById('logoFileInput').value = '';
+                document.getElementById('logoFileInfo').textContent = 'Aucun fichier sélectionné';
+            } catch (e) {
+                showAlert('❌ Erreur: ' + e.message, 'error');
+                console.error(e);
+            }
+        }
+
+        // ============================================================
+        // COMPTE BANCAIRE
+        // ============================================================
         async function saveBankAccountToSupabase(rib) {
             try {
                 const { error } = await supabase
@@ -2312,7 +2357,29 @@
             }
         }
 
-        // 4. Contacts
+        async function saveBankAccount() {
+            var rib = document.getElementById('bankAccountInput').value.trim();
+            if (!rib) { showAlert('Veuillez entrer un RIB', 'error'); return; }
+            document.getElementById('bankAccount').textContent = rib;
+            document.getElementById('footerBankAccount').textContent = rib;
+            await saveBankAccountToSupabase(rib);
+            showAlert('✅ Compte bancaire mis à jour', 'success');
+        }
+
+        async function saveBankAccountFromModal() {
+            var rib = document.getElementById('bankAccountEdit').value.trim();
+            if (!rib) { showAlert('Veuillez entrer un RIB', 'error'); return; }
+            document.getElementById('bankAccount').textContent = rib;
+            document.getElementById('footerBankAccount').textContent = rib;
+            document.getElementById('bankAccountInput').value = rib;
+            await saveBankAccountToSupabase(rib);
+            hideBankAccountModal();
+            showAlert('✅ Compte bancaire mis à jour', 'success');
+        }
+
+        // ============================================================
+        // CONTACTS
+        // ============================================================
         async function saveContactsToSupabase(phone, email, address) {
             try {
                 const contacts = { phone, email, address };
@@ -2355,7 +2422,25 @@
             }
         }
 
-        // 5. Ticker
+        async function saveContactInfo() {
+            var phone = document.getElementById('editPhone').value.trim();
+            var email = document.getElementById('editEmail').value.trim();
+            var address = document.getElementById('editAddress').value.trim();
+
+            document.getElementById('contactPhoneValue').textContent = phone;
+            document.getElementById('contactEmailValue').textContent = email;
+            document.getElementById('contactLocation').textContent = address;
+            document.getElementById('footerPhone').textContent = phone;
+            document.getElementById('footerEmail').textContent = email;
+            document.getElementById('footerAddress').textContent = address;
+
+            await saveContactsToSupabase(phone, email, address);
+            showAlert(getLang().alertContactSaved, 'success');
+        }
+
+        // ============================================================
+        // TICKER
+        // ============================================================
         async function loadTickerFromSupabase() {
             try {
                 const { data, error } = await supabase
@@ -2391,7 +2476,18 @@
             }
         }
 
-        // 6. Visiteurs
+        async function saveTickerText() {
+            var fr = document.getElementById('tickerTextFr').value.trim();
+            var ar = document.getElementById('tickerTextAr').value.trim();
+            if (!fr || !ar) { showAlert('Veuillez remplir les deux champs', 'error'); return; }
+            await saveTickerToSupabase(fr, ar);
+            showAlert('✅ Texte défilant mis à jour', 'success');
+            updateTickerText();
+        }
+
+        // ============================================================
+        // VISITEURS
+        // ============================================================
         async function updateVisitorsInSupabase() {
             try {
                 const { data, error } = await supabase
@@ -2455,93 +2551,7 @@
         }
 
         // ============================================================
-        // FONCTIONS EXISTANTES MODIFIÉES
-        // ============================================================
-
-        // LOGO
-        async function uploadLogoToSupabase() {
-            if (!selectedLogoFile) {
-                showAlert('Veuillez sélectionner un fichier', 'error');
-                return;
-            }
-            try {
-                showAlert('Upload du logo...', 'info');
-                var fileName = 'logo_' + Date.now() + '_' + selectedLogoFile.name.replace(/\s/g, '_');
-                var { data, error } = await supabase.storage
-                    .from('medias')
-                    .upload(fileName, selectedLogoFile, { cacheControl: '3600', upsert: false });
-                if (error) throw new Error('Erreur upload: ' + error.message);
-                var { data: urlData } = supabase.storage.from('medias').getPublicUrl(fileName);
-                var url = urlData.publicUrl;
-
-                var img = document.getElementById('siteLogo');
-                var defaultLogo = document.getElementById('defaultLogo');
-                img.src = url;
-                img.style.display = 'block';
-                defaultLogo.style.display = 'none';
-
-                await saveLogoToSupabase(url);
-                document.getElementById('logoPreview').innerHTML = '<img src="' + url + '" />';
-                showAlert('✅ Logo mis à jour avec succès', 'success');
-                selectedLogoFile = null;
-                document.getElementById('logoFileInput').value = '';
-                document.getElementById('logoFileInfo').textContent = 'Aucun fichier sélectionné';
-            } catch (e) {
-                showAlert('❌ Erreur: ' + e.message, 'error');
-                console.error(e);
-            }
-        }
-
-        // CONTACT
-        async function saveContactInfo() {
-            var phone = document.getElementById('editPhone').value.trim();
-            var email = document.getElementById('editEmail').value.trim();
-            var address = document.getElementById('editAddress').value.trim();
-
-            document.getElementById('contactPhoneValue').textContent = phone;
-            document.getElementById('contactEmailValue').textContent = email;
-            document.getElementById('contactLocation').textContent = address;
-            document.getElementById('footerPhone').textContent = phone;
-            document.getElementById('footerEmail').textContent = email;
-            document.getElementById('footerAddress').textContent = address;
-
-            await saveContactsToSupabase(phone, email, address);
-            showAlert(getLang().alertContactSaved, 'success');
-        }
-
-        // COMPTE BANCAIRE
-        async function saveBankAccount() {
-            var rib = document.getElementById('bankAccountInput').value.trim();
-            if (!rib) { showAlert('Veuillez entrer un RIB', 'error'); return; }
-            document.getElementById('bankAccount').textContent = rib;
-            document.getElementById('footerBankAccount').textContent = rib;
-            await saveBankAccountToSupabase(rib);
-            showAlert('✅ Compte bancaire mis à jour', 'success');
-        }
-
-        async function saveBankAccountFromModal() {
-            var rib = document.getElementById('bankAccountEdit').value.trim();
-            if (!rib) { showAlert('Veuillez entrer un RIB', 'error'); return; }
-            document.getElementById('bankAccount').textContent = rib;
-            document.getElementById('footerBankAccount').textContent = rib;
-            document.getElementById('bankAccountInput').value = rib;
-            await saveBankAccountToSupabase(rib);
-            hideBankAccountModal();
-            showAlert('✅ Compte bancaire mis à jour', 'success');
-        }
-
-        // TICKER
-        async function saveTickerText() {
-            var fr = document.getElementById('tickerTextFr').value.trim();
-            var ar = document.getElementById('tickerTextAr').value.trim();
-            if (!fr || !ar) { showAlert('Veuillez remplir les deux champs', 'error'); return; }
-            await saveTickerToSupabase(fr, ar);
-            showAlert('✅ Texte défilant mis à jour', 'success');
-            updateTickerText();
-        }
-
-        // ============================================================
-        // AUTH
+        // AUTH (CORRIGÉE)
         // ============================================================
         async function login() {
             var t = getLang();
@@ -2643,12 +2653,14 @@
             showAlert('⚠️ Vous devez changer votre mot de passe pour continuer', 'error');
         }
 
+        // ✅ CHANGEMENT DE MOT DE PASSE OBLIGATOIRE (CORRIGÉ)
         async function changeForcedPassword() {
             var newPass = document.getElementById('forcedNewPassword').value.trim();
             var confirmPass = document.getElementById('forcedConfirmPassword').value.trim();
             var errorEl = document.getElementById('forcedPasswordError');
             errorEl.style.display = 'none';
 
+            // Validations
             if (!newPass || newPass.length < 8) {
                 errorEl.textContent = '⚠️ Le mot de passe doit contenir au moins 8 caractères.';
                 errorEl.style.display = 'block';
@@ -2698,7 +2710,7 @@
 
                     var updatedUser = users.find(function(u) { return u.id === userToUpdate.id; });
 
-                    showAlert('✅ Mot de passe changé avec succès !', 'success');
+                    showAlert('✅ Mot de passe enregistré avec succès !', 'success');
                     completeLogin(updatedUser);
                     await loadAllTables();
                     renderAll();
@@ -2712,6 +2724,97 @@
                 errorEl.textContent = '❌ Erreur: ' + e.message;
                 errorEl.style.display = 'block';
                 console.error('❌ Erreur détaillée:', e);
+            }
+        }
+
+        // ✅ CHANGEMENT DE MOT DE PASSE VOLONTAIRE (DEPUIS PARAMÈTRES) - CORRIGÉ
+        async function changePassword() {
+            var currentPass = document.getElementById('currentPassword').value.trim();
+            var newPass = document.getElementById('newPassword').value.trim();
+            var confirmPass = document.getElementById('confirmPassword').value.trim();
+
+            if (!currentPass || !newPass || !confirmPass) {
+                showAlert('Veuillez remplir tous les champs', 'error');
+                return;
+            }
+
+            // Validations du nouveau mot de passe
+            if (newPass.length < 8) {
+                showAlert('⚠️ Le nouveau mot de passe doit contenir au moins 8 caractères.', 'error');
+                return;
+            }
+            if (!/[A-Z]/.test(newPass)) {
+                showAlert('⚠️ Le nouveau mot de passe doit contenir au moins une majuscule.', 'error');
+                return;
+            }
+            if (!/[a-z]/.test(newPass)) {
+                showAlert('⚠️ Le nouveau mot de passe doit contenir au moins une minuscule.', 'error');
+                return;
+            }
+            if (!/[0-9]/.test(newPass)) {
+                showAlert('⚠️ Le nouveau mot de passe doit contenir au moins un chiffre.', 'error');
+                return;
+            }
+            if (newPass !== confirmPass) {
+                showAlert('⚠️ Les mots de passe ne correspondent pas.', 'error');
+                return;
+            }
+
+            try {
+                showAlert('Vérification en cours...', 'info');
+
+                var users = await getUsers();
+                var currentUser = DATA.currentUser || getCurrentUser();
+
+                if (!currentUser) {
+                    showAlert('❌ Utilisateur non connecté', 'error');
+                    return;
+                }
+
+                var userToUpdate = users.find(function(u) { return u.username === currentUser.username; });
+
+                if (!userToUpdate) {
+                    showAlert('❌ Utilisateur non trouvé', 'error');
+                    return;
+                }
+
+                // Vérifier le mot de passe actuel
+                var isValid = false;
+                var hashedCurrent = await hashPassword(currentPass);
+                if (userToUpdate.password_hash && hashedCurrent === userToUpdate.password_hash) {
+                    isValid = true;
+                }
+                if (!isValid && userToUpdate.password && userToUpdate.password === currentPass) {
+                    isValid = true;
+                }
+
+                if (!isValid) {
+                    showAlert('❌ Le mot de passe actuel est incorrect', 'error');
+                    return;
+                }
+
+                // Hacher le nouveau mot de passe
+                var hashedNew = await hashPassword(newPass);
+                userToUpdate.password_hash = hashedNew;
+                userToUpdate.password = newPass;
+                userToUpdate.password_changed = true;
+                userToUpdate.updated_at = new Date().toISOString();
+
+                await saveUsers(users);
+
+                // Mettre à jour l'utilisateur en session
+                DATA.currentUser = userToUpdate;
+                setCurrentUser(userToUpdate);
+
+                showAlert('✅ Mot de passe enregistré avec succès !', 'success');
+                hidePasswordModal();
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+
+            } catch (e) {
+                showAlert('❌ Erreur: ' + e.message, 'error');
+                console.error('❌ Erreur changePassword:', e);
             }
         }
 
@@ -2892,7 +2995,6 @@
             document.body.classList.toggle('rtl', isRTL);
             document.documentElement.lang = currentLang;
             
-            // Menu principal
             var menuMap = {
                 'menuHome': 'menuHome',
                 'menuAbout': 'menuAbout',
@@ -2925,7 +3027,6 @@
                 }
             }
             
-            // Sidebar
             var sidebarMap = {
                 'sidebarDashboardText': 'sidebarDashboard',
                 'sidebarGalleryText': 'sidebarGallery',
@@ -2952,7 +3053,6 @@
                 if (el) el.textContent = t[sidebarMap[id]] || id;
             }
             
-            // Titres Dashboard
             var dashMap = {
                 'dashboardTitle': 'dashboardTitle',
                 'galleryDashboardTitle': 'galleryDashboardTitle',
@@ -2979,7 +3079,6 @@
                 if (el) el.textContent = t[dashMap[id]] || id;
             }
             
-            // Stats
             var statsMap = {
                 'statVisitors': 'statVisitors',
                 'statMedia': 'statMedia',
@@ -3008,7 +3107,6 @@
                 }
             }
             
-            // Sections
             var sectionMap = {
                 'heroTitle': 'heroTitle',
                 'heroSubtitle': 'heroSubtitle',
@@ -3068,7 +3166,6 @@
                 if (el) el.textContent = t[sectionMap[id]] || id;
             }
             
-            // Hero Buttons
             var heroBtns = {
                 'heroBtn1': 'heroBtn1',
                 'heroBtn2': 'heroBtn2',
@@ -3088,7 +3185,6 @@
                 }
             }
             
-            // Table Headers
             var tableMap = {
                 'thCode': 'thCode',
                 'thNom': 'thNom',
@@ -3103,7 +3199,6 @@
                 if (el) el.textContent = t[tableMap[id]] || id;
             }
             
-            // Logo Subtitle
             var logoSubtitle = document.getElementById('logoSubtitle');
             if (logoSubtitle) {
                 logoSubtitle.textContent = isRTL ? 
@@ -3154,7 +3249,6 @@
             var ar = document.getElementById('tickerTextAr')?.value || 'مرحباً بكم في موقع أنسفال';
             
             var text = currentLang === 'ar' ? ar : fr;
-            var arrow = currentLang === 'ar' ? '←' : '→';
             
             el.innerHTML = '<i class="fas fa-arrow-' + (currentLang === 'ar' ? 'left' : 'right') + '" style="color: #3cb371;"></i> ' + text + ' <i class="fas fa-arrow-' + (currentLang === 'ar' ? 'right' : 'left') + '" style="color: #3cb371;"></i>';
         }
@@ -3162,6 +3256,12 @@
         // ============================================================
         // LOCALITÉS
         // ============================================================
+        function fetchWithSupabaseAuth(url, options = {}) {
+            var headers = { 'apikey': supabaseKey, 'Content-Type': 'application/json', ...options.headers };
+            headers['Authorization'] = 'Bearer ' + supabaseKey;
+            return fetch(url, { ...options, headers: headers });
+        }
+
         async function loadLocalites() {
             try {
                 console.log('🔄 Chargement des localités...');
@@ -3320,115 +3420,93 @@
         }
 
         // ============================================================
-        // FONCTIONS SUPABASE POUR LES DONNÉES (LOAD ALL TABLES)
+        // LOAD ALL TABLES
         // ============================================================
-        function fetchWithSupabaseAuth(url, options = {}) {
-            var headers = { 'apikey': supabaseKey, 'Content-Type': 'application/json', ...options.headers };
-            headers['Authorization'] = 'Bearer ' + supabaseKey;
-            return fetch(url, { ...options, headers: headers });
-        }
-
         async function loadAllTables() {
             await loadLocalites();
 
-            // Betail
             try {
                 var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/betail?select=*');
                 if (resp.ok) { var data = await resp.json(); DATA.betail = data || []; }
             } catch (e) { console.error('Erreur betail', e); }
 
-            // Produits
             try {
                 var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/produits?select=*');
                 if (resp.ok) { var data = await resp.json(); DATA.produits = data || []; }
             } catch (e) { console.error('Erreur produits', e); }
 
-            // Arbres
             try {
                 var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/arbres?select=*');
                 if (resp.ok) { var data = await resp.json(); DATA.arbres = data || []; }
             } catch (e) { console.error('Erreur arbres', e); }
 
-            // Eau
             try {
                 var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/eau?select=*');
                 if (resp.ok) { var data = await resp.json(); DATA.eau = data || []; }
             } catch (e) { console.error('Erreur eau', e); }
 
-            // CANEAUX-IR
             try {
                 var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/canaux_ir?select=*');
                 if (resp.ok) { var data = await resp.json(); DATA.canaux_ir = data || []; }
             } catch (e) { console.error('Erreur canaux_ir', e); }
 
-            // Conseil
             try {
                 var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/conseil?select=*');
                 if (resp.ok) { var data = await resp.json(); DATA.conseil = data || []; }
             } catch (e) { console.error('Erreur conseil', e); }
 
-            // Documents admin
             try {
                 var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/documents_admin?select=*');
                 if (resp.ok) { var data = await resp.json(); DATA.documentsAdmin = data || []; }
             } catch (e) { console.error('Erreur documents_admin', e); }
 
-            // Gallery
             try {
                 var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/gallery?select=*');
                 if (resp.ok) { var data = await resp.json(); DATA.gallery = data || []; }
             } catch (e) { console.error('Erreur gallery', e); }
 
-            // Videos
             try {
                 var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/videos?select=*');
                 if (resp.ok) { var data = await resp.json(); DATA.videos = data || []; }
             } catch (e) { console.error('Erreur videos', e); }
 
-            // Articles
             try {
                 var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/articles?select=*');
                 if (resp.ok) { var data = await resp.json(); DATA.articles = data || []; }
             } catch (e) { console.error('Erreur articles', e); }
 
-            // Texts
             try {
                 var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/texts?select=*');
                 if (resp.ok) { var data = await resp.json(); DATA.texts = data || []; }
             } catch (e) { console.error('Erreur texts', e); }
 
-            // Actu
             try {
                 var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/actu?select=*&order=created_at desc');
                 if (resp.ok) { var data = await resp.json(); DATA.actu = data || []; }
             } catch (e) { console.error('Erreur actu', e); }
 
-            // Adherents
             try {
                 var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/adherents?select=*&order=nom');
                 if (resp.ok) { var data = await resp.json(); DATA.adherents = data || []; }
             } catch (e) { console.error('Erreur adherents', e); }
 
-            // Musée
             try {
                 var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/musee?select=*&order=nom');
                 if (resp.ok) { var data = await resp.json(); DATA.musee = data || []; }
             } catch (e) { console.error('Erreur musee', e); }
 
-            // Enchères
             try {
                 var resp = await fetchWithSupabaseAuth(supabaseUrl + '/rest/v1/encheres?select=*&order=nom');
                 if (resp.ok) { var data = await resp.json(); DATA.encheres = data || []; }
             } catch (e) { console.error('Erreur encheres', e); }
 
-            // Utilisateurs
             await getUsers();
 
             console.log('✅ Toutes les données chargées depuis Supabase');
         }
 
         // ============================================================
-        // RENDER FUNCTIONS (Betail, Produits, Arbres, Eau, CANEAUX-IR)
+        // RENDER FUNCTIONS
         // ============================================================
         function renderBetail() {
             var items = DATA.betail || [],
@@ -3504,9 +3582,6 @@
             }).join('');
         }
 
-        // ============================================================
-        // RENDER ALL
-        // ============================================================
         function renderAll() {
             renderBetail();
             renderProduits();
@@ -3541,9 +3616,6 @@
             updateStats();
         }
 
-        // ============================================================
-        // STATISTIQUES
-        // ============================================================
         function updateStats() {
             document.getElementById('totalMediaStat').textContent = (DATA.gallery.length + DATA.videos.length + DATA.documentsAdmin.length);
             document.getElementById('totalPublicationsStat').textContent = DATA.articles.length;
@@ -3554,9 +3626,6 @@
             document.getElementById('totalEncheresStat').textContent = DATA.encheres.length;
         }
 
-        // ============================================================
-        // FONCTIONS MANQUANTES - GALERIE
-        // ============================================================
         function renderGallery() {
             var container = document.getElementById('galleryContainer');
             var items = DATA.gallery || [];
@@ -3608,9 +3677,6 @@
             } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
         }
 
-        // ============================================================
-        // FONCTIONS MANQUANTES - VIDÉOS
-        // ============================================================
         function renderVideos() {
             var container = document.getElementById('videosContainer');
             var items = DATA.videos || [];
@@ -3673,9 +3739,6 @@
             } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
         }
 
-        // ============================================================
-        // FONCTIONS MANQUANTES - ARTICLES / PUBLICATIONS
-        // ============================================================
         function renderArticles() {
             var container = document.getElementById('articlesContainer');
             var items = DATA.articles || [];
@@ -3726,9 +3789,6 @@
             } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
         }
 
-        // ============================================================
-        // FONCTIONS MANQUANTES - TEXTES
-        // ============================================================
         function renderTexts() {
             var list = document.getElementById('textList');
             var items = DATA.texts || [];
@@ -3750,7 +3810,6 @@
                     '</div>';
             }).join('');
 
-            // Textes publiés
             var publishedContainer = document.getElementById('publishedTexts');
             if (publishedContainer) {
                 var published = items.filter(function(t) { return t.published; });
@@ -3779,9 +3838,6 @@
             } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
         }
 
-        // ============================================================
-        // FONCTIONS MANQUANTES - ACTUALITÉ
-        // ============================================================
         function renderActu() {
             var container = document.getElementById('actuContainer');
             var items = DATA.actu || [];
@@ -3798,10 +3854,10 @@
                 var wordCount = (item.text || '').split(/\s+/).filter(function(w) { return w.length > 0; }).length;
                 var adminActions = canEdit ?
                     '<div class="admin-actions">' +
-                    (item.status !== 'published' ? '<button class="btn-actu publish" onclick="publishActu(' + item.id + ')"><i class="fas fa-check"></i> ' + getLang().publishBtn + '</button>' : '') +
-                    '<button class="btn-actu delete" onclick="deleteActu(' + item.id + ')"><i class="fas fa-trash"></i> ' + getLang().deleteBtn + '</button>' +
+                    (item.status !== 'published' ? '<button class="btn-actu publish" onclick="event.stopPropagation();publishActu(' + item.id + ')"><i class="fas fa-check"></i> ' + getLang().publishBtn + '</button>' : '') +
+                    '<button class="btn-actu delete" onclick="event.stopPropagation();deleteActu(' + item.id + ')"><i class="fas fa-trash"></i> ' + getLang().deleteBtn + '</button>' +
                     '</div>' : '';
-                var pdfLink = item.pdf_url ? '<a href="' + item.pdf_url + '" target="_blank" class="actu-pdf-link"><i class="fas fa-file-pdf"></i> Voir PDF</a>' : '';
+                var pdfLink = item.pdf_url ? '<a href="' + item.pdf_url + '" target="_blank" class="actu-pdf-link" onclick="event.stopPropagation();"><i class="fas fa-file-pdf"></i> Voir PDF</a>' : '';
                 return '<div class="actu-item" onclick="showActuDetail(' + item.id + ')">' +
                     '<div class="actu-text">' + (item.text || '') + '</div>' +
                     '<div class="actu-meta">' +
@@ -3840,9 +3896,6 @@
             } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
         }
 
-        // ============================================================
-        // FONCTIONS MANQUANTES - ADHÉRENTS
-        // ============================================================
         function renderAdherents() {
             var container = document.getElementById('adherentsContainer');
             var items = DATA.adherents || [];
@@ -3868,9 +3921,6 @@
             }).join('');
         }
 
-        // ============================================================
-        // FONCTIONS MANQUANTES - MUSÉE
-        // ============================================================
         function renderMusee() {
             var container = document.getElementById('museumItems');
             var items = DATA.musee || [];
@@ -3930,9 +3980,6 @@
             } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
         }
 
-        // ============================================================
-        // FONCTIONS MANQUANTES - ENCHÈRES
-        // ============================================================
         function renderEncheres() {
             var container = document.getElementById('auctionItems');
             var items = DATA.encheres || [];
@@ -3941,7 +3988,6 @@
                 container.innerHTML = '<div class="no-content">' + getLang().noAuctionPublic + '</div>';
                 return;
             }
-            var now = new Date();
             container.innerHTML = items.map(function(item) {
                 var status = item.statut || 'upcoming';
                 var statusText = getLang().bidStatusUpcoming;
@@ -4060,17 +4106,14 @@
                 '<p>Envoi en cours...</p>' +
                 '</div>';
 
-            // Simuler l'envoi
             setTimeout(function() {
                 resultDiv.innerHTML = '<div style="background:#d4edda;padding:15px;border-radius:10px;text-align:center;color:#155724;">' +
                     '<i class="fas fa-check-circle" style="font-size:2rem;color:var(--success);"></i><br>' +
                     '<p>' + t.auctionBidSent + '</p>' +
                     '<p><small>Votre proposition de ' + bidValue + ' DH pour "' + (item ? item.nom : '') + '" a été enregistrée.</small></p>' +
                     '</div>';
-                // Réinitialiser le formulaire
                 document.getElementById('auctionBid').value = '';
                 document.getElementById('auctionMessage').value = '';
-                // Mettre à jour le prix de l'enchère
                 if (item) {
                     item.prix_actuel = bidValue;
                     item.nb_encheres = (item.nb_encheres || 0) + 1;
@@ -4097,9 +4140,6 @@
             }
         }
 
-        // ============================================================
-        // FONCTIONS MANQUANTES - CONSEIL
-        // ============================================================
         function renderConseil() {
             var container = document.getElementById('conseilGrid');
             var items = DATA.conseil || [];
@@ -4165,9 +4205,6 @@
             } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
         }
 
-        // ============================================================
-        // FONCTIONS MANQUANTES - DOCUMENTS
-        // ============================================================
         function renderDocuments() {
             var container = document.getElementById('documentsGrid');
             var items = DATA.documentsAdmin || [];
@@ -4220,9 +4257,6 @@
             } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
         }
 
-        // ============================================================
-        // FONCTIONS MANQUANTES - ADMIN (Betail, Produits, Arbres, Eau, Canaux_ir)
-        // ============================================================
         function renderBetailAdmin() {
             var body = document.getElementById('betailAdminBody');
             var items = DATA.betail || [];
@@ -4367,9 +4401,6 @@
             }).join('');
         }
 
-        // ============================================================
-        // FONCTIONS MANQUANTES - UTILISATEURS
-        // ============================================================
         function renderUsers() {
             var body = document.getElementById('usersBody');
             var items = DATA.users || [];
@@ -4412,7 +4443,7 @@
         }
 
         // ============================================================
-        // FONCTIONS GÉNÉRIQUES (MODALES)
+        // MODALES (placeholder / génériques)
         // ============================================================
         function showUploadModal(type) {
             currentUploadType = type || 'image';
@@ -4444,7 +4475,6 @@
             }
         }
 
-        // Fichier upload
         document.addEventListener('DOMContentLoaded', function() {
             var fileInput = document.getElementById('fileInput');
             if (fileInput) {
@@ -4592,9 +4622,6 @@
             });
         }
 
-        // ============================================================
-        // FILE VIEWER
-        // ============================================================
         function viewFile(url, type, title) {
             var viewer = document.getElementById('fileViewer');
             var content = document.getElementById('viewerContent');
@@ -4647,7 +4674,7 @@
         }
 
         // ============================================================
-        // FONCTIONS PLACEHOLDER (à implémenter si besoin)
+        // FONCTIONS PLACEHOLDER
         // ============================================================
         function showTextModal() { document.getElementById('textModal').classList.add('active'); }
         function hideTextModal() { document.getElementById('textModal').classList.remove('active'); }
@@ -4675,7 +4702,6 @@
         function showEnchereModal() { document.getElementById('enchereModal').classList.add('active'); }
         function hideEnchereModal() { document.getElementById('enchereModal').classList.remove('active'); }
         function showDocumentForm(type) {
-            // Génération des documents avec entête et signature
             var modal = document.getElementById('documentFormModal');
             var body = document.getElementById('documentFormBody');
             document.getElementById('documentFormTitle').textContent = 'Générer un ' + type.replace('_', ' ');
@@ -4841,7 +4867,6 @@
         function saveUser() { showAlert('Utilisateur enregistré', 'success'); hideUserModal(); }
         function saveMuseeItem() { showAlert('Objet enregistré', 'success'); hideMuseeModal(); }
         function saveEnchereItem() { showAlert('Enchère enregistrée', 'success'); hideEnchereModal(); }
-        function changePassword() { showAlert('Mot de passe changé', 'success'); hidePasswordModal(); }
         function exportAdherents() { showAlert('Export PDF en développement', 'info'); }
         function exportToJSON() { showAlert('Export JSON en développement', 'info'); }
         function resetAllData() { if (confirm('Effacer toutes les données ?')) showAlert('Données effacées', 'info'); }
@@ -4977,7 +5002,6 @@
                 }
             });
 
-            // Logo file input
             document.getElementById('logoFileInput').addEventListener('change', function(e) {
                 if (this.files && this.files[0]) {
                     selectedLogoFile = this.files[0];
@@ -4990,7 +5014,6 @@
                 }
             });
 
-            // Word counter for actu
             document.getElementById('actuText').addEventListener('input', function() {
                 var words = this.value.trim().split(/\s+/).filter(function(w) { return w.length > 0; });
                 document.getElementById('wordCountDisplay').textContent = words.length;
