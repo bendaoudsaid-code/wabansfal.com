@@ -444,7 +444,15 @@
             </div>
             <div class="table-container">
                 <table class="data-table" id="betailTable">
-                    <thead><tr><th id="thLocalite">Localité</th><th id="thBovins">Bovins</th><th id="thOvins">Ovins</th><th id="thCaprins">Caprins</th><th id="thTotal">Total</th><th id="thHabitants">Habitants</th><th id="thRatio">Ratio</th></tr></thead>
+                    <thead><tr>
+                        <th id="thLocalite">Localité</th>
+                        <th id="thBovins">Bovins</th>
+                        <th id="thOvins">Ovins</th>
+                        <th id="thCaprins">Caprins</th>
+                        <th id="thTotal">Total</th>
+                        <th id="thHabitants">Habitants</th>
+                        <th id="thRatio">Ratio</th>
+                    </tr></thead>
                     <tbody id="betailBody"><tr><td colspan="7" class="no-content">Chargement...</td></tr></tbody>
                 </table>
             </div>
@@ -460,7 +468,13 @@
             </div>
             <div class="table-container">
                 <table class="data-table" id="produitsTable">
-                    <thead><tr><th id="thProduit">Produit</th><th id="thLocaliteProd">Localité</th><th id="thQuantite">Quantité (tonnes)</th><th id="thPeriode">Période</th><th id="thStatut">Statut</th></tr></thead>
+                    <thead><tr>
+                        <th id="thProduit">Produit</th>
+                        <th id="thLocaliteProd">Localité</th>
+                        <th id="thQuantite">Quantité (tonnes)</th>
+                        <th id="thPeriode">Période</th>
+                        <th id="thStatut">Statut</th>
+                    </tr></thead>
                     <tbody id="produitsBody"><tr><td colspan="5" class="no-content">Chargement...</td></tr></tbody>
                 </table>
             </div>
@@ -476,7 +490,16 @@
             </div>
             <div class="table-container">
                 <table class="data-table" id="arbresTable">
-                    <thead><tr><th id="thArbreLocalite">Localité</th><th id="thOliviers">Oliviers</th><th id="thAmandiers">Amandiers</th><th id="thFiguiers">Figuiers</th><th id="thNoyers">Noyers</th><th id="thArbreTotal">Total</th><th id="thArbreHabitants">Habitants</th><th id="thArbreRatio">Ratio</th></tr></thead>
+                    <thead><tr>
+                        <th id="thArbreLocalite">Localité</th>
+                        <th id="thOliviers">Oliviers</th>
+                        <th id="thAmandiers">Amandiers</th>
+                        <th id="thFiguiers">Figuiers</th>
+                        <th id="thNoyers">Noyers</th>
+                        <th id="thArbreTotal">Total</th>
+                        <th id="thArbreHabitants">Habitants</th>
+                        <th id="thArbreRatio">Ratio</th>
+                    </tr></thead>
                     <tbody id="arbresBody"><tr><td colspan="8" class="no-content">Chargement...</td></tr></tbody>
                 </table>
             </div>
@@ -492,7 +515,13 @@
             </div>
             <div class="table-container">
                 <table class="data-table" id="eauTable">
-                    <thead><tr><th id="thEauLocalite">Localité</th><th id="thFoyers">Foyers raccordés</th><th id="thForages">Forages</th><th id="thCapacite">Capacité (m³/jour)</th><th id="thEauStatut">Statut</th></tr></thead>
+                    <thead><tr>
+                        <th id="thEauLocalite">Localité</th>
+                        <th id="thFoyers">Foyers raccordés</th>
+                        <th id="thForages">Forages</th>
+                        <th id="thCapacite">Capacité (m³/jour)</th>
+                        <th id="thEauStatut">Statut</th>
+                    </tr></thead>
                     <tbody id="eauBody"><tr><td colspan="5" class="no-content">Chargement...</td></tr></tbody>
                 </table>
             </div>
@@ -508,7 +537,14 @@
             </div>
             <div class="table-container">
                 <table class="data-table" id="canauxIrTable">
-                    <thead><tr><th id="thCode">Code</th><th id="thNom">Nom</th><th id="thZone">Zone</th><th id="thSuperficie">Superficie (Ha)</th><th id="thDebit">Débit (m³/h)</th><th id="thCanauxIrStatut">Statut</th></tr></thead>
+                    <thead><tr>
+                        <th id="thCode">Code</th>
+                        <th id="thNom">Nom</th>
+                        <th id="thZone">Zone</th>
+                        <th id="thSuperficie">Superficie (Ha)</th>
+                        <th id="thDebit">Débit (m³/h)</th>
+                        <th id="thCanauxIrStatut">Statut</th>
+                    </tr></thead>
                     <tbody id="canauxIrBody"><tr><td colspan="6" class="no-content">Chargement...</td></tr></tbody>
                 </table>
             </div>
@@ -572,7 +608,9 @@
                 <h2 id="adherentsTitle"><i class="fas fa-users"></i> Nos Adhérents</h2>
                 <p id="adherentsSubtitle">Liste des membres de l'association</p>
             </div>
-            <div id="adherentsContainer" class="items-grid"><div class="no-content">Chargement des adhérents...</div></div>
+            <div id="adherentsContainer" class="items-grid">
+                <div class="no-content" id="noAdherentsPublic">Chargement des adhérents...</div>
+            </div>
         </div>
     </section>
 
@@ -812,7 +850,16 @@
                     </div>
                     <div class="table-container">
                         <table class="data-table" id="betailAdminTable">
-                            <thead><tr><th>Localité</th><th>Bovins</th><th>Ovins</th><th>Caprins</th><th>Total</th><th>Habitants</th><th>Ratio</th><th>Actions</th></tr></thead>
+                            <thead><tr>
+                                <th id="thLocaliteAdmin">Localité</th>
+                                <th id="thBovinsAdmin">Bovins</th>
+                                <th id="thOvinsAdmin">Ovins</th>
+                                <th id="thCaprinsAdmin">Caprins</th>
+                                <th id="thTotalAdmin">Total</th>
+                                <th id="thHabitantsAdmin">Habitants</th>
+                                <th id="thRatioAdmin">Ratio</th>
+                                <th id="thActionsAdmin">Actions</th>
+                            </tr></thead>
                             <tbody id="betailAdminBody"><tr><td colspan="8" class="no-content">Chargement...</td></tr></tbody>
                         </table>
                     </div>
@@ -825,7 +872,14 @@
                     </div>
                     <div class="table-container">
                         <table class="data-table" id="produitsAdminTable">
-                            <thead><tr><th>Produit</th><th>Localité</th><th>Quantité</th><th>Période</th><th>Statut</th><th>Actions</th></tr></thead>
+                            <thead><tr>
+                                <th id="thProduitAdmin">Produit</th>
+                                <th id="thLocaliteProdAdmin">Localité</th>
+                                <th id="thQuantiteAdmin">Quantité</th>
+                                <th id="thPeriodeAdmin">Période</th>
+                                <th id="thStatutAdmin">Statut</th>
+                                <th id="thActionsProdAdmin">Actions</th>
+                            </tr></thead>
                             <tbody id="produitsAdminBody"><tr><td colspan="6" class="no-content">Chargement...</td></tr></tbody>
                         </table>
                     </div>
@@ -838,7 +892,17 @@
                     </div>
                     <div class="table-container">
                         <table class="data-table" id="arbresAdminTable">
-                            <thead><tr><th>Localité</th><th>Oliviers</th><th>Amandiers</th><th>Figuiers</th><th>Noyers</th><th>Total</th><th>Habitants</th><th>Ratio</th><th>Actions</th></tr></thead>
+                            <thead><tr>
+                                <th id="thArbreLocaliteAdmin">Localité</th>
+                                <th id="thOliviersAdmin">Oliviers</th>
+                                <th id="thAmandiersAdmin">Amandiers</th>
+                                <th id="thFiguiersAdmin">Figuiers</th>
+                                <th id="thNoyersAdmin">Noyers</th>
+                                <th id="thArbreTotalAdmin">Total</th>
+                                <th id="thArbreHabitantsAdmin">Habitants</th>
+                                <th id="thArbreRatioAdmin">Ratio</th>
+                                <th id="thArbreActionsAdmin">Actions</th>
+                            </tr></thead>
                             <tbody id="arbresAdminBody"><tr><td colspan="9" class="no-content">Chargement...</td></tr></tbody>
                         </table>
                     </div>
@@ -851,7 +915,14 @@
                     </div>
                     <div class="table-container">
                         <table class="data-table" id="eauAdminTable">
-                            <thead><tr><th>Localité</th><th>Foyers</th><th>Forages</th><th>Capacité</th><th>Statut</th><th>Actions</th></tr></thead>
+                            <thead><tr>
+                                <th id="thEauLocaliteAdmin">Localité</th>
+                                <th id="thFoyersAdmin">Foyers</th>
+                                <th id="thForagesAdmin">Forages</th>
+                                <th id="thCapaciteAdmin">Capacité</th>
+                                <th id="thEauStatutAdmin">Statut</th>
+                                <th id="thEauActionsAdmin">Actions</th>
+                            </tr></thead>
                             <tbody id="eauAdminBody"><tr><td colspan="6" class="no-content">Chargement...</td></tr></tbody>
                         </table>
                     </div>
@@ -864,7 +935,15 @@
                     </div>
                     <div class="table-container">
                         <table class="data-table" id="canauxIrAdminTable">
-                            <thead><tr><th>Code</th><th>Nom</th><th>Zone</th><th>Superficie</th><th>Débit</th><th>Statut</th><th>Actions</th></tr></thead>
+                            <thead><tr>
+                                <th id="thCodeAdmin">Code</th>
+                                <th id="thNomAdmin">Nom</th>
+                                <th id="thZoneAdmin">Zone</th>
+                                <th id="thSuperficieAdmin">Superficie</th>
+                                <th id="thDebitAdmin">Débit</th>
+                                <th id="thCanauxIrStatutAdmin">Statut</th>
+                                <th id="thCanauxIrActionsAdmin">Actions</th>
+                            </tr></thead>
                             <tbody id="canauxIrAdminBody"><tr><td colspan="7" class="no-content">Chargement...</td></tr></tbody>
                         </table>
                     </div>
@@ -901,7 +980,13 @@
                         <button class="btn-import admin-only" onclick="showUserModal()"><i class="fas fa-plus"></i> Ajouter un utilisateur</button>
                     </div>
                     <table class="users-table" id="usersTable">
-                        <thead><tr><th>#</th><th>Nom d'utilisateur</th><th>Rôle</th><th>Créé le</th><th>Actions</th></tr></thead>
+                        <thead><tr>
+                            <th>#</th>
+                            <th id="thUsername">Nom d'utilisateur</th>
+                            <th id="thRole">Rôle</th>
+                            <th id="thCreatedAt">Créé le</th>
+                            <th id="thUserActions">Actions</th>
+                        </tr></thead>
                         <tbody id="usersBody"><tr><td colspan="5" class="no-content">Aucun utilisateur</td></tr></tbody>
                     </table>
                 </div>
@@ -914,7 +999,15 @@
                     </div>
                     <div class="table-container">
                         <table class="data-table" id="localitesTable">
-                            <thead><tr><th>ID</th><th><span id="thLocaliteFr">Nom (FR)</span></th><th><span id="thLocaliteAr">Nom (AR)</span></th><th>Code</th><th>Région</th><th>Province</th><th><span id="thLocaliteActions">Actions</span></th></tr></thead>
+                            <thead><tr>
+                                <th>ID</th>
+                                <th id="thLocaliteFr">Nom (FR)</th>
+                                <th id="thLocaliteAr">Nom (AR)</th>
+                                <th id="thLocaliteCode">Code</th>
+                                <th id="thLocaliteRegion">Région</th>
+                                <th id="thLocaliteProvince">Province</th>
+                                <th id="thLocaliteActions">Actions</th>
+                            </tr></thead>
                             <tbody id="localitesBody"><tr><td colspan="7" class="no-content">Chargement...</td></tr></tbody>
                         </table>
                     </div>
@@ -1053,7 +1146,7 @@
     <button class="btn-add-float admin-only" id="addBtn"><i class="fas fa-plus"></i></button>
     <button class="login-btn" id="loginBtn"><i class="fas fa-user-shield"></i></button>
 
-    <!-- MODALS (upload, text, conseil, document, adherent, user, bank, localite, password, forcedPassword, generic, print, actuDetail, musee, enchere, documentForm, fileViewer) -->
+    <!-- MODALS -->
     <div class="modal-overlay" id="uploadModal">
         <div class="modal">
             <div class="modal-header">
@@ -1442,14 +1535,16 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
     // ============================================================
-    // TRADUCTIONS
+    // TRADUCTIONS COMPLÈTES
     // ============================================================
     var LANG = {
         fr: {
+            // Menus
             menuHome: 'Accueil', menuAbout: 'À propos', menuBetail: 'Bétails', menuProduits: 'Produits', menuArbres: 'Arbres', menuEau: 'Eau',
             menuCanauxIr: 'CANEAUX-IR', menuConseil: 'Conseil', menuDocuments: 'Documents', menuGallery: 'Galerie', menuVideos: 'Vidéos',
             menuProjects: 'Projets', menuDons: 'Dons', menuActu: 'Actualité', menuAdherents: 'Adhérents', menuContact: 'Contact',
             menuMusee: 'Musée ANSFAL', menuEncheres: 'Enchères', menuDashboard: 'Dashboard',
+            // Alertes
             alertFillFields: 'Veuillez remplir tous les champs', alertInvalidCredentials: 'Identifiants incorrects', alertLoginSuccess: 'Connexion réussie',
             alertLogout: 'Déconnexion réussie', alertLoginRequired: 'Veuillez vous connecter', alertActuTooLong: 'Votre texte dépasse 20 mots !',
             alertActuSubmitted: 'Votre actualité a été soumise ! En attente de publication.', alertActuPublished: 'Actualité publiée !',
@@ -1457,9 +1552,11 @@
             alertItemDeleted: 'Élément supprimé', noData: 'Aucune donnée disponible', noActuPublic: 'Aucune actualité pour le moment.',
             noGalleryPublic: 'Aucune image disponible.', noVideosPublic: 'Aucune vidéo disponible.', noMuseumPublic: 'Aucun objet dans le musée.',
             noAuctionPublic: 'Aucune enchère en cours.', publishBtn: 'Publier', deleteBtn: 'Supprimer', statusPublished: 'Publié', statusDraft: 'Brouillon',
+            // Hero
             heroTitle: 'ANSFAL', heroSubtitle: 'Association ANSFAL de Coopération, Développement et Environnement',
             heroText: 'Œuvrant pour un développement durable, la coopération nationale et la protection de l\'environnement depuis 2023.',
             heroBtn1: 'Découvrir nos actions', heroBtn2: 'Galerie Photos', heroBtn3: 'Faire un don',
+            // Sections
             projectsTitle: 'Nos Projets & Publications', aboutTitle: 'À propos d\'ANSFAL', aboutHistory: 'Notre histoire',
             aboutText1: 'Fondée en 2023, l\'Association ANSFAL pour la Coopération et le Développement et l\'Environnement est née de la conviction que le développement humain et la protection environnementale doivent aller de pair.',
             aboutText2: 'Notre nom \'ANSFAL\' symbolise notre engagement pour un avenir meilleur, basé sur la solidarité, le développement durable et la préservation de notre environnement.',
@@ -1482,17 +1579,36 @@
             auctionBidLabel: 'Votre proposition (DH)', auctionMessageLabel: 'Message (optionnel)', auctionSubmitBtn: 'Envoyer ma proposition',
             auctionBidSent: '✅ Votre proposition a été envoyée !', auctionBidError: '❌ Une erreur est survenue',
             bidStatusActive: 'Active', bidStatusEnded: 'Terminée', bidStatusUpcoming: 'À venir',
+            // Sidebar
             sidebarDashboard: 'Tableau de bord', sidebarGallery: 'Galerie', sidebarVideos: 'Vidéos', sidebarPublications: 'Publications',
             sidebarText: 'Textes', sidebarBetail: 'Bétails', sidebarProduits: 'Produits', sidebarArbres: 'Arbres', sidebarEau: 'Eau',
             sidebarCanauxIr: 'CANEAUX-IR', sidebarConseil: 'Conseil', sidebarDocuments: 'Documents', sidebarAdherents: 'Adhérents',
             sidebarUsers: 'Utilisateurs', sidebarLocalites: 'Localités', sidebarMusee: 'Musée', sidebarEncheres: 'Enchères', sidebarSettings: 'Paramètres',
-            dashboardTitle: 'Tableau de Bord ANSFAL', settingsTitle: 'Paramètres'
+            dashboardTitle: 'Tableau de Bord ANSFAL', settingsTitle: 'Paramètres',
+            // En-têtes de tableaux
+            thLocalite: 'Localité', thBovins: 'Bovins', thOvins: 'Ovins', thCaprins: 'Caprins', thTotal: 'Total',
+            thHabitants: 'Habitants', thRatio: 'Ratio', thProduit: 'Produit', thQuantite: 'Quantité (tonnes)',
+            thPeriode: 'Période', thStatut: 'Statut', thOliviers: 'Oliviers', thAmandiers: 'Amandiers',
+            thFiguiers: 'Figuiers', thNoyers: 'Noyers', thFoyers: 'Foyers raccordés', thForages: 'Forages',
+            thCapacite: 'Capacité (m³/jour)', thCode: 'Code', thNom: 'Nom', thZone: 'Zone',
+            thSuperficie: 'Superficie (Ha)', thDebit: 'Débit (m³/h)', thActions: 'Actions',
+            thLocaliteFr: 'Nom (FR)', thLocaliteAr: 'Nom (AR)', thLocaliteActions: 'Actions',
+            thUsername: 'Nom d\'utilisateur', thRole: 'Rôle', thCreatedAt: 'Créé le', thUserActions: 'Actions',
+            thLocaliteCode: 'Code', thLocaliteRegion: 'Région', thLocaliteProvince: 'Province',
+            // Statuts
+            statutDisponible: 'Disponible', statutNonDisponible: 'Non disponible', statutEnCours: 'En cours',
+            statutOperationnel: 'Opérationnel', statutEnPanne: 'En panne', statutEnConstruction: 'En construction',
+            statutActif: 'Actif', statutInactif: 'Inactif', statutSuspendu: 'Suspendu', statutAncien: 'Ancien',
+            // Divers
+            na: 'N/A', none: 'Aucun'
         },
         ar: {
+            // Menus
             menuHome: 'الرئيسية', menuAbout: 'من نحن', menuBetail: 'الماشية', menuProduits: 'المنتجات', menuArbres: 'الأشجار', menuEau: 'الماء',
             menuCanauxIr: 'سواقي الماء', menuConseil: 'المجلس', menuDocuments: 'الوثائق', menuGallery: 'المعرض', menuVideos: 'الفيديوهات',
             menuProjects: 'المشاريع', menuDons: 'التبرعات', menuActu: 'الأخبار', menuAdherents: 'المنخرطون', menuContact: 'اتصل بنا',
             menuMusee: 'متحف أنسفال', menuEncheres: 'المزادات', menuDashboard: 'لوحة التحكم',
+            // Alertes
             alertFillFields: 'يرجى ملء جميع الحقول', alertInvalidCredentials: 'بيانات الدخول غير صحيحة', alertLoginSuccess: 'تم تسجيل الدخول',
             alertLogout: 'تم تسجيل الخروج', alertLoginRequired: 'يرجى تسجيل الدخول', alertActuTooLong: 'نصك يتجاوز 20 كلمة !',
             alertActuSubmitted: 'تم إرسال الخبر !', alertActuPublished: 'تم نشر الخبر !', alertActuDeleted: 'تم حذف الخبر !',
@@ -1500,9 +1616,11 @@
             noData: 'لا توجد بيانات', noActuPublic: 'لا توجد أخبار حالياً.', noGalleryPublic: 'لا توجد صور متاحة.',
             noVideosPublic: 'لا توجد فيديوهات متاحة.', noMuseumPublic: 'لا توجد قطع في المتحف.', noAuctionPublic: 'لا توجد مزادات حالياً.',
             publishBtn: 'نشر', deleteBtn: 'حذف', statusPublished: 'منشور', statusDraft: 'مسودة',
+            // Hero
             heroTitle: 'أنسفال', heroSubtitle: 'جمعية أنسفال للتعاون والتنمية والبيئة',
             heroText: 'تعمل من أجل التنمية المستدامة والتعاون الوطني وحماية البيئة منذ 2023.',
             heroBtn1: 'اكتشف مشاريعنا', heroBtn2: 'معرض الصور', heroBtn3: 'تبرع',
+            // Sections
             projectsTitle: 'مشاريعنا ومنشوراتنا', aboutTitle: 'من نحن - أنسفال', aboutHistory: 'تاريخنا',
             aboutText1: 'تأسست جمعية أنسفال للتعاون والتنمية والبيئة في عام 2023 من قناعة بأن التنمية البشرية وحماية البيئة يجب أن تسيرا جنباً إلى جنب.',
             aboutText2: 'اسمنا "أنسفال" يرمز إلى التزامنا من أجل مستقبل أفضل.',
@@ -1524,11 +1642,28 @@
             auctionSelectLabel: 'القطعة', auctionNameLabel: 'اسمك', auctionEmailLabel: 'البريد الإلكتروني', auctionPhoneLabel: 'الهاتف',
             auctionBidLabel: 'عرضك (درهم)', auctionMessageLabel: 'رسالة (اختياري)', auctionSubmitBtn: 'أرسل عرضي',
             auctionBidSent: '✅ تم إرسال عرضك !', auctionBidError: '❌ حدث خطأ', bidStatusActive: 'نشط', bidStatusEnded: 'منتهية', bidStatusUpcoming: 'قادم',
+            // Sidebar
             sidebarDashboard: 'لوحة التحكم', sidebarGallery: 'المعرض', sidebarVideos: 'الفيديوهات', sidebarPublications: 'المنشورات',
             sidebarText: 'النصوص', sidebarBetail: 'الماشية', sidebarProduits: 'المنتجات', sidebarArbres: 'الأشجار', sidebarEau: 'الماء',
             sidebarCanauxIr: 'سواقي الماء', sidebarConseil: 'المجلس', sidebarDocuments: 'الوثائق', sidebarAdherents: 'المنخرطون',
             sidebarUsers: 'المستخدمون', sidebarLocalites: 'المناطق', sidebarMusee: 'المتحف', sidebarEncheres: 'المزادات', sidebarSettings: 'الإعدادات',
-            dashboardTitle: 'لوحة تحكم أنسفال', settingsTitle: 'الإعدادات'
+            dashboardTitle: 'لوحة تحكم أنسفال', settingsTitle: 'الإعدادات',
+            // En-têtes de tableaux
+            thLocalite: 'المنطقة', thBovins: 'الأبقار', thOvins: 'الأغنام', thCaprins: 'الماعز', thTotal: 'المجموع',
+            thHabitants: 'السكان', thRatio: 'النسبة', thProduit: 'المنتج', thQuantite: 'الكمية (طن)',
+            thPeriode: 'الفترة', thStatut: 'الحالة', thOliviers: 'أشجار الزيتون', thAmandiers: 'أشجار اللوز',
+            thFiguiers: 'أشجار التين', thNoyers: 'أشجار الجوز', thFoyers: 'الأسر الموصولة', thForages: 'الآبار',
+            thCapacite: 'الطاقة (م³/يوم)', thCode: 'الرمز', thNom: 'الاسم', thZone: 'المنطقة',
+            thSuperficie: 'المساحة (هكتار)', thDebit: 'التدفق (م³/س)', thActions: 'الإجراءات',
+            thLocaliteFr: 'الاسم (بالفرنسية)', thLocaliteAr: 'الاسم (بالعربية)', thLocaliteActions: 'الإجراءات',
+            thUsername: 'اسم المستخدم', thRole: 'الدور', thCreatedAt: 'تاريخ الإنشاء', thUserActions: 'الإجراءات',
+            thLocaliteCode: 'الرمز', thLocaliteRegion: 'الجهة', thLocaliteProvince: 'الإقليم',
+            // Statuts
+            statutDisponible: 'متوفر', statutNonDisponible: 'غير متوفر', statutEnCours: 'قيد الإنجاز',
+            statutOperationnel: 'في الخدمة', statutEnPanne: 'معطل', statutEnConstruction: 'قيد البناء',
+            statutActif: 'نشط', statutInactif: 'غير نشط', statutSuspendu: 'موقوف', statutAncien: 'قديم',
+            // Divers
+            na: 'غير متوفر', none: 'لا شيء'
         }
     };
 
@@ -1545,6 +1680,25 @@
         div.innerHTML = '<i class="fas fa-' + icon + '"></i> ' + message;
         document.body.appendChild(div);
         setTimeout(function() { div.remove(); }, 5000);
+    }
+
+    // Traduire un statut
+    function translateStatut(statut) {
+        var t = getLang();
+        if (!statut) return '';
+        var map = {
+            'Disponible': t.statutDisponible,
+            'Non disponible': t.statutNonDisponible,
+            'En cours': t.statutEnCours,
+            'Opérationnel': t.statutOperationnel,
+            'En panne': t.statutEnPanne,
+            'En construction': t.statutEnConstruction,
+            'Actif': t.statutActif,
+            'Inactif': t.statutInactif,
+            'Suspendu': t.statutSuspendu,
+            'Ancien': t.statutAncien
+        };
+        return map[statut] || statut;
     }
 
     async function hashPassword(password) {
@@ -1898,6 +2052,7 @@
             if (!user) { document.getElementById('conseilProtected').style.display = 'block'; document.getElementById('conseilContent').style.display = 'none'; }
             else { document.getElementById('conseilProtected').style.display = 'none'; document.getElementById('conseilContent').style.display = 'block'; }
         }
+        if (id === 'adherents') { renderAdherents(); }
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -1914,7 +2069,7 @@
         });
         if (type === 'users') renderUsers();
         if (type === 'localites') renderLocalites();
-        if (type === 'adherents') renderAdherents();
+        if (type === 'adherents') renderAdherentsAdmin();
         if (type === 'musee') renderMuseeAdmin();
         if (type === 'encheres') renderEncheresAdmin();
     }
@@ -1957,20 +2112,151 @@
         } catch (e) { }
     }
 
-    // LANGUE
+    // ============================================================
+    // LANGUE - Traduction complète de l'interface
+    // ============================================================
     function updateUILanguage() {
         var t = getLang();
         var isRTL = currentLang === 'ar';
         document.body.classList.toggle('rtl', isRTL);
         document.documentElement.lang = currentLang;
+
+        // 1. Menus principaux
         var menuMap = { menuHome: 'menuHome', menuAbout: 'menuAbout', menuBetail: 'menuBetail', menuProduits: 'menuProduits', menuArbres: 'menuArbres', menuEau: 'menuEau', menuCanauxIr: 'menuCanauxIr', menuConseil: 'menuConseil', menuDocuments: 'menuDocuments', menuGallery: 'menuGallery', menuVideos: 'menuVideos', menuProjects: 'menuProjects', menuDons: 'menuDons', menuActu: 'menuActu', menuAdherents: 'menuAdherents', menuContact: 'menuContact', menuMusee: 'menuMusee', menuEncheres: 'menuEncheres', menuDashboard: 'menuDashboard' };
-        for (var id in menuMap) { var el = document.getElementById(id); if (el) { var label = el.querySelector('.menu-label'); if (label) label.textContent = t[menuMap[id]] || id; } }
-        var sectionMap = { heroTitle: 'heroTitle', heroSubtitle: 'heroSubtitle', heroText: 'heroText', projectsTitle: 'projectsTitle', aboutTitle: 'aboutTitle', aboutHistory: 'aboutHistory', aboutText1: 'aboutText1', aboutText2: 'aboutText2', betailTitle: 'betailTitle', betailSubtitle: 'betailSubtitle', produitsTitle: 'produitsTitle', produitsSubtitle: 'produitsSubtitle', arbresTitle: 'arbresTitle', arbresSubtitle: 'arbresSubtitle', eauTitle: 'eauTitle', eauSubtitle: 'eauSubtitle', canauxIrTitle: 'canauxIrTitle', canauxIrSubtitle: 'canauxIrSubtitle', conseilTitle: 'conseilTitle', conseilSubtitle: 'conseilSubtitle', documentsTitle: 'documentsTitle', documentsSubtitle: 'documentsSubtitle', galleryTitle: 'galleryTitle', videosTitle: 'videosTitle', adherentsTitle: 'adherentsTitle', adherentsSubtitle: 'adherentsSubtitle', donsTitle: 'donsTitle', donsSubtitle: 'donsSubtitle', actuTitle: 'actuTitle', actuSubtitle: 'actuSubtitle', actuFormTitle: 'actuFormTitle', actuSubmitText: 'actuSubmitText', contactTitle: 'contactTitle', contactAddress: 'contactAddress', contactPhone: 'contactPhone', contactEmail: 'contactEmail', museeTitle: 'museeTitle', museeSubtitle: 'museeSubtitle', encheresTitle: 'encheresTitle', encheresSubtitle: 'encheresSubtitle', footerFollow: 'footerFollow', footerCopyright: 'footerCopyright', auctionParticipateTitle: 'auctionParticipateTitle', auctionParticipateDesc: 'auctionParticipateDesc', auctionSelectLabel: 'auctionSelectLabel', auctionNameLabel: 'auctionNameLabel', auctionEmailLabel: 'auctionEmailLabel', auctionPhoneLabel: 'auctionPhoneLabel', auctionBidLabel: 'auctionBidLabel', auctionMessageLabel: 'auctionMessageLabel', auctionSubmitBtn: 'auctionSubmitBtn' };
-        for (var id in sectionMap) { var el = document.getElementById(id); if (el) el.textContent = t[sectionMap[id]] || id; }
+        for (var id in menuMap) { 
+            var el = document.getElementById(id); 
+            if (el) { 
+                var label = el.querySelector('.menu-label'); 
+                if (label) label.textContent = t[menuMap[id]] || id; 
+            } 
+        }
+
+        // 2. Sections (titres, sous-titres)
+        var sectionMap = { 
+            heroTitle: 'heroTitle', heroSubtitle: 'heroSubtitle', heroText: 'heroText', 
+            projectsTitle: 'projectsTitle', aboutTitle: 'aboutTitle', aboutHistory: 'aboutHistory', 
+            aboutText1: 'aboutText1', aboutText2: 'aboutText2', 
+            betailTitle: 'betailTitle', betailSubtitle: 'betailSubtitle', 
+            produitsTitle: 'produitsTitle', produitsSubtitle: 'produitsSubtitle', 
+            arbresTitle: 'arbresTitle', arbresSubtitle: 'arbresSubtitle', 
+            eauTitle: 'eauTitle', eauSubtitle: 'eauSubtitle', 
+            canauxIrTitle: 'canauxIrTitle', canauxIrSubtitle: 'canauxIrSubtitle', 
+            conseilTitle: 'conseilTitle', conseilSubtitle: 'conseilSubtitle', 
+            documentsTitle: 'documentsTitle', documentsSubtitle: 'documentsSubtitle', 
+            galleryTitle: 'galleryTitle', videosTitle: 'videosTitle', 
+            adherentsTitle: 'adherentsTitle', adherentsSubtitle: 'adherentsSubtitle', 
+            donsTitle: 'donsTitle', donsSubtitle: 'donsSubtitle', 
+            actuTitle: 'actuTitle', actuSubtitle: 'actuSubtitle', 
+            actuFormTitle: 'actuFormTitle', actuSubmitText: 'actuSubmitText', 
+            contactTitle: 'contactTitle', contactAddress: 'contactAddress', 
+            contactPhone: 'contactPhone', contactEmail: 'contactEmail', 
+            museeTitle: 'museeTitle', museeSubtitle: 'museeSubtitle', 
+            encheresTitle: 'encheresTitle', encheresSubtitle: 'encheresSubtitle', 
+            footerFollow: 'footerFollow', footerCopyright: 'footerCopyright', 
+            auctionParticipateTitle: 'auctionParticipateTitle', auctionParticipateDesc: 'auctionParticipateDesc', 
+            auctionSelectLabel: 'auctionSelectLabel', auctionNameLabel: 'auctionNameLabel', 
+            auctionEmailLabel: 'auctionEmailLabel', auctionPhoneLabel: 'auctionPhoneLabel', 
+            auctionBidLabel: 'auctionBidLabel', auctionMessageLabel: 'auctionMessageLabel', 
+            auctionSubmitBtn: 'auctionSubmitBtn' 
+        };
+        for (var sId in sectionMap) { 
+            var sEl = document.getElementById(sId); 
+            if (sEl) {
+                // Préserver les icônes Font Awesome dans certains éléments
+                if (sId === 'projectsTitle' || sId === 'aboutTitle' || sId === 'betailTitle' || 
+                    sId === 'produitsTitle' || sId === 'arbresTitle' || sId === 'eauTitle' || 
+                    sId === 'canauxIrTitle' || sId === 'conseilTitle' || sId === 'documentsTitle' || 
+                    sId === 'museeTitle' || sId === 'encheresTitle' || sId === 'donsTitle' || 
+                    sId === 'contactTitle' || sId === 'adherentsTitle') {
+                    // Ne pas écraser si l'élément contient une icône <i> au début
+                    var iconHTML = '';
+                    var firstChild = sEl.firstElementChild;
+                    if (firstChild && firstChild.tagName === 'I') {
+                        iconHTML = firstChild.outerHTML + ' ';
+                    }
+                    sEl.innerHTML = iconHTML + (t[sectionMap[sId]] || sId);
+                } else {
+                    sEl.textContent = t[sectionMap[sId]] || sId;
+                }
+            }
+        }
+
+        // 3. En-têtes de tableaux (publics + admin)
+        var tableMap = {
+            thLocalite: 'thLocalite', thBovins: 'thBovins', thOvins: 'thOvins',
+            thCaprins: 'thCaprins', thTotal: 'thTotal', thHabitants: 'thHabitants',
+            thRatio: 'thRatio', thProduit: 'thProduit', thQuantite: 'thQuantite',
+            thPeriode: 'thPeriode', thStatut: 'thStatut', thOliviers: 'thOliviers',
+            thAmandiers: 'thAmandiers', thFiguiers: 'thFiguiers', thNoyers: 'thNoyers',
+            thFoyers: 'thFoyers', thForages: 'thForages', thCapacite: 'thCapacite',
+            thCode: 'thCode', thNom: 'thNom', thZone: 'thZone', thSuperficie: 'thSuperficie',
+            thDebit: 'thDebit', thActions: 'thActions',
+            thLocaliteFr: 'thLocaliteFr', thLocaliteAr: 'thLocaliteAr',
+            thLocaliteActions: 'thLocaliteActions',
+            thUsername: 'thUsername', thRole: 'thRole', thCreatedAt: 'thCreatedAt', thUserActions: 'thUserActions',
+            thLocaliteCode: 'thLocaliteCode', thLocaliteRegion: 'thLocaliteRegion', thLocaliteProvince: 'thLocaliteProvince',
+            // En-têtes admin (IDs uniques)
+            thLocaliteAdmin: 'thLocalite', thBovinsAdmin: 'thBovins', thOvinsAdmin: 'thOvins',
+            thCaprinsAdmin: 'thCaprins', thTotalAdmin: 'thTotal', thHabitantsAdmin: 'thHabitants',
+            thRatioAdmin: 'thRatio', thActionsAdmin: 'thActions',
+            thProduitAdmin: 'thProduit', thLocaliteProdAdmin: 'thLocalite', thQuantiteAdmin: 'thQuantite',
+            thPeriodeAdmin: 'thPeriode', thStatutAdmin: 'thStatut', thActionsProdAdmin: 'thActions',
+            thArbreLocaliteAdmin: 'thLocalite', thOliviersAdmin: 'thOliviers', thAmandiersAdmin: 'thAmandiers',
+            thFiguiersAdmin: 'thFiguiers', thNoyersAdmin: 'thNoyers', thArbreTotalAdmin: 'thTotal',
+            thArbreHabitantsAdmin: 'thHabitants', thArbreRatioAdmin: 'thRatio', thArbreActionsAdmin: 'thActions',
+            thEauLocaliteAdmin: 'thLocalite', thFoyersAdmin: 'thFoyers', thForagesAdmin: 'thForages',
+            thCapaciteAdmin: 'thCapacite', thEauStatutAdmin: 'thStatut', thEauActionsAdmin: 'thActions',
+            thCodeAdmin: 'thCode', thNomAdmin: 'thNom', thZoneAdmin: 'thZone', thSuperficieAdmin: 'thSuperficie',
+            thDebitAdmin: 'thDebit', thCanauxIrStatutAdmin: 'thStatut', thCanauxIrActionsAdmin: 'thActions',
+            thLocaliteProd: 'thLocalite'
+        };
+        for (var tId in tableMap) {
+            var tEl = document.getElementById(tId);
+            if (tEl) tEl.textContent = t[tableMap[tId]] || tableMap[tId];
+        }
+
+        // 4. Sidebar du dashboard
+        var sidebarMap = {
+            sidebarDashboardText: 'sidebarDashboard',
+            sidebarGalleryText: 'sidebarGallery',
+            sidebarVideosText: 'sidebarVideos',
+            sidebarPublicationsText: 'sidebarPublications',
+            sidebarTextText: 'sidebarText',
+            sidebarBetailText: 'sidebarBetail',
+            sidebarProduitsText: 'sidebarProduits',
+            sidebarArbresText: 'sidebarArbres',
+            sidebarEauText: 'sidebarEau',
+            sidebarCanauxIrText: 'sidebarCanauxIr',
+            sidebarConseilText: 'sidebarConseil',
+            sidebarDocumentsText: 'sidebarDocuments',
+            sidebarAdherentsText: 'sidebarAdherents',
+            sidebarUsersText: 'sidebarUsers',
+            sidebarLocalitesText: 'sidebarLocalites',
+            sidebarMuseeText: 'sidebarMusee',
+            sidebarEncheresText: 'sidebarEncheres',
+            sidebarSettingsText: 'sidebarSettings'
+        };
+        for (var sbId in sidebarMap) {
+            var sbEl = document.getElementById(sbId);
+            if (sbEl) sbEl.textContent = t[sidebarMap[sbId]] || sidebarMap[sbId];
+        }
+
+        // 5. Titre du dashboard
+        var dashTitle = document.getElementById('dashboardTitle');
+        if (dashTitle) {
+            dashTitle.innerHTML = '<i class="fas fa-tachometer-alt"></i> ' + (t.dashboardTitle || 'Tableau de Bord ANSFAL');
+        }
+        var settingsTitle = document.getElementById('settingsTitle');
+        if (settingsTitle) {
+            settingsTitle.innerHTML = '<i class="fas fa-cog"></i> ' + (t.settingsTitle || 'Paramètres');
+        }
+
+        // 6. Sous-titres du logo
         var logoSubtitle = document.getElementById('logoSubtitle');
         if (logoSubtitle) logoSubtitle.textContent = isRTL ? 'جمعية أنسفال للتعاون والتنمية والبيئة' : 'Association ANSFAL de Coopération, Développement et Environnement';
         var footerLogoSubtitle = document.getElementById('footerLogoSubtitle');
         if (footerLogoSubtitle) footerLogoSubtitle.textContent = isRTL ? 'جمعية أنسفال للتعاون والتنمية والبيئة' : 'Association ANSFAL de Coopération, Développement et Environnement';
+
         updateTickerText();
         renderAll();
     }
@@ -2001,13 +2287,18 @@
             const { data, error } = await supabase.from('localites').select('*').order('nom_fr');
             if (error) throw error;
             DATA.localites = data || [];
-        } catch (e) { DATA.localites = []; }
+            console.log('✅ Localités chargées:', DATA.localites.length);
+        } catch (e) { 
+            console.error('❌ Erreur localités:', e); 
+            DATA.localites = []; 
+        }
     }
 
     function getLocaliteName(id) {
         var loc = DATA.localites.find(function(l) { return l.id == id; });
-        if (!loc) return 'N/A';
-        return currentLang === 'ar' ? (loc.nom_ar || loc.nom_fr || 'N/A') : (loc.nom_fr || 'N/A');
+        var t = getLang();
+        if (!loc) return t.na || 'N/A';
+        return currentLang === 'ar' ? (loc.nom_ar || loc.nom_fr || t.na) : (loc.nom_fr || t.na);
     }
 
     function renderLocalites() {
@@ -2090,10 +2381,22 @@
     // LOAD ALL TABLES
     async function loadAllTables() {
         await loadLocalites();
-        async function safeLoad(table) {
-            try { const { data, error } = await supabase.from(table).select('*'); if (error) throw error; return data || []; }
-            catch (e) { return []; }
+        
+        async function safeLoad(table, orderBy) {
+            try { 
+                var query = supabase.from(table).select('*');
+                if (orderBy) query = query.order(orderBy);
+                const { data, error } = await query; 
+                if (error) throw error; 
+                console.log('✅ Table ' + table + ' chargée:', (data || []).length);
+                return data || []; 
+            }
+            catch (e) { 
+                console.error('❌ Erreur table ' + table + ':', e.message || e); 
+                return []; 
+            }
         }
+        
         DATA.betail = await safeLoad('betail');
         DATA.produits = await safeLoad('produits');
         DATA.arbres = await safeLoad('arbres');
@@ -2105,12 +2408,13 @@
         DATA.videos = await safeLoad('videos');
         DATA.articles = await safeLoad('articles');
         DATA.texts = await safeLoad('texts');
-        try { const { data } = await supabase.from('actu').select('*').order('created_at', { ascending: false }); DATA.actu = data || []; } catch (e) { DATA.actu = []; }
-        try { const { data } = await supabase.from('adherents').select('*').order('nom'); DATA.adherents = data || []; } catch (e) { DATA.adherents = []; }
-        try { const { data } = await supabase.from('musee').select('*').order('nom'); DATA.musee = data || []; } catch (e) { DATA.musee = []; }
-        try { const { data } = await supabase.from('encheres').select('*').order('nom'); DATA.encheres = data || []; } catch (e) { DATA.encheres = []; }
+        DATA.actu = await safeLoad('actu', 'created_at');
+        DATA.adherents = await safeLoad('adherents', 'nom');
+        DATA.musee = await safeLoad('musee', 'nom');
+        DATA.encheres = await safeLoad('encheres', 'nom');
+        
         await getUsers();
-        console.log('✅ Données chargées');
+        console.log('✅ Toutes les données chargées - Adhérents:', DATA.adherents.length);
     }
 
     // RENDERS
@@ -2132,7 +2436,7 @@
         if (items.length === 0) { body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>'; return; }
         body.innerHTML = items.map(function(item) {
             var nom = currentLang === 'ar' ? (item.nom_ar || item.nom_fr) : (item.nom_fr || 'Produit');
-            return '<tr><td><strong>' + nom + '</strong></td><td>' + getLocaliteName(item.localite_id) + '</td><td>' + (item.quantite || 0) + '</td><td>' + (item.periode || '') + '</td><td>' + (item.statut || 'Disponible') + '</td></tr>';
+            return '<tr><td><strong>' + nom + '</strong></td><td>' + getLocaliteName(item.localite_id) + '</td><td>' + (item.quantite || 0) + '</td><td>' + (item.periode || '') + '</td><td>' + translateStatut(item.statut || 'Disponible') + '</td></tr>';
         }).join('');
     }
 
@@ -2153,7 +2457,7 @@
         if (!body) return;
         if (items.length === 0) { body.innerHTML = '<tr><td colspan="5" class="no-content">' + getLang().noData + '</td></tr>'; return; }
         body.innerHTML = items.map(function(item) {
-            return '<tr><td><strong>' + getLocaliteName(item.localite_id) + '</strong></td><td>' + (item.foyers || 0) + '</td><td>' + (item.forages || 0) + '</td><td>' + (item.capacite || 0) + '</td><td>' + (item.statut || 'Opérationnel') + '</td></tr>';
+            return '<tr><td><strong>' + getLocaliteName(item.localite_id) + '</strong></td><td>' + (item.foyers || 0) + '</td><td>' + (item.forages || 0) + '</td><td>' + (item.capacite || 0) + '</td><td>' + translateStatut(item.statut || 'Opérationnel') + '</td></tr>';
         }).join('');
     }
 
@@ -2164,7 +2468,7 @@
         body.innerHTML = items.map(function(item) {
             var nom = currentLang === 'ar' ? (item.nom_ar || item.nom_fr) : (item.nom_fr || '');
             var zone = currentLang === 'ar' ? (item.zone_ar || item.zone_fr) : (item.zone_fr || '');
-            return '<tr><td>' + (item.code || '') + '</td><td>' + nom + '</td><td>' + zone + '</td><td>' + (item.superficie || 0) + '</td><td>' + (item.debit || 0) + '</td><td>' + (item.statut || 'Actif') + '</td></tr>';
+            return '<tr><td>' + (item.code || '') + '</td><td>' + nom + '</td><td>' + zone + '</td><td>' + (item.superficie || 0) + '</td><td>' + (item.debit || 0) + '</td><td>' + translateStatut(item.statut || 'Actif') + '</td></tr>';
         }).join('');
     }
 
@@ -2302,7 +2606,7 @@
         var publishedContainer = document.getElementById('publishedTexts');
         if (publishedContainer) {
             var published = items.filter(function(t) { return t.published; });
-            if (published.length === 0) publishedContainer.innerHTML = '<div class="no-content">Aucun texte publié</div>';
+            if (published.length === 0) publishedContainer.innerHTML = '<div class="no-content">' + (currentLang === 'ar' ? 'لا يوجد نص منشور' : 'Aucun texte publié') + '</div>';
             else publishedContainer.innerHTML = published.map(function(t) { return '<div style="padding:10px;background:white;border-radius:8px;margin-bottom:10px;border-left:3px solid var(--primary);"><h4>' + (t.title || 'Texte') + '</h4><p style="color:#666;font-size:0.9rem;">' + (t.content || '').substring(0, 200) + '...</p></div>'; }).join('');
         }
     }
@@ -2323,14 +2627,54 @@
         }).join('');
     }
 
+    // RENDER ADHERENTS PUBLIC
     function renderAdherents() {
         var container = document.getElementById('adherentsContainer');
         var items = DATA.adherents || [];
         if (!container) return;
-        if (items.length === 0) { container.innerHTML = '<div class="no-content">' + getLang().noData + '</div>'; return; }
+        if (items.length === 0) { 
+            container.innerHTML = '<div class="no-content">' + (currentLang === 'ar' ? 'لا يوجد منخرطون حالياً.' : 'Aucun adhérent pour le moment.') + '</div>'; 
+            return; 
+        }
         container.innerHTML = items.map(function(item) {
-            var photo = item.photo_url ? '<img src="' + item.photo_url + '" class="adherent-photo" />' : '<div class="adherent-photo" style="display:flex;align-items:center;justify-content:center;font-size:3rem;color:var(--primary);"><i class="fas fa-user-circle"></i></div>';
-            return '<div class="adherent-card">' + photo + '<div class="adherent-info"><h4>' + item.prenom + ' ' + item.nom + '</h4><p><i class="fas fa-envelope"></i> ' + (item.email || 'Non renseigné') + '</p><p><i class="fas fa-phone"></i> ' + (item.telephone || 'Non renseigné') + '</p><p><i class="fas fa-map-marker-alt"></i> ' + getLocaliteName(item.localite_id) + '</p><p><span class="badge badge-membre">' + (item.statut || 'Actif') + '</span></p></div></div>';
+            var photo = item.photo_url 
+                ? '<img src="' + item.photo_url + '" class="adherent-photo" />' 
+                : '<div class="adherent-photo" style="display:flex;align-items:center;justify-content:center;font-size:3rem;color:var(--primary);"><i class="fas fa-user-circle"></i></div>';
+            return '<div class="adherent-card">' + photo + 
+                '<div class="adherent-info">' +
+                '<h4>' + (item.prenom || '') + ' ' + (item.nom || '') + '</h4>' +
+                '<p><i class="fas fa-envelope"></i> ' + (item.email || (currentLang === 'ar' ? 'غير محدد' : 'Non renseigné')) + '</p>' +
+                '<p><i class="fas fa-phone"></i> ' + (item.telephone || (currentLang === 'ar' ? 'غير محدد' : 'Non renseigné')) + '</p>' +
+                '<p><i class="fas fa-map-marker-alt"></i> ' + getLocaliteName(item.localite_id) + '</p>' +
+                '<p><span class="badge badge-membre">' + translateStatut(item.statut || 'Actif') + '</span></p>' +
+                '</div></div>';
+        }).join('');
+    }
+
+    // RENDER ADHERENTS ADMIN
+    function renderAdherentsAdmin() {
+        var list = document.getElementById('adherentsList');
+        var items = DATA.adherents || [];
+        if (!list) return;
+        if (items.length === 0) { 
+            list.innerHTML = '<div class="no-content">' + (currentLang === 'ar' ? 'لا يوجد منخرطون. انقر على "إضافة منخرط" لإنشاء واحد.' : 'Aucun adhérent. Cliquez sur "Ajouter un adhérent" pour en créer un.') + '</div>'; 
+            return; 
+        }
+        var user = getCurrentUser();
+        var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
+        list.innerHTML = items.map(function(item) {
+            var photo = item.photo_url 
+                ? '<img src="' + item.photo_url + '" style="width:45px;height:45px;object-fit:cover;border-radius:50%;" />' 
+                : '<i class="fas fa-user-circle" style="font-size:1.8rem;color:var(--primary);"></i>';
+            var actions = canEdit ? '<button class="btn-action edit" onclick="editAdherent(' + item.id + ')"><i class="fas fa-edit"></i></button> <button class="btn-action delete" onclick="deleteAdherent(' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
+            return '<div class="dashboard-item">' +
+                '<div class="item-icon">' + photo + '</div>' +
+                '<div class="item-info">' +
+                '<h4>' + (item.prenom || '') + ' ' + (item.nom || '') + '</h4>' +
+                '<small>' + (item.email || (currentLang === 'ar' ? 'بدون بريد' : 'Sans email')) + ' • ' + getLocaliteName(item.localite_id) + '</small>' +
+                '</div>' +
+                '<div class="item-actions">' + actions + '</div>' +
+                '</div>';
         }).join('');
     }
 
@@ -2341,7 +2685,7 @@
         if (items.length === 0) { container.innerHTML = '<div class="no-content">' + getLang().noMuseumPublic + '</div>'; return; }
         container.innerHTML = items.map(function(item) {
             var photo = item.photo_url ? '<img src="' + item.photo_url + '" style="width:100%;height:200px;object-fit:cover;border-radius:10px;" />' : '<div style="width:100%;height:200px;background:var(--light);display:flex;align-items:center;justify-content:center;font-size:4rem;color:var(--primary);"><i class="fas fa-landmark"></i></div>';
-            return '<div class="museum-item"><div style="flex:0 0 200px;margin-right:15px;">' + photo + '</div><div class="item-info"><h4>' + item.nom + '</h4><p><strong>Catégorie:</strong> ' + (item.categorie || '') + '</p><p>' + (item.description || '') + '</p></div></div>';
+            return '<div class="museum-item"><div style="flex:0 0 200px;margin-right:15px;">' + photo + '</div><div class="item-info"><h4>' + item.nom + '</h4><p><strong>' + (currentLang === 'ar' ? 'الفئة' : 'Catégorie') + ':</strong> ' + (item.categorie || '') + '</p><p>' + (item.description || '') + '</p></div></div>';
         }).join('');
     }
 
@@ -2370,7 +2714,7 @@
             if (status === 'active') statusText = getLang().bidStatusActive;
             else if (status === 'ended') statusText = getLang().bidStatusEnded;
             var photo = item.photo_url ? '<img src="' + item.photo_url + '" style="width:80px;height:80px;object-fit:cover;border-radius:10px;" />' : '<i class="fas fa-gavel" style="font-size:2rem;color:var(--gold);"></i>';
-            return '<div class="auction-item"><div style="flex:0 0 80px;margin-right:15px;">' + photo + '</div><div class="item-info"><h4>' + item.nom + '</h4><p>' + (item.description || '') + '</p><p><strong>Départ:</strong> ' + (item.prix_depart || 0) + ' DH | <strong>Actuel:</strong> ' + (item.prix_actuel || 0) + ' DH</p><p><span class="bid-status ' + status + '">' + statusText + '</span></p></div><div class="item-actions"><button class="btn-action bid" onclick="selectAuctionItem(' + item.id + ')"><i class="fas fa-hand-bid"></i></button></div></div>';
+            return '<div class="auction-item"><div style="flex:0 0 80px;margin-right:15px;">' + photo + '</div><div class="item-info"><h4>' + item.nom + '</h4><p>' + (item.description || '') + '</p><p><strong>' + (currentLang === 'ar' ? 'البداية' : 'Départ') + ':</strong> ' + (item.prix_depart || 0) + ' DH | <strong>' + (currentLang === 'ar' ? 'الحالي' : 'Actuel') + ':</strong> ' + (item.prix_actuel || 0) + ' DH</p><p><span class="bid-status ' + status + '">' + statusText + '</span></p></div><div class="item-actions"><button class="btn-action bid" onclick="selectAuctionItem(' + item.id + ')"><i class="fas fa-hand-bid"></i></button></div></div>';
         }).join('');
     }
 
@@ -2393,7 +2737,7 @@
         if (!select) return;
         var items = DATA.encheres || [];
         var activeItems = items.filter(function(item) { return item.statut === 'active' || item.statut === 'upcoming'; });
-        select.innerHTML = '<option value="">-- Sélectionnez un article --</option>';
+        select.innerHTML = '<option value="">-- ' + (currentLang === 'ar' ? 'اختر قطعة' : 'Sélectionnez un article') + ' --</option>';
         activeItems.forEach(function(item) {
             select.innerHTML += '<option value="' + item.id + '">' + item.nom + ' (' + (item.prix_actuel || item.prix_depart || 0) + ' DH)</option>';
         });
@@ -2424,7 +2768,7 @@
         var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
         body.innerHTML = items.map(function(item) {
             var actions = canEdit ? '<button class="btn-action edit" onclick="editGenericItem(\'produit\', ' + item.id + ')"><i class="fas fa-edit"></i></button> <button class="btn-action delete" onclick="deleteGenericItem(\'produit\', ' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
-            return '<tr><td>' + (item.nom_fr || 'Produit') + '</td><td>' + getLocaliteName(item.localite_id) + '</td><td>' + (item.quantite || 0) + '</td><td>' + (item.periode || '') + '</td><td>' + (item.statut || 'Disponible') + '</td><td>' + actions + '</td></tr>';
+            return '<tr><td>' + (item.nom_fr || 'Produit') + '</td><td>' + getLocaliteName(item.localite_id) + '</td><td>' + (item.quantite || 0) + '</td><td>' + (item.periode || '') + '</td><td>' + translateStatut(item.statut || 'Disponible') + '</td><td>' + actions + '</td></tr>';
         }).join('');
     }
 
@@ -2453,7 +2797,7 @@
         var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
         body.innerHTML = items.map(function(item) {
             var actions = canEdit ? '<button class="btn-action edit" onclick="editGenericItem(\'eau\', ' + item.id + ')"><i class="fas fa-edit"></i></button> <button class="btn-action delete" onclick="deleteGenericItem(\'eau\', ' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
-            return '<tr><td>' + getLocaliteName(item.localite_id) + '</td><td>' + (item.foyers || 0) + '</td><td>' + (item.forages || 0) + '</td><td>' + (item.capacite || 0) + '</td><td>' + (item.statut || 'Opérationnel') + '</td><td>' + actions + '</td></tr>';
+            return '<tr><td>' + getLocaliteName(item.localite_id) + '</td><td>' + (item.foyers || 0) + '</td><td>' + (item.forages || 0) + '</td><td>' + (item.capacite || 0) + '</td><td>' + translateStatut(item.statut || 'Opérationnel') + '</td><td>' + actions + '</td></tr>';
         }).join('');
     }
 
@@ -2466,7 +2810,7 @@
         var canEdit = user && (user.role === 'admin' || user.role === 'webmestre');
         body.innerHTML = items.map(function(item) {
             var actions = canEdit ? '<button class="btn-action edit" onclick="editGenericItem(\'canaux_ir\', ' + item.id + ')"><i class="fas fa-edit"></i></button> <button class="btn-action delete" onclick="deleteGenericItem(\'canaux_ir\', ' + item.id + ')"><i class="fas fa-trash"></i></button>' : '';
-            return '<tr><td>' + (item.code || '') + '</td><td>' + (item.nom_fr || '') + '</td><td>' + (item.zone_fr || '') + '</td><td>' + (item.superficie || 0) + '</td><td>' + (item.debit || 0) + '</td><td>' + (item.statut || 'Actif') + '</td><td>' + actions + '</td></tr>';
+            return '<tr><td>' + (item.code || '') + '</td><td>' + (item.nom_fr || '') + '</td><td>' + (item.zone_fr || '') + '</td><td>' + (item.superficie || 0) + '</td><td>' + (item.debit || 0) + '</td><td>' + translateStatut(item.statut || 'Actif') + '</td><td>' + actions + '</td></tr>';
         }).join('');
     }
 
@@ -2533,7 +2877,9 @@
         renderGallery(); renderGalleryAdmin();
         renderVideos(); renderVideosAdmin();
         renderArticles(); renderPublicationsAdmin();
-        renderTexts(); renderActu(); renderAdherents();
+        renderTexts(); renderActu(); 
+        renderAdherents();
+        renderAdherentsAdmin();
         renderMusee(); renderMuseeAdmin();
         renderEncheres(); renderEncheresAdmin();
         renderAuctionOptions();
@@ -2640,7 +2986,7 @@
     function closeFileViewer() { document.getElementById('fileViewer').classList.remove('active'); document.getElementById('viewerContent').innerHTML = ''; }
 
     // ============================================================
-    // DOCUMENTS — FORMULAIRES DE GÉNÉRATION (FR + AR) — VERSION UNIQUE
+    // DOCUMENTS — FORMULAIRES DE GÉNÉRATION (FR + AR)
     // ============================================================
     function showDocumentForm(type) {
         var modal = document.getElementById('documentFormModal');
@@ -3102,14 +3448,14 @@
         currentEditId = null;
         var body = document.getElementById('genericModalBody');
         var configs = {
-            'betail': { title: 'Bétail', fields: [
+            'betail': { title: currentLang === 'ar' ? 'الماشية' : 'Bétail', fields: [
                 { name: 'localite_id', label: 'Localité', type: 'select_localite' },
                 { name: 'bovins', label: 'Bovins', type: 'number' },
                 { name: 'ovins', label: 'Ovins', type: 'number' },
                 { name: 'caprins', label: 'Caprins', type: 'number' },
                 { name: 'habitants', label: 'Habitants', type: 'number' }
             ]},
-            'produit': { title: 'Produit', fields: [
+            'produit': { title: currentLang === 'ar' ? 'منتج' : 'Produit', fields: [
                 { name: 'nom_fr', label: 'Nom (FR)', type: 'text' },
                 { name: 'nom_ar', label: 'Nom (AR)', type: 'text' },
                 { name: 'localite_id', label: 'Localité', type: 'select_localite' },
@@ -3117,7 +3463,7 @@
                 { name: 'periode', label: 'Période', type: 'text' },
                 { name: 'statut', label: 'Statut', type: 'select', options: ['Disponible', 'Non disponible', 'En cours'] }
             ]},
-            'arbre': { title: 'Arbre', fields: [
+            'arbre': { title: currentLang === 'ar' ? 'شجرة' : 'Arbre', fields: [
                 { name: 'localite_id', label: 'Localité', type: 'select_localite' },
                 { name: 'oliviers', label: 'Oliviers', type: 'number' },
                 { name: 'amandiers', label: 'Amandiers', type: 'number' },
@@ -3125,7 +3471,7 @@
                 { name: 'noyers', label: 'Noyers', type: 'number' },
                 { name: 'habitants', label: 'Habitants', type: 'number' }
             ]},
-            'eau': { title: 'Eau', fields: [
+            'eau': { title: currentLang === 'ar' ? 'ماء' : 'Eau', fields: [
                 { name: 'localite_id', label: 'Localité', type: 'select_localite' },
                 { name: 'foyers', label: 'Foyers', type: 'number' },
                 { name: 'forages', label: 'Forages', type: 'number' },
@@ -3156,7 +3502,10 @@
                 html += '</select>';
             } else if (f.type === 'select') {
                 html += '<select id="genericField_' + f.name + '" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">';
-                f.options.forEach(function(opt) { html += '<option value="' + opt + '">' + opt + '</option>'; });
+                f.options.forEach(function(opt) { 
+                    var optTrad = translateStatut(opt);
+                    html += '<option value="' + opt + '">' + optTrad + '</option>'; 
+                });
                 html += '</select>';
             } else {
                 html += '<input type="' + f.type + '" id="genericField_' + f.name + '" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;" />';
@@ -3164,7 +3513,7 @@
             html += '</div>';
             fieldsHtml += html;
         });
-        body.innerHTML = '<div>' + fieldsHtml + '</div><div class="upload-actions"><button class="btn-browse" onclick="hideGenericModal()" style="background:var(--danger);"><i class="fas fa-times"></i> Annuler</button><button class="btn-browse" onclick="saveNewGenericItem(\'' + type + '\')" style="background:var(--success);"><i class="fas fa-save"></i> Enregistrer</button></div>';
+        body.innerHTML = '<div>' + fieldsHtml + '</div><div class="upload-actions"><button class="btn-browse" onclick="hideGenericModal()" style="background:var(--danger);"><i class="fas fa-times"></i> ' + (currentLang === 'ar' ? 'إلغاء' : 'Annuler') + '</button><button class="btn-browse" onclick="saveNewGenericItem(\'' + type + '\')" style="background:var(--success);"><i class="fas fa-save"></i> ' + (currentLang === 'ar' ? 'حفظ' : 'Enregistrer') + '</button></div>';
         document.getElementById('genericModalTitle').textContent = config.title;
         document.getElementById('genericModal').classList.add('active');
     }
@@ -3189,10 +3538,10 @@
         });
         try {
             await supabase.from(config.table).insert([payload]);
-            showAlert('✅ Enregistré', 'success');
+            showAlert('✅ ' + (currentLang === 'ar' ? 'تم الحفظ' : 'Enregistré'), 'success');
             hideGenericModal();
             await loadAllTables(); renderAll();
-        } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
+        } catch (e) { showAlert('❌ ' + (currentLang === 'ar' ? 'خطأ: ' : 'Erreur: ') + e.message, 'error'); }
     }
 
     function editGenericItem(type, id) {
@@ -3222,7 +3571,7 @@
             } else if (f === 'statut') {
                 var opts = type === 'eau' ? ['Opérationnel', 'En panne'] : type === 'canaux_ir' ? ['Actif', 'Inactif'] : ['Disponible', 'Non disponible'];
                 html += '<select id="genericField_' + f + '" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;">';
-                opts.forEach(function(o) { html += '<option value="' + o + '" ' + (o === value ? 'selected' : '') + '>' + o + '</option>'; });
+                opts.forEach(function(o) { html += '<option value="' + o + '" ' + (o === value ? 'selected' : '') + '>' + translateStatut(o) + '</option>'; });
                 html += '</select>';
             } else {
                 var inputType = (f.includes('nom') || f === 'code' || f === 'periode' || f.includes('zone')) ? 'text' : 'number';
@@ -3231,8 +3580,8 @@
             html += '</div>';
             fieldsHtml += html;
         });
-        body.innerHTML = '<div>' + fieldsHtml + '</div><div class="upload-actions"><button class="btn-browse" onclick="hideGenericModal()" style="background:var(--danger);"><i class="fas fa-times"></i> Annuler</button><button class="btn-browse" onclick="saveGenericItem()" style="background:var(--success);"><i class="fas fa-save"></i> Enregistrer</button></div>';
-        document.getElementById('genericModalTitle').textContent = 'Modifier ' + type;
+        body.innerHTML = '<div>' + fieldsHtml + '</div><div class="upload-actions"><button class="btn-browse" onclick="hideGenericModal()" style="background:var(--danger);"><i class="fas fa-times"></i> ' + (currentLang === 'ar' ? 'إلغاء' : 'Annuler') + '</button><button class="btn-browse" onclick="saveGenericItem()" style="background:var(--success);"><i class="fas fa-save"></i> ' + (currentLang === 'ar' ? 'حفظ' : 'Enregistrer') + '</button></div>';
+        document.getElementById('genericModalTitle').textContent = (currentLang === 'ar' ? 'تعديل ' : 'Modifier ') + type;
         document.getElementById('genericModal').classList.add('active');
     }
 
@@ -3256,21 +3605,21 @@
         });
         try {
             await supabase.from(config.table).update(payload).eq('id', currentEditId);
-            showAlert('✅ Modifié', 'success');
+            showAlert('✅ ' + (currentLang === 'ar' ? 'تم التعديل' : 'Modifié'), 'success');
             hideGenericModal();
             await loadAllTables(); renderAll();
-        } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
+        } catch (e) { showAlert('❌ ' + (currentLang === 'ar' ? 'خطأ: ' : 'Erreur: ') + e.message, 'error'); }
     }
 
     async function deleteGenericItem(type, id) {
         var tableMap = { 'betail': 'betail', 'produit': 'produits', 'arbre': 'arbres', 'eau': 'eau', 'canaux_ir': 'canaux_ir' };
         var table = tableMap[type];
-        if (!confirm('Supprimer ?')) return;
+        if (!confirm(currentLang === 'ar' ? 'حذف؟' : 'Supprimer ?')) return;
         try {
             await supabase.from(table).delete().eq('id', id);
-            showAlert('✅ Supprimé', 'success');
+            showAlert('✅ ' + (currentLang === 'ar' ? 'تم الحذف' : 'Supprimé'), 'success');
             await loadAllTables(); renderAll();
-        } catch (e) { showAlert('❌ Erreur: ' + e.message, 'error'); }
+        } catch (e) { showAlert('❌ ' + (currentLang === 'ar' ? 'خطأ: ' : 'Erreur: ') + e.message, 'error'); }
     }
 
     async function saveTextContent() {
@@ -3521,7 +3870,7 @@
         document.getElementById('actuDetailDate').textContent = new Date(item.created_at).toLocaleString();
         document.getElementById('actuDetailContent').textContent = item.text || '';
         var wordCount = (item.text || '').split(/\s+/).filter(function(w) { return w.length > 0; }).length;
-        document.getElementById('actuDetailWordCount').textContent = wordCount + ' mots';
+        document.getElementById('actuDetailWordCount').textContent = wordCount + (currentLang === 'ar' ? ' كلمة' : ' mots');
         document.getElementById('actuDetailStatus').textContent = item.status === 'published' ? getLang().statusPublished : getLang().statusDraft;
         document.getElementById('actuDetailStatus').style.background = item.status === 'published' ? 'var(--success)' : 'var(--warning)';
         document.getElementById('actuDetailStatus').style.color = 'white';
@@ -3575,7 +3924,7 @@
         var items = DATA.adherents || [];
         if (items.length === 0) { showAlert('Aucun adhérent', 'warning'); return; }
         var rows = items.map(function(item, i) {
-            return '<tr><td>' + (i + 1) + '</td><td>' + (item.nom || '') + ' ' + (item.prenom || '') + '</td><td>' + (item.email || '-') + '</td><td>' + (item.telephone || '-') + '</td><td>' + getLocaliteName(item.localite_id) + '</td><td>' + (item.statut || 'Actif') + '</td></tr>';
+            return '<tr><td>' + (i + 1) + '</td><td>' + (item.nom || '') + ' ' + (item.prenom || '') + '</td><td>' + (item.email || '-') + '</td><td>' + (item.telephone || '-') + '</td><td>' + getLocaliteName(item.localite_id) + '</td><td>' + translateStatut(item.statut || 'Actif') + '</td></tr>';
         }).join('');
         var content = '<div style="text-align:center;border-bottom:2px solid #145a32;padding-bottom:20px;"><h1 style="color:#1a6d2c;">Association ANSFAL</h1><h2>Liste des Adhérents</h2></div>' +
             '<table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="background:#1a6d2c;color:white;"><th>#</th><th>Nom complet</th><th>Email</th><th>Téléphone</th><th>Localité</th><th>Statut</th></tr></thead><tbody>' + rows + '</tbody></table>';
